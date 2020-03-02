@@ -1,0 +1,10 @@
+{
+  "name": "MemoPad",
+  "manifest_version": 2,
+  "description": "MyMemoPad.",
+  "version": "0.0.1",
+  "permissions" : ["management"],
+  "chrome_url_overrides" : {
+    "newtab": "index.html"
+  }
+}

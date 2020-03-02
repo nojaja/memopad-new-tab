@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='UTF-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>memo pad</title>
+  <link rel="stylesheet prefetch" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.27.3/css/uikit.min.css">
+  <link rel="stylesheet prefetch" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/2.27.3/css/components/notify.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="uk-grid ">
+  <div class="uk-form uk-width-medium-1-6">
+    <div class="uk-panel">
+      </ul>
+      <h3 class="uk-panel-title">Files 
+      <a id="fileCopy" class="uk-icon-hover uk-icon-copy "></a>
+      <a id="fileRename" class="uk-icon-hover uk-icon-edit"></a>
+      <a id="fileDelete" class="uk-icon-hover uk-icon-trash "></a>
+      </ul>
+      </ul>
+      <a id="newfile" class="uk-button uk-button-success uk-button-smal uk-float-center"><i class="uk-icon-plus"></i> ADD File</a></h3> </ul>
+    </div>
+
+
+    <ul id="filelist" class="uk-nav uk-nav-side " data-uk-nav="">
+      <li><i class="uk-icon-spinner uk-icon-spin"></i></li>
+    </ul>
+
+  </div>
+  <div class="uk-width-medium-3-6">
+    <h3 class="uk-panel-title">Files </h3>
+    <div class="uk-panel">
+
+      <!-- This is the container of the content items -->
+      <ul id="tab-content" class="uk-switcher uk-margin">
+        <li class="uk-active">
+          <div id="container" class="editor"></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="uk-width-medium-2-6">
+    <div class="uk-panel uk-form">
+      <h3 id="preview" class="uk-panel-title">Preview</h3>
+      <iframe id="child-frame" class="editor"></iframe>
+    </div>
+  </div>
+</div>
+<script src="js/Encoding.js"></script>
+<script src="js/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="js/ajax/libs/jquery/jquery-migrate-3.0.0.js"></script>
+<script src="js/ajax/libs/uikit/2.27.3/js/uikit.min.js"></script>
+<script src="js/ajax/libs/uikit/2.27.3/js/components/notify.min.js"></script>
+<script src="js/index.js"></script>
+
+<script src="js/marked/marked.min.js"></script>
+
+<script src="js/monaco-editor/min/vs/loader.js"></script>
+
+
+</body></html>
