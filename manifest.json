@@ -1,7 +1,7 @@
 {
-  "name": "MemoPad",
+  "name": "MemoPad-new-tab",
   "manifest_version": 2,
-  "description": "MyMemoPad.",
+  "description": "memopad-new-tab.",
   "version": "0.0.1",
   "permissions" : ["management"],
   "chrome_url_overrides" : {
