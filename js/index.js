@@ -567,7 +567,7 @@
 
 
   var fileContainer = new _FileContainer2.default();
-
+  //保存処理
   function saveDraft(source) {
     // ローカルストレージに最新の状態を保存
     var name = 'draftContainer' + location.pathname.replace(/\//g, '.');
@@ -575,7 +575,7 @@
     console.log("draftContainer:" + fileContainer.getContainerJson());
     $.UIkit.notify("save..", { status: 'success', timeout: 1000 });
   }
-
+  //読み込み処理
   function localDraft() {
     // ページが読み込まれたら、ローカルストレージから状態を読み込む
     var name1 = 'draftContainer' + location.pathname.replace(/\//g, '.');
@@ -596,7 +596,7 @@
   }
 
 
-
+  //URLパラメータ取得（未使用
   var arg = new Object();
   var pair = location.search.substring(1).split('&');
   for (var i = 0; pair[i]; i++) {
@@ -614,6 +614,7 @@
   }
   //View///////////////////////////////////////////////////
   $(function () {
+    //エディタ初期化
     require.config({
       paths: {
         vs: "js/monaco-editor/min/vs"
@@ -631,6 +632,7 @@
     });
 
 
+    //名前変更処理
     $("#fileRename").on("click", function (event) {
       $('.fileSelect:checkbox:checked').each(function () {
         var filename = $(this).attr("data-uri");
@@ -646,6 +648,7 @@
       });
     });
 
+    //削除処理
     $("#fileDelete").on("click", function (event) {
       $('.fileSelect:checkbox:checked').each(function () {
         var filename = $(this).attr("data-uri");
@@ -659,23 +662,24 @@
         });
       });
     });
-
+    //新規ファイル作成処理
     $("#newfile").on("click", function (event) {
-
+      //日付をファイル名にする
       var today = new Date();
       var newFile = ""+today.getFullYear()+"/"+(today.getMonth()+1)+"/"+today.getDate()+" "+today.getHours()+":"+today.getMinutes()+"";
       var content = ""+today.getFullYear()+"/"+(today.getMonth()+1)+"/"+today.getDate()+" "+today.getHours()+":"+today.getMinutes()+"\n";
-
-        var file = new _FileData2.default();
-        file.setFilename(newFile);
-        file.setContent(content);
-        fileContainer.putFile(file);
-        refreshFileList();
+       //ファイルデータ作成
+       var file = new _FileData2.default();
+       file.setFilename(newFile);
+       file.setContent(content);
+       fileContainer.putFile(file);
+       //ファイルリスト更新
+       refreshFileList();
     });
 
 var savetimer = false;
 var previewtimer = false;
-    //変更の検知
+    //操作の検知
     $('#container').bind('blur keydown keyup keypress change', function () {
       if (currentFile) {
         var currentState = editor.saveViewState();
@@ -684,13 +688,17 @@ var previewtimer = false;
         data[currentModelId].state = currentState;
         currentFile.setEditorData(data);
         fileContainer.putFile(currentFile);
-
+      }
+    });
+    //変更の検知
+    $('#container').bind('keyup change', function () {
+      if (currentFile) {
 	if (previewtimer != false)  clearTimeout(previewtimer);
 	previewtimer = setTimeout(function() {
 	  //ここに遅延実行する処理の内容
           compile();
 	  previewtimer = false;
-	}, 1000);
+	}, 500);
 
 	if (savetimer != false)  clearTimeout(savetimer);
 	savetimer = setTimeout(function() {
@@ -701,14 +709,14 @@ var previewtimer = false;
 
       }
     });
-
+    //ショートカットキー操作
     $(window).keydown(function (e) {
-      if (e.keyCode === 120) {
+      if (e.keyCode === 120) {//F9
         compile();
         return false;
       }
       if (e.ctrlKey) {
-        if (e.keyCode === 83) {
+        if (e.keyCode === 83) {//Ctrl+S
           saveDraft();
           return false;
         }
@@ -716,6 +724,7 @@ var previewtimer = false;
     });
   });
 
+  //デバッグ用
   function stringify(str) {
     var cache = [];
     return JSON.stringify(str, function (key, value) {
