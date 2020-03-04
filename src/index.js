@@ -1,8 +1,3 @@
-//import $ from './ajax/libs/jquery/3.1.1/jquery.min.js';
-//import marked from './marked/marked.min.js';
-//import uikit from './ajax/libs/uikit/2.27.3/js/uikit.min.js';
-//import notify from './ajax/libs/uikit/2.27.3/js/components/notify.min.js';
-//import * as monaco from './monaco-editor/min/vs/loader.js';
 import UIkit from 'uikit';
 import Icons from 'uikit/dist/js/uikit-icons';
 import marked from 'marked';
@@ -17,13 +12,6 @@ import FileContainer from './model/FileContainer.js'
 
 // loads the Icon plugin
 UIkit.use(Icons);
-
-// components can be called from the imported UIkit reference
-UIkit.notification('Hello world.');
-
-var parseData = marked('# Hello world.');
-$("#child-frame").attr("srcdoc", parseData);
-
 
   //１つ目のファイルを開く
   function openFirst() {
