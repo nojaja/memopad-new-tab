@@ -1,17 +1,21 @@
 import UIkit from 'uikit';
 import Icons from 'uikit/dist/js/uikit-icons';
 import marked from 'marked';
-import * as monaco from 'monaco-editor'
+import * as monaco from 'monaco-editor';
 
 var editor = null;
 var currentFile = null;
 var currentModelId = "source";
 
-import FileData from './model/FileData.js'
-import FileContainer from './model/FileContainer.js'
+import FileData from './model/FileData.js';
+import FileContainer from './model/FileContainer.js';
+
+import Debug from './Debug.js';
 
 // loads the Icon plugin
 UIkit.use(Icons);
+
+var fileContainer = new FileContainer();
 
   //１つ目のファイルを開く
   function openFirst() {
@@ -59,6 +63,7 @@ UIkit.use(Icons);
         return cb ? cb(doc) : true;
       }
   }
+
   //File一覧の更新
   function refreshFileList() {
     $("#title").empty();
@@ -66,7 +71,7 @@ UIkit.use(Icons);
 
     $("#filelist").empty();
 
-    var file = $('<li ><a  class="file" data-url=""><input type="checkbox" class="uk-checkbox fileSelect" > <i uk-icon="file"></i> </a></li>');
+    var file = $('<li ><a  class="file" data-url=""><input type="checkbox" class="uk-checkbox fileSelect" > <i uk-icon="file-text"></i> </a></li>');
     file.on("click", function (event) {
       fileOpen($(event.target).attr("data-uri"));
       $("#filelist").children("li").removeClass("uk-active");
@@ -83,7 +88,6 @@ UIkit.use(Icons);
     });
   }
 
-var fileContainer = new FileContainer();
   //保存処理
   function saveDraft(source) {
     // ローカルストレージに最新の状態を保存
@@ -123,24 +127,18 @@ var fileContainer = new FileContainer();
   //sourceのcompile
   function compile() {
     var parseData = marked(currentFile.getEditorData().source.model.getValue().trim());
-
     $("#child-frame").attr("srcdoc", parseData);
   }
+
   //View///////////////////////////////////////////////////
   $(function () {
-//エディタ初期化
-var editorContainer = document.getElementById("container");
-editor = monaco.editor.create(editorContainer, {
-  value: 'console.log("Hello, world")',
-  language: 'javascript'
-});
-
-/*
+  //エディタ初期化
+    var editorContainer = document.getElementById("container");
     editor = monaco.editor.create(editorContainer, {
         automaticLayout: true,
         model: null
-      });
-*/
+    });
+
 
       fileContainer.setMonaco(monaco);
       loadProject(function () {
@@ -240,25 +238,3 @@ var previewtimer = false;
       }
     });
   });
-
-  //デバッグ用
-function stringify(str) {
-  var cache = [];
-  return JSON.stringify(
-    str,
-    function(key, value) {
-      if (typeof value === "object" && value !== null) {
-        if (cache.indexOf(value) !== -1) {
-          // Circular reference found, discard key
-          return;
-        }
-        // Store value in our collection
-        cache.push(value);
-      }
-      if (key == "parentNode") return;
-      return value;
-    },
-    "\t"
-  );
-}
-
