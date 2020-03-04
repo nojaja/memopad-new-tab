@@ -1,9 +1,55 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <title>Getting Started</title>
-  </head>
-  <body>
+<head>
+  <meta charset='UTF-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>memo pad</title>
+  <link href="https://fonts.googleapis.com/css?family=M+PLUS+1p&amp;subset=japanese" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/uikit/3.3.3/css/uikit.min.css" />
+  <link rel="stylesheet" href="css/style.css">
+<script src="migrate.min.js"></script>
+</head>
+<body>
+
+<div uk-grid>
+  <div class="uk-width-auto@m">
+    <div class="uk-panel">
+      <ul>
+      <h3 class="uk-panel-title">Files 
+      <a id="fileCopy" class="uk-icon-link" uk-icon="copy"></a>
+      <a id="fileRename" class="uk-icon-link" uk-icon="file-edit"></a>
+      <a id="fileDelete" class="uk-icon-link" uk-icon="trash"></a>
+      </ul>
+      </ul>
+      <a id="newfile" class="uk-button uk-button-default uk-button-success uk-button-smal uk-float-center"><i uk-icon="plus"></i> ADD File</a></ul>
+      </h3>
+    </div>
+
+    <ul id="filelist" class="uk-nav-default " uk-nav>
+      <li><i class="uk-icon-spinner uk-icon-spin"></i></li>
+    </ul>
+  </div>
+
+  <div class="uk-width-expand">
+    <p class="uk-h4">Editor </p>
+    <div class="uk-panel">
+
+      <!-- This is the container of the content items -->
+      <ul id="tab-content" class="uk-switcher uk-margin ">
+        <li class="uk-active">
+          <div id="container" class="editor"></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="uk-width-2-5">
+    <div class="uk-panel">
+      <p id="preview" class="uk-h4">Preview</p>
+      <iframe id="child-frame" class="editor"></iframe>
+    </div>
+  </div>
+</div>
     <script src="main.js"></script>
-  </body>
+</body>
 </html>
