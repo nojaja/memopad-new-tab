@@ -17,12 +17,22 @@ UIkit.use(Icons);
 
 var fileContainer = new FileContainer();
 
+var noteKeyList = [];
+
   //１つ目のファイルを開く
-  function openFirst() {
+  function openFirst_org() {
     fileOpen(fileContainer.getFiles()[0]);
     $("#filelist").children("li").removeClass("uk-active");
     $("#filelist li:first").addClass("uk-active");
   }
+
+  //１つ目のファイルを開く
+  function openFirst() {
+    loadProject(noteKeyList[0]);
+    $("#filelist").children("li").removeClass("uk-active");
+    $("#filelist li:first").addClass("uk-active");
+  }
+
 
   //Fileを開く
   function fileOpen(filename) {
@@ -42,13 +52,15 @@ var fileContainer = new FileContainer();
     };
     compile();
   }
+
   // iframe内のコンテンツを更新
   function refreshView(content) {
     // iframe内のコンテンツを更新
     $("#child-frame").attr("srcdoc", content);
   }
+
   //プロジェクトファイルの読み込み
-  function loadProject(cb) {
+  function loadProject_org(cb) {
     UIkit.notification("load..", { status: 'success', timeout: 1000 });
     $("#filelist").html('<li><i class="uk-icon-spinner uk-icon-spin"></i></li>');
     //iframeの初期化
@@ -64,8 +76,49 @@ var fileContainer = new FileContainer();
       }
   }
 
+  //プロジェクトファイルの読み込み
+  function loadProjectList(cb) {
+    UIkit.notification("load..", { status: 'success', timeout: 1000 });
+    $("#filelist").html('<li><i class="uk-icon-spinner uk-icon-spin"></i></li>');
+    //iframeの初期化
+    refreshView("");
+    //localから取得
+      noteKeyList = loadNoteKeyList();
+      refreshFileList();
+      openFirst();
+      return cb ? cb(noteKeyList) : true;
+  }
+
   //File一覧の更新
   function refreshFileList() {
+    $("#filelist").empty();
+
+    var file = $('<li data-url=""><a class="file"><input type="checkbox" class="uk-checkbox fileSelect" > <i class="filename"></i></a></li>');
+    file.on("click", function (event) {
+      loadProject($(event.currentTarget).attr("data-uri"));
+      $("#filelist").children("li").removeClass("uk-active");
+      $(event.target.parentElement).addClass("uk-active");
+    });
+
+    console.log("noteKeyList"+noteKeyList);
+    noteKeyList.forEach(function (val, i) {
+      console.log(i, val);
+      var tmpfileContainer = new FileContainer();
+      tmpfileContainer.setContainerJson(localStorage.getItem(val));
+      
+      var label = tmpfileContainer.getFile(tmpfileContainer.getFiles()[0]).getContent().split("\n")[0]||val;
+      console.log(label);
+
+      var _file = file.clone(true);
+      _file.find('.fileSelect').attr('data-uri', val);
+      _file.attr('data-uri', val);
+      _file.find('.filename').text(" "+label);
+      $("#filelist").append(_file);
+    });
+  }
+
+  //File一覧の更新
+  function refreshFileList_org() {
     $("#title").empty();
     $("#title").text(fileContainer.getProjectName());
 
@@ -89,13 +142,81 @@ var fileContainer = new FileContainer();
   }
 
   //保存処理
-  function saveDraft(source) {
+  function saveDraft_org(source) {
     // ローカルストレージに最新の状態を保存
     var name = 'draftContainer' + location.pathname.replace(/\//g, '.');
     localStorage.setItem(name, fileContainer.getContainerJson());
     console.log("draftContainer:" + fileContainer.getContainerJson());
     UIkit.notification("save..", { status: 'success', timeout: 1000 });
   }
+  //保存処理
+  function saveDraft() {
+    // ローカルストレージに最新の状態を保存
+    localStorage.setItem(fileContainer.getProjectName(), fileContainer.getContainerJson());
+    console.log(fileContainer.getProjectName() + ":" + fileContainer.getContainerJson());
+    UIkit.notification("save..", { status: 'success', timeout: 1000 });
+    //refreshFileList();
+  }
+
+  //読み込み処理
+  function loadNoteKeyList() {
+    // ページが読み込まれたら、ローカルストレージから状態を読み込む
+    var name1 = 'noteKeyList';
+    noteKeyList = [];
+    if (localStorage.getItem(name1)) {
+      noteKeyList = JSON.parse(localStorage.getItem(name1));
+    }
+    console.log("loadNoteKeyList:" + noteKeyList);
+    return noteKeyList;
+  }
+
+  //読み込み処理
+  function newProject() {
+    var noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random());
+    var noteName = "note_" + noteId;
+    var today = new Date();
+    var content = ""+today.getFullYear()+"/"+(today.getMonth()+1)+"/"+today.getDate()+" "+today.getHours()+":"+today.getMinutes()+"\n";
+
+    var file = new FileData();
+    file.setFilename("index.md");
+    file.setContent(content);
+    fileContainer.putFile(file);
+    console.log("fileContainer:" + fileContainer.getContainerJson());
+    fileContainer.setProjectName(noteName);
+
+
+    // ローカルストレージに最新の状態を保存
+    var name = 'noteKeyList';
+    noteKeyList.push(noteName);
+    localStorage.setItem(name, JSON.stringify(noteKeyList));
+
+    saveDraft();
+    refreshFileList();
+    console.log("noteKeyList:" + noteKeyList);
+  }
+
+
+  //読み込み処理
+  function loadProject(noteName) {
+    console.log("loadProject:"+noteName);
+    // ページが読み込まれたら、ローカルストレージから状態を読み込む
+    if (localStorage.getItem(noteName)) {
+      fileContainer.setContainerJson(localStorage.getItem(noteName));
+    } else {
+      fileContainer.init();
+      var file = new FileData();
+      file.setFilename("index.md");
+      file.setContent("");
+      fileContainer.putFile(file);
+      fileContainer.setProjectName(noteName);
+    }
+    console.log("fileContainer:" + fileContainer.getContainerJson());
+
+    fileOpen(fileContainer.getFiles()[0]);
+
+    return fileContainer.getContainerJson();
+  }
+
   //読み込み処理
   function localDraft() {
     // ページが読み込まれたら、ローカルストレージから状態を読み込む
@@ -138,12 +259,10 @@ var fileContainer = new FileContainer();
         automaticLayout: true,
         model: null
     });
-
-
-      fileContainer.setMonaco(monaco);
-      loadProject(function () {
-        compile();
-      });
+    fileContainer.setMonaco(monaco);
+    loadProjectList(function () {
+      //compile();
+    });
 
 
     //名前変更処理
@@ -178,18 +297,7 @@ var fileContainer = new FileContainer();
     });
     //新規ファイル作成処理
     $("#newfile").on("click", function (event) {
-      //日付をファイル名にする
-      var today = new Date();
-      var newFile = ""+today.getFullYear()+"/"+(today.getMonth()+1)+"/"+today.getDate()+" "+today.getHours()+":"+today.getMinutes()+"";
-      var content = ""+today.getFullYear()+"/"+(today.getMonth()+1)+"/"+today.getDate()+" "+today.getHours()+":"+today.getMinutes()+"\n";
-       //ファイルデータ作成
-      var file = new FileData();
-
-       file.setFilename(newFile);
-       file.setContent(content);
-       fileContainer.putFile(file);
-       //ファイルリスト更新
-       refreshFileList();
+      newProject();
     });
 
 var savetimer = false;
