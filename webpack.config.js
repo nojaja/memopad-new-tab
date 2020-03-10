@@ -17,6 +17,7 @@ module.exports = {
   },
   output: {
     filename: '[name].js',
+    sourceMapFilename: '[name].map',
     path: dist,
   },
   module: {

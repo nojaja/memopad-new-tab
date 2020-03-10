@@ -138,7 +138,7 @@ for (const i = 0; pair[i]; i++) {
   //初回の読み込み
   function initLoad(cb) {
     UIkit.notification("load..", { status: 'success', timeout: 1000 });
-    $("#filelist").html('<li><i class="uk-icon-spinner uk-icon-spin"></i></li>');
+    $("#filelist").html('<li><div uk-spinner></div></li>');
     //iframeの初期化
     refreshView("");
     noteKeyList = loadNoteKeyList();//ファイル一覧の読み込み処理
@@ -224,7 +224,7 @@ for (const i = 0; pair[i]; i++) {
     $("#fileDelete").on("click", function (event) {
       $("#filelist").find(".uk-active").each(function () {
         const filename = $(this).attr("data-uri");
-        UIkit.modal.confirm('<p>Delete ' + filename + ' File </p>').then(function() {
+        UIkit.modal.confirm('<p>Are you sure to delete this note? (' + filename + ') </p>').then(function() {
           console.log('filename ' + filename);
           //fileContainer.removeFile(filename);
           deleteNoteKeyList(filename);
