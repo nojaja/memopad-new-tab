@@ -1,7 +1,12 @@
 import UIkit from 'uikit';
 import Icons from 'uikit/dist/js/uikit-icons';
-import marked from 'marked';
+//import marked from 'marked';
+import md from 'markdown-it';
+import emoji from 'markdown-it-emoji';
 import * as monaco from 'monaco-editor';
+require('webpack-jquery-ui');
+var css = require('webpack-jquery-ui/css');  //ommit, if you don't want to load basic css theme
+
 
 var editor = null;
 var currentFile = null;
@@ -185,8 +190,30 @@ for (const i = 0; pair[i]; i++) {
 
   //sourceのcompile
   function compile() {
-    const parseData = marked(currentFile.getEditorData().source.model.getValue().trim());
-    refreshView(parseData);
+//    const parseData = marked(currentFile.getEditorData().source.model.getValue().trim());
+    const parseData = md({
+                           linkify: true,
+                           typography: true,
+                        })
+                        .use(emoji)
+                        .render(currentFile.getEditorData().source.model.getValue().trim());
+    const htmlheader = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='UTF-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Tab</title>
+  <link href="./css/github-markdown-css.css" rel="stylesheet"></link>
+</head>
+<body>
+`;
+    const htmlfooter = `
+</body>
+</html>
+`;
+
+    refreshView(htmlheader+parseData+htmlfooter);
   }
 
   //View///////////////////////////////////////////////////
@@ -202,6 +229,9 @@ for (const i = 0; pair[i]; i++) {
       //compile();
     });
 
+    $(".resizer").on("resize", function (event) {
+      editor.layout();
+    });
 
     //名前変更処理
     $("#fileRename").on("click", function (event) {
@@ -275,6 +305,7 @@ for (const i = 0; pair[i]; i++) {
         }, 5000);
       }
     });
+    $('.resizer').resizable();
 
     //ショートカットキー操作
     $(window).keydown(function (e) {

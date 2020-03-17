@@ -7,9 +7,12 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyFilePlugin = require("copy-webpack-plugin");
 const WriteFilePlugin = require("write-file-webpack-plugin");
+//require('jquery-ui/ui/core.js');
+//require('jquery-ui/ui/widgets/resizable.js');
 
 module.exports = {
-  devtool: 'source-map',
+  mode: 'development',
+  devtool: 'inline-source-map',
   context: src,
   entry: {
     main: './js/index.js',
@@ -23,14 +26,14 @@ module.exports = {
   module: {
     rules: [{
       test: /\.css$/,
-      use: [{ // MiniCssExtractPlugin.loaderÇéwíË
-               loader: MiniCssExtractPlugin.loader,
-               options: {
-                    publicPath: '../',
-               },
-            },
-            'css-loader'
-      ]
+      loaders: ["style-loader","css-loader"]
+    }, {
+        test: /\.(jpe?g|png|gif)$/i,
+        loader:"file-loader",
+        options:{
+          name:'[name].[ext]',
+          outputPath:'/assets/images/'
+        }
     }, {
       test: /\.html$/,
       use: ['html-loader']
@@ -42,14 +45,13 @@ module.exports = {
   plugins: [
     new webpack.ProvidePlugin({
       $: 'jquery',
-      jQuery: 'jquery'
+      jQuery: 'jquery',
+      "window.jQuery": "jquery'",
+      "window.$": "jquery"
     }),
     new MonacoWebpackPlugin(),
     new HtmlWebpackPlugin({//htmlÇsrcîzâ∫Ç≈ä«óùâ¬î\Ç…Ç∑ÇÈ
       template: "./html/index.html"
-    }),
-    new MiniCssExtractPlugin({
-        filename: 'css/[name].css',
     }),
     new CopyFilePlugin(
         [
@@ -57,6 +59,10 @@ module.exports = {
                 context: "src",
                 from: "assets/*.json",
                 to: dist
+            },
+            {
+                from: "css/github-markdown-css.css",
+                to: dist+"/css"
             }
         ],
         { copyUnmodified: true }

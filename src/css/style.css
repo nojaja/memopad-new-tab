@@ -1,4 +1,12 @@
+.special {
+    resize:horizontal;
+    overflow:auto;
+}
 .editor {
+  height: 800px;
+  font-family: 'M PLUS 1p', sans-serif;
+}
+.preview {
   width: 100%;
   height: 800px;
   font-family: 'M PLUS 1p', sans-serif;

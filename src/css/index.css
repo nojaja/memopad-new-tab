@@ -2,3 +2,9 @@
 @import url('https://fonts.googleapis.com/css?family=M+PLUS+1p&amp;subset=japanese');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/uikit/3.3.3/css/uikit.min.css');
 @import 'style.css';
+/*
+@import '~jquery-ui/themes/base/core.css';
+@import '~jquery-ui/themes/base/menu.css';
+@import '~jquery-ui/themes/base/autocomplete.css';
+@import '~jquery-ui/themes/base/theme.css';
+*/
