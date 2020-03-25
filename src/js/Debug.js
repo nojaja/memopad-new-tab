@@ -1,30 +1,31 @@
 class Debug {
-  constructor() {
+  constructor () {
   }
-  //デバッグ用stringify
-  stringify(str) {
-    var cache = [];
+
+  // デバッグ用stringify
+  stringify (str) {
+    var cache = []
     return JSON.stringify(
       str,
-      function(key, value) {
-        if (typeof value === "object" && value !== null) {
+      function (key, value) {
+        if (typeof value === 'object' && value !== null) {
           if (cache.indexOf(value) !== -1) {
             // Circular reference found, discard key
-            return;
+            return
           }
           // Store value in our collection
-          cache.push(value);
+          cache.push(value)
         }
-        if (key == "parentNode") return;
-        return value;
+        if (key == 'parentNode') return
+        return value
       },
-      "\t"
-    );
+      '\t'
+    )
   }
 }
 
-export default Debug;
+export default Debug
 
-if (typeof window != "undefined") {
-  !window.Debug && (window.Debug = Debug);
+if (typeof window !== 'undefined') {
+  !window.Debug && (window.Debug = Debug)
 }

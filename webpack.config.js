@@ -1,14 +1,14 @@
-const path = require('path');
-const src = __dirname + "/src";
-const dist = __dirname + "/dist";
-const webpack = require('webpack');
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyFilePlugin = require("copy-webpack-plugin");
-const WriteFilePlugin = require("write-file-webpack-plugin");
-//require('jquery-ui/ui/core.js');
-//require('jquery-ui/ui/widgets/resizable.js');
+const path = require('path')
+const src = __dirname + '/src'
+const dist = __dirname + '/dist'
+const webpack = require('webpack')
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CopyFilePlugin = require('copy-webpack-plugin')
+const WriteFilePlugin = require('write-file-webpack-plugin')
+// require('jquery-ui/ui/core.js');
+// require('jquery-ui/ui/widgets/resizable.js');
 
 module.exports = {
   mode: 'development',
@@ -21,19 +21,19 @@ module.exports = {
   output: {
     filename: '[name].js',
     sourceMapFilename: '[name].map',
-    path: dist,
+    path: dist
   },
   module: {
     rules: [{
       test: /\.css$/,
-      loaders: ["style-loader","css-loader"]
+      loaders: ['style-loader', 'css-loader']
     }, {
-        test: /\.(jpe?g|png|gif)$/i,
-        loader:"file-loader",
-        options:{
-          name:'[name].[ext]',
-          outputPath:'/assets/images/'
-        }
+      test: /\.(jpe?g|png|gif)$/i,
+      loader: 'file-loader',
+      options: {
+        name: '[name].[ext]',
+        outputPath: '/assets/images/'
+      }
     }, {
       test: /\.html$/,
       use: ['html-loader']
@@ -46,27 +46,27 @@ module.exports = {
     new webpack.ProvidePlugin({
       $: 'jquery',
       jQuery: 'jquery',
-      "window.jQuery": "jquery'",
-      "window.$": "jquery"
+      'window.jQuery': "jquery'",
+      'window.$': 'jquery'
     }),
     new MonacoWebpackPlugin(),
-    new HtmlWebpackPlugin({//htmlÇsrcîzâ∫Ç≈ä«óùâ¬î\Ç…Ç∑ÇÈ
-      template: "./html/index.html"
+    new HtmlWebpackPlugin({ // htmlÔøΩÔøΩsrcÔøΩzÔøΩÔøΩÔøΩ≈ä«óÔøΩÔøΩ¬î\ÔøΩ…ÇÔøΩÔøΩÔøΩ
+      template: './html/index.html'
     }),
     new CopyFilePlugin(
-        [
-            {
-                context: "src",
-                from: "assets/*.json",
-                to: dist
-            },
-            {
-                from: "css/github-markdown-css.css",
-                to: dist+"/css"
-            }
-        ],
-        { copyUnmodified: true }
+      [
+        {
+          context: 'src',
+          from: 'assets/*.json',
+          to: dist
+        },
+        {
+          from: 'css/github-markdown-css.css',
+          to: dist + '/css'
+        }
+      ],
+      { copyUnmodified: true }
     ),
     new WriteFilePlugin()
   ]
-};
+}
