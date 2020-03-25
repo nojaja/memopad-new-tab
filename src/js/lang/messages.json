@@ -1,0 +1,14 @@
+{
+  "en" : {
+    "message" : {
+      "welcome" : "Welcome to Your Vue.js App",
+      "Delete" : "Can I delete it?"
+    }
+  },
+  "ja" : {
+    "message" : {
+      "welcome" : "Vue.jsアプリケーションへようこそ",
+      "Delete" : "削除してよいですか？"
+    }
+  }
+}

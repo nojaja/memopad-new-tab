@@ -5,6 +5,8 @@ import FileData from '../model/FileData.js'
 import FileContainer from '../model/FileContainer.js'
 import { debounce } from 'lodash'
 
+import i18n from '../lang'
+
 // import Debug from '../Debug.js'
 
 Vue.use(Vuex)
@@ -126,6 +128,7 @@ export default new Vuex.Store({
     },
     openFirst (state) {
       this.dispatch('loadProject', state.noteKeyList[state.noteKeyList.length - 1])
+      console.log(i18n.tc('message.welcome'))
     }
   },
   actions: { // ミューテーションをコミットする関数(外部APIとの連携や非同期処理もここ)

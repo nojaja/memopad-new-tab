@@ -18,6 +18,7 @@ import SplitpanesWrapper from './SplitpanesWrapper.vue'
 import Footer from './Footer.vue'
 import DialogHelper from './DialogHelper.js'
 import store from './store'
+import i18n from './lang'
 
 export default {
   components: {
@@ -53,7 +54,7 @@ export default {
     delete () {
       DialogHelper.showDialog(this, {
         subject: 'Delete',
-        message: '削除してよいですか？',
+        message: i18n.tc('message.Delete'),
         ok: () => {
           this.$store.commit('deleteProject')
         },

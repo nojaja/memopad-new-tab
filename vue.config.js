@@ -13,13 +13,13 @@ module.exports = {
   pages: {
     index: {
       // entry for the page
-      entry: 'src/js/main2.js'
+      entry: 'src/js/main.js'
     }
   },
   configureWebpack: {
     context: src,
     entry: {
-      main: './js/main2.js'
+      main: './js/main.js'
     },
     output: {
       filename: '[name].js',
