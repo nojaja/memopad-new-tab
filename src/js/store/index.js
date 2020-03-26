@@ -18,7 +18,7 @@ export default new Vuex.Store({
     currentFile: {},
     currentModelId: 'source',
     fileContainer: new FileContainer(),
-    noteKeyList: JSON.parse(localStorage.getItem('noteKeyList'))
+    noteKeyList: JSON.parse(localStorage.getItem('noteKeyList')) || []
   },
   getters: { // state の参照
     currentFile (state) {
@@ -127,6 +127,9 @@ export default new Vuex.Store({
       this.dispatch('init')
     },
     openFirst (state) {
+      if (state.noteKeyList.length === 0) {
+        this.dispatch('newProject')
+      }
       this.dispatch('loadProject', state.noteKeyList[state.noteKeyList.length - 1])
       console.log(i18n.tc('message.welcome'))
     }

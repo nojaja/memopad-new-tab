@@ -37,9 +37,13 @@ module.exports = {
       new CopyFilePlugin(
         [
           {
-            context: 'src',
-            from: 'assets/*.json',
+            context: 'assets/',
+            from: '*.json',
             to: dist
+          },
+          {
+            from: 'css/github-markdown-css.css',
+            to: dist + '/css/github-markdown-css.css'
           }
         ],
         { copyUnmodified: true }
