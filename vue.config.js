@@ -9,7 +9,7 @@ const WriteFilePlugin = require('write-file-webpack-plugin')
 // require('jquery-ui/ui/widgets/resizable.js');
 
 module.exports = {
-  outputDir: dist,
+  //outputDir: dist,
   pages: {
     index: {
       // entry for the page

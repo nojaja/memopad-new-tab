@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <MainContents></MainContents>
-    <global-events @keydown.prevent.ctrl.s="saveProject"></global-events>
+    <global-events @keydown.ctrl.s="saveProject"></global-events>
   </div>
 </template>
 
