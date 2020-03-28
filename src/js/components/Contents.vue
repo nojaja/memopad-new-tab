@@ -14,11 +14,11 @@
 </template>
 
 <script>
-import SplitpanesWrapper from './SplitpanesWrapper.vue'
-import Footer from './Footer.vue'
-import DialogHelper from './DialogHelper.js'
-import store from './store'
-import i18n from './lang'
+import SplitpanesWrapper from '@/components/SplitpanesWrapper.vue'
+import Footer from '@/components/Footer.vue'
+import DialogHelper from '@/DialogHelper.js'
+import store from '@/store'
+import i18n from '@/lang'
 
 export default {
   components: {

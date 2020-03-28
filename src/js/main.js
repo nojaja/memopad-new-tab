@@ -1,12 +1,12 @@
 import Vue from 'vue'
-import App from './App.vue'
-import store from './store'
+import App from '@/components/App.vue'
+import store from '@/store'
 import Unicon from 'vue-unicons'
 import { uniTrashAlt, uniEdit, uniColumns, uniEye } from 'vue-unicons/src/icons'
 import GlobalEvents from 'vue-global-events'
 import Toasted from 'vue-toasted'
 import VueI18n from 'vue-i18n'
-import lang from './lang'
+import lang from '@/lang'
 
 Vue.config.productionTip = false
 

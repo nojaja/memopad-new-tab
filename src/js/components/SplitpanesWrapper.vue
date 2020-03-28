@@ -12,8 +12,8 @@
 <script>
 import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
-import Monaco from './Monaco.vue'
-import Preview from './Preview.vue'
+import Monaco from '@/components/Monaco.vue'
+import Preview from '@/components/Preview.vue'
 
 export default {
   components: {
