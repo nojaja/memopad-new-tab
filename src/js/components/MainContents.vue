@@ -10,9 +10,9 @@
 </template>
 
 <script>
-import NoteList from './NoteList.vue'
-import Contents from './Contents.vue'
-import store from './store'
+import NoteList from '@/components/NoteList.vue'
+import Contents from '@/components/Contents.vue'
+import store from '@/store'
 
 export default {
   components: {

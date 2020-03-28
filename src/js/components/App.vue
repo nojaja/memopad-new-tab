@@ -6,8 +6,8 @@
 </template>
 
 <script>
-import MainContents from './MainContents.vue'
-import store from './store'
+import MainContents from '@/components/MainContents.vue'
+import store from '@/store'
 
 export default {
   name: 'App',

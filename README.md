@@ -14,7 +14,7 @@
   <a href="./">Preview it!</a>
 </h2>
 
-![screenshot](/assets/memopad-new-tab.png)
+![screenshot](/assets/screenshots/memopad-new-tab.png)
 
 ![Demo GIF](/assets/demo.gif)
 
