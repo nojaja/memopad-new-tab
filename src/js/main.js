@@ -9,8 +9,6 @@ import VueI18n from 'vue-i18n'
 import lang from './lang'
 
 Vue.config.productionTip = false
-Vue.config.keyCodes.F9 = 120
-Vue.config.keyCodes.SKEY = 83
 
 // register globally
 Vue.component('GlobalEvents', GlobalEvents)

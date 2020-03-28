@@ -5,6 +5,7 @@
 <script>
 import md from 'markdown-it'
 import emoji from 'markdown-it-emoji'
+import ruby from 'markdown-it-ruby'
 
 export default {
   components: {
@@ -19,10 +20,12 @@ export default {
   computed: {
     compiledMarkdown: function () {
       const parseData = md({
+        html: true,
+        breaks: false,
         linkify: true,
         typography: true
       })
-        .use(emoji)
+        .use(emoji).use(ruby)
         .render(this.source.trim())
       const htmlheader = `
 <!DOCTYPE html>

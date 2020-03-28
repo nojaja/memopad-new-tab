@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <MainContents></MainContents>
-    <global-events @keydown.prevent.ctrl.s="saveProject"></global-events>
+    <global-events @keydown.ctrl.s="saveProject"></global-events>
   </div>
 </template>
 
@@ -16,7 +16,8 @@ export default {
   },
   store,
   methods: {
-    saveProject () {
+    saveProject (e) {
+      e.preventDefault()
       this.$store.dispatch('saveProject')
       this.$toasted.show('Save Project', { position: 'top-center', duration: 900 })
     }

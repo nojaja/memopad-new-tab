@@ -1,5 +1,5 @@
 <template>
-  <div v-bind:style="{ height: this.height-25+'px' , width : '100%' }" >
+  <div v-bind:style="{ height: this.height-30-50+'px' , width : '100%' }" >
     <div class="titleSection">
       <input placeholder="Title" :value="title" @input="updateTitle">
     </div>

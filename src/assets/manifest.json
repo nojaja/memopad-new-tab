@@ -2,7 +2,7 @@
   "name": "MemoPad-new-tab",
   "manifest_version": 2,
   "description": "memopad-new-tab.",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "permissions" : ["management"],
   "chrome_url_overrides" : {
     "newtab": "index.html"

@@ -9,11 +9,12 @@ const WriteFilePlugin = require('write-file-webpack-plugin')
 // require('jquery-ui/ui/widgets/resizable.js');
 
 module.exports = {
-  outputDir: dist,
+  //outputDir: dist,
   pages: {
     index: {
       // entry for the page
-      entry: 'src/js/main.js'
+      entry: 'src/js/main.js',
+      title: 'New Tab'
     }
   },
   configureWebpack: {
@@ -24,6 +25,11 @@ module.exports = {
     output: {
       filename: '[name].js',
       sourceMapFilename: '[name].map'
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src/js/')
+      }
     },
     plugins: [
       new MonacoWebpackPlugin({
