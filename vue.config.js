@@ -13,7 +13,8 @@ module.exports = {
   pages: {
     index: {
       // entry for the page
-      entry: 'src/js/main.js'
+      entry: 'src/js/main.js',
+      title: 'New Tab'
     }
   },
   configureWebpack: {
@@ -24,6 +25,11 @@ module.exports = {
     output: {
       filename: '[name].js',
       sourceMapFilename: '[name].map'
+    },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src/js/')
+      }
     },
     plugins: [
       new MonacoWebpackPlugin({
