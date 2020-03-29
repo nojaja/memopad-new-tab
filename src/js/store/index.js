@@ -60,7 +60,7 @@ export default new Vuex.Store({
       // state.currentFile をfileContainerに格納
       // ローカルストレージに最新の状態を保存
       localStorage.setItem(state.fileContainer.getProjectName(), state.fileContainer.getContainerJson())
-      console.log(state.fileContainer.getProjectName() + ':' + state.fileContainer.getContainerJson())
+      // console.log(state.fileContainer.getProjectName() + ':' + state.fileContainer.getContainerJson())
       // refreshFileList();
       // return cb ? cb() : true
     },
@@ -158,7 +158,7 @@ export default new Vuex.Store({
       context.commit('saveProject', cb)
       debounce(function () {
         console.log('saveProject')
-      }, 300)
+      }, 3000)()
     },
     fileOpen (context, filename) {
       context.commit('fileOpen', filename)

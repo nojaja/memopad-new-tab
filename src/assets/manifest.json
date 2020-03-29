@@ -1,9 +1,10 @@
 {
   "name": "MemoPad-new-tab",
   "manifest_version": 2,
-  "description": "memopad-new-tab.",
+  "description": "Memopad New Tab makes it a Markdown editor instead of the default "New Tab" in Google Chrome.",
   "version": "0.0.3",
   "permissions" : ["management"],
+  "default_locale": "ja_JP",
   "chrome_url_overrides" : {
     "newtab": "index.html"
   }
