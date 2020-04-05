@@ -6,6 +6,7 @@
 import md from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import ruby from 'markdown-it-ruby'
+import multimdTable from 'markdown-it-multimd-table'
 
 export default {
   components: {
@@ -25,7 +26,11 @@ export default {
         linkify: true,
         typography: true
       })
-        .use(emoji).use(ruby)
+        .use(emoji).use(ruby).use(multimdTable, {
+          multiline: true,
+          rowspan: true,
+          headerless: true
+        })
         .render(this.source.trim())
       const htmlheader = `
 <!DOCTYPE html>
