@@ -4,7 +4,7 @@
       <Monaco ref="monaco" :source="source" :onChange="onChange"></Monaco>
     </pane>
     <pane v-if="!hidePreviewPane">
-      <Preview :source="source"></Preview>
+      <Preview :source="viewSource"></Preview>
     </pane>
   </splitpanes>
 </template>
@@ -14,6 +14,7 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import Monaco from '@/components/Monaco.vue'
 import Preview from '@/components/Preview.vue'
+import jmd from '@/jmd.json'
 
 export default {
   components: {
@@ -38,6 +39,27 @@ export default {
       required: false,
       default: false
     }
+  },
+  computed: {
+    viewSource () { // 日本語markdown
+      let w = this.source
+      for (const i in this.regExpData) {
+        w = w.replace(this.regExpData[i][0], this.regExpData[i][1])
+      }
+      return w
+    }
+  },
+  data () {
+    return {
+      regExpData: []
+    }
+  },
+  created: function () {
+    console.log(jmd)
+    const regExpList = jmd.RegExpList || []
+    regExpList.forEach((element, index, array) => {
+      this.regExpData.push([new RegExp(element[0], 'gm'), element[1]])
+    })
   },
   methods: {
     onChange (value) {

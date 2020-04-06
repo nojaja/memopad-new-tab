@@ -7,6 +7,7 @@ import md from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import ruby from 'markdown-it-ruby'
 import multimdTable from 'markdown-it-multimd-table'
+import checkbox from 'markdown-it-checkbox'
 
 export default {
   components: {
@@ -30,7 +31,7 @@ export default {
           multiline: true,
           rowspan: true,
           headerless: true
-        })
+        }).use(checkbox)
         .render(this.source.trim())
       const htmlheader = `
 <!DOCTYPE html>
