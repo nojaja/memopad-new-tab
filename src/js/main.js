@@ -2,7 +2,7 @@ import Vue from 'vue'
 import App from '@/components/App.vue'
 import store from '@/store'
 import Unicon from 'vue-unicons'
-import { uniTrashAlt, uniEdit, uniColumns, uniEye } from 'vue-unicons/src/icons'
+import { uniTrashAlt, uniEdit, uniColumns, uniEye, uniExport, uniImport } from 'vue-unicons/src/icons'
 import GlobalEvents from 'vue-global-events'
 import Toasted from 'vue-toasted'
 import VueI18n from 'vue-i18n'
@@ -13,7 +13,7 @@ Vue.config.productionTip = false
 // register globally
 Vue.component('GlobalEvents', GlobalEvents)
 
-Unicon.add([uniTrashAlt, uniEdit, uniColumns, uniEye])
+Unicon.add([uniTrashAlt, uniEdit, uniColumns, uniEye, uniExport, uniImport])
 Vue.use(Unicon)
 Vue.use(Toasted)
 Vue.use(VueI18n)

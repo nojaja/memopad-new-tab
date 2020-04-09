@@ -14,6 +14,8 @@ export default {
   components: {
     MainContents
   },
+  props: {
+  },
   store,
   methods: {
     saveProject (e) {

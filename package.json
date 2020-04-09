@@ -31,6 +31,7 @@
     "splitpanes": "^2.2.1",
     "twemoji": "^12.1.5",
     "vue": "^2.6.11",
+    "vue-burger-menu": "^2.0.5",
     "vue-global-events": "^1.1.2",
     "vue-i18n": "^8.15.7",
     "vue-monaco": "^1.1.0",

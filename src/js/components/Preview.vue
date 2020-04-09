@@ -21,18 +21,21 @@ export default {
   },
   computed: {
     compiledMarkdown: function () {
-      const parseData = md({
+      const mdInstance = md({
         html: true,
         breaks: false,
         linkify: true,
         typography: true
       })
-        .use(emoji).use(ruby).use(multimdTable, {
-          multiline: true,
-          rowspan: true,
-          headerless: true
-        }).use(checkbox)
-        .render(this.source.trim())
+      mdInstance.use(emoji)
+      mdInstance.use(ruby)
+      mdInstance.use(multimdTable, {
+        multiline: true,
+        rowspan: true,
+        headerless: true
+      })
+      mdInstance.use(checkbox)
+      const parseData = mdInstance.render(this.source.trim())
       const htmlheader = `
 <!DOCTYPE html>
 <html>
