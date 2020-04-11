@@ -1,10 +1,10 @@
 <template>
   <splitpanes @resize="handleResize" firstSplitter>
     <pane v-if="!hideEditPane" min-size="10" >
-      <Monaco ref="monaco" :source="source" :onChange="onChange"></Monaco>
+      <Monaco ref="monaco" :source="source" :onChange="onChange" :config="config.editor"></Monaco>
     </pane>
     <pane v-if="!hidePreviewPane">
-      <Preview :source="viewSource"></Preview>
+      <Preview :source="viewSource" :config="config.markdown"></Preview>
     </pane>
   </splitpanes>
 </template>
@@ -28,6 +28,35 @@ export default {
       type: String,
       required: false,
       default: ''
+    },
+    config: {
+      type: Object,
+      required: false,
+      default: () => ({
+        editor: {
+          automaticLayout: true,
+          fontSize: 16,
+          fontFamily: '',
+          tabSize: 4,
+          theme: 'vs'
+        },
+        markdown: {
+          basicOption: {
+            html: true,
+            breaks: false,
+            linkify: true,
+            typography: true
+          },
+          emoji: true,
+          ruby: true,
+          multimdTable: true,
+          multimdTableOption: {
+            multiline: true,
+            rowspan: true,
+            headerless: true
+          }
+        }
+      })
     },
     hideEditPane: { // 編集パネルの表示非表示
       type: Boolean,

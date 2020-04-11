@@ -11,11 +11,14 @@ class FileContainer {
   constructor (monaco) {
     this.monaco = monaco
     this.container = {
+      v: 0.1,
       id: null,
       files: {},
       public: true,
-      created_at: '2017-10-29T05:45:01Z',
-      updated_at: '2017-11-14T12:41:14Z',
+      createdTime: new Date().getTime(),
+      lastUpdatedTime: new Date().getTime(),
+      // created_at: '2017-10-29T05:45:01Z',
+      // updated_at: '2017-11-14T12:41:14Z',
       projectName: '',
       description: ''
     }
@@ -75,6 +78,7 @@ class FileContainer {
   putFile (file) {
     var filename = file.getFilename()
     this.container.files[filename] = file.getFileData()
+    this.container.lastUpdatedTime = new Date().getTime()
     return true
   }
 
@@ -89,15 +93,19 @@ class FileContainer {
     var file = this.getFile(filename)
     file.remove()
     this.putFile(file)
+    this.container.lastUpdatedTime = new Date().getTime()
   }
 
   init () {
     this.container = {
+      v: 0.1,
       id: '',
       files: {},
       public: true,
-      created_at: '2017-10-29T05:45:01Z',
-      updated_at: '2017-11-14T12:41:14Z',
+      createdTime: new Date().getTime(),
+      lastUpdatedTime: new Date().getTime(),
+      // created_at: '2017-10-29T05:45:01Z',
+      // updated_at: '2017-11-14T12:41:14Z',
       description: ''
     }
     this.fileObjects = {}
@@ -148,6 +156,14 @@ class FileContainer {
 
   getGistJsonData () {
     return JSON.stringify(this.getGistData())
+  }
+
+  getCreatedTime () {
+    return this.container.createdTime
+  }
+
+  getLastUpdatedTime () {
+    return this.container.lastUpdatedTime
   }
 }
 export default FileContainer

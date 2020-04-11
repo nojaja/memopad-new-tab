@@ -13,12 +13,37 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    count: 0,
+    sort: 0,
     editor: null,
     currentFile: {},
     currentModelId: 'source',
     fileContainer: new FileContainer(),
-    noteKeyList: JSON.parse(localStorage.getItem('noteKeyList')) || []
+    noteKeyList: JSON.parse(localStorage.getItem('noteKeyList')) || [],
+    config: JSON.parse(localStorage.getItem('config')) || {
+      editor: {
+        automaticLayout: true,
+        fontSize: 16,
+        fontFamily: '',
+        tabSize: 4,
+        theme: 'vs'
+      },
+      markdown: {
+        basicOption: {
+          html: true,
+          breaks: false,
+          linkify: true,
+          typography: true
+        },
+        emoji: true,
+        ruby: true,
+        multimdTable: true,
+        multimdTableOption: {
+          multiline: true,
+          rowspan: true,
+          headerless: true
+        }
+      }
+    }
   },
   getters: { // state の参照
     currentFile (state) {
@@ -27,11 +52,15 @@ export default new Vuex.Store({
     source (state) {
       return state.currentFile.file.content
     },
+    config (state) {
+      return state.config
+    },
     // File一覧の更新
     refreshFileList (state) {
       // { name: 'いちご', uri: 'note_1583338656491', isActive: true },
       const items = []
-      console.log('noteKeyList' + state.noteKeyList)
+      console.log('noteKeyList:' + state.noteKeyList)
+
       state.noteKeyList.forEach(function (val, i) {
         const tmpfileContainer = new FileContainer()
         tmpfileContainer.setContainerJson(localStorage.getItem(val))
@@ -39,9 +68,39 @@ export default new Vuex.Store({
         // const label = tmpfileContainer.getFile(tmpfileContainer.getFiles()[0]).getContent().split('\n')[0] || val
         const tmpfile = tmpfileContainer.getFile(tmpfileContainer.getFiles()[0])
         const label = tmpfile.getDescription() || tmpfile.getContent().split('\n')[0] || val
-        items.push({ name: label, uri: val, isActive: (state.currentFile.projectName === tmpfileContainer.container.projectName) })
+        items.push({ name: label, uri: val, isActive: (state.currentFile.projectName === tmpfileContainer.container.projectName), createdTime: tmpfileContainer.getCreatedTime() || 0, lastUpdatedTime: tmpfileContainer.getLastUpdatedTime() || 0 })
       })
-      return items.reverse()
+      if (state.sort === 0) {
+      // sort: 0 desc lastUpdatedTime
+        items.sort(function (a, b) {
+          if (a.lastUpdatedTime > b.lastUpdatedTime) return -1
+          if (a.lastUpdatedTime < b.lastUpdatedTime) return 1
+          return 0
+        })
+      } else if (state.sort === 1) {
+      // sort: 1 asc lastUpdatedTime
+        items.sort(function (a, b) {
+          if (a.lastUpdatedTime < b.lastUpdatedTime) return -1
+          if (a.lastUpdatedTime > b.lastUpdatedTime) return 1
+          return 0
+        })
+      } else if (state.sort === 2) {
+      // sort: 2 desc createdTime
+        items.sort(function (a, b) {
+          if (a.createdTime > b.createdTime) return -1
+          if (a.createdTime < b.createdTime) return 1
+          return 0
+        })
+      } else if (state.sort === 3) {
+      // sort: 3 asc createdTime
+        items.sort(function (a, b) {
+          if (a.createdTime < b.createdTime) return -1
+          if (a.createdTime > b.createdTime) return 1
+          return 0
+        })
+      }
+      console.log(items)
+      return items
     }
   },
   mutations: { // stateを変更する為の処理(同期処理のみ)
@@ -106,13 +165,13 @@ export default new Vuex.Store({
       state.currentFile = state.fileContainer.getFile(filename)
       state.currentFile.projectName = state.fileContainer.container.projectName
     },
-    loadNoteKeyList (state, noteName) { // ページが読み込まれたら、ローカルストレージから状態を読み込む
+    loadNoteKeyList (state) { // ページが読み込まれたら、ローカルストレージから状態を読み込む
       const name = 'noteKeyList'
-      this.noteKeyList = []
+      state.noteKeyList = []
       if (localStorage.getItem(name)) {
-        this.noteKeyList = JSON.parse(localStorage.getItem(name))
+        state.noteKeyList = JSON.parse(localStorage.getItem(name))
       }
-      console.log('loadNoteKeyList:' + this.noteKeyList)
+      console.log('loadNoteKeyList:' + state.noteKeyList)
     },
     saveNoteKeyList (state, noteName) { // ローカルストレージに状態を保存する
       const name = 'noteKeyList'
@@ -132,6 +191,17 @@ export default new Vuex.Store({
       }
       this.dispatch('loadProject', state.noteKeyList[state.noteKeyList.length - 1])
       console.log(i18n.tc('message.welcome'))
+    },
+    setConfig (state, config) {
+      state.config = config
+      const name = 'config'
+      localStorage.setItem(name, JSON.stringify(state.config))
+    },
+    loadConfig (state) {
+      const name = 'config'
+      if (localStorage.getItem(name)) {
+        state.config = JSON.parse(localStorage.getItem(name))
+      }
     }
   },
   actions: { // ミューテーションをコミットする関数(外部APIとの連携や非同期処理もここ)
@@ -177,6 +247,9 @@ export default new Vuex.Store({
     },
     init (context) {
       context.commit('openFirst')
+    },
+    setConfig (context, config) {
+      context.commit('setConfig', config)
     }
   }
 })

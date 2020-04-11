@@ -17,24 +17,35 @@ export default {
       type: String,
       required: false,
       default: '# test  \n## hoge'
+    },
+    config: {
+      type: Object,
+      required: false,
+      default: () => ({
+        basicOption: {
+          html: true,
+          breaks: false,
+          linkify: true,
+          typography: true
+        },
+        emoji: true,
+        ruby: true,
+        multimdTable: true,
+        multimdTableOption: {
+          multiline: true,
+          rowspan: true,
+          headerless: true
+        }
+      })
     }
   },
   computed: {
     compiledMarkdown: function () {
-      const mdInstance = md({
-        html: true,
-        breaks: false,
-        linkify: true,
-        typography: true
-      })
-      mdInstance.use(emoji)
-      mdInstance.use(ruby)
-      mdInstance.use(multimdTable, {
-        multiline: true,
-        rowspan: true,
-        headerless: true
-      })
-      mdInstance.use(checkbox)
+      const mdInstance = md(this.config.basicOption)
+      if (this.config.emoji) mdInstance.use(emoji)
+      if (this.config.ruby) mdInstance.use(ruby)
+      if (this.config.multimdTable) mdInstance.use(multimdTable, this.config.multimdTableOption)
+      if (this.config.checkbox) mdInstance.use(checkbox)
       const parseData = mdInstance.render(this.source.trim())
       const htmlheader = `
 <!DOCTYPE html>

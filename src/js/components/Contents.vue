@@ -3,7 +3,7 @@
     <div class="titleSection">
       <input placeholder="Title" :value="title" @input="updateTitle">
     </div>
-    <SplitpanesWrapper :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source"></SplitpanesWrapper>
+    <SplitpanesWrapper :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
     <Footer>
       <button @click="hideEditPane = false;hidePreviewPane=true"><unicon name="edit"></unicon></button>
       <button @click="hideEditPane = false;hidePreviewPane=false"><unicon name="columns"></unicon></button>
@@ -29,6 +29,9 @@ export default {
   computed: {
     source () {
       return this.$store.getters.source
+    },
+    config () {
+      return this.$store.getters.config
     },
     title () {
       const file = this.$store.getters.currentFile.file
