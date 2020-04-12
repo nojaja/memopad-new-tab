@@ -219,15 +219,14 @@ export default new Vuex.Store({
       const tmpfileContainer = new FileContainer()
       tmpfileContainer.setId(pjdata.id)
       tmpfileContainer.setProjectName(pjdata.projectName)
-
+      if (pjdata.createdTime) tmpfileContainer.setCreatedTime(pjdata.createdTime)
+      if (pjdata.lastUpdatedTime) tmpfileContainer.setLastUpdatedTime(pjdata.lastUpdatedTime)
       if (pjdata.files) {
         tmpfileContainer.setContainerJson(pjdata.files)
       } else {
         const file = new FileData()
         file.setFilename('index.md')
         if (pjdata.text) file.setContent(pjdata.text)
-        if (pjdata.createdTime) file.setCreatedTime(pjdata.createdTime)
-        if (pjdata.lastUpdatedTime) file.setLastUpdatedTime(pjdata.lastUpdatedTime)
         const label = file.getDescription() || file.getContent().split('\n')[0] || pjdata.projectName
         file.setDescription(label)
         tmpfileContainer.putFile(file)
@@ -281,6 +280,9 @@ export default new Vuex.Store({
     },
     setConfig (context, config) {
       context.commit('setConfig', config)
+    },
+    importProject (context, pjdata) {
+      context.commit('importProject', pjdata)
     }
   }
 })

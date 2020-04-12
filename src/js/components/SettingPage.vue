@@ -242,8 +242,8 @@ export default {
               if (key.indexOf('note_') !== -1) {
                 const note = JSON.parse(importData[key])
                 console.log(note)
-                // text
-                localStorage.setItem(key, importData[key])
+                // localStorage.setItem(key, importData[key])
+                cmp.$store.dispatch('importProject', JSON.parse(importData[key]))
               } else if (key === 'noteKeyList') {
                 const array = JSON.parse(localStorage.getItem('noteKeyList')).concat(JSON.parse(importData[key]))
                 // 重複を削除したリスト
@@ -256,6 +256,7 @@ export default {
               }
             }
           }
+          cmp.$store.dispatch('loadNoteKeyList')
         })
       })
     }
