@@ -62,13 +62,13 @@ export default {
     display: none;
 }
 .newNote {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     padding: 18px 16px;
     opacity: .9;
-    width: 100%;
-    background: inherit;
+    width: 200px;
+    background: white;
     z-index: 10;
 }
 .newNote, .noteListItem {

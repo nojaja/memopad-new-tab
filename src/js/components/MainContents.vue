@@ -4,7 +4,7 @@
       <SettingPage></SettingPage>
     </SlideMenu>
     <div class="wrapper">
-      <div style="width: 200px">
+      <div v-bind:style="{ height: this.height-50+'px' , width : '200px' }">
         <NoteList :items="fileList" :onNew="newProject" :onSelect="loadProject"></NoteList>
         <Footer backgroundColor="#fff" >
           <div  @click="settingOpen"><unicon name="bright" @click="settingOpen"></unicon></div>
@@ -39,6 +39,8 @@ export default {
   },
   data () {
     return {
+      width: window.innerWidth,
+      height: window.innerHeight,
       items: [
         { name: 'いちご', uri: 'note_1583338656491', isActive: true },
         { name: 'りんご', uri: 'note_1583338656492', isActive: false },
@@ -48,6 +50,10 @@ export default {
     }
   },
   methods: {
+    handleResize: function () {
+      this.width = window.innerWidth
+      this.height = window.innerHeight
+    },
     newProject () {
       this.$store.dispatch('newProject')
     },
@@ -58,6 +64,12 @@ export default {
     settingOpen (e) {
       this.$refs.slideMenu.open(e)
     }
+  },
+  mounted: function () {
+    window.addEventListener('resize', this.handleResize)
+  },
+  beforeDestroy: function () {
+    window.removeEventListener('resize', this.handleResize)
   }
 }
 </script>
