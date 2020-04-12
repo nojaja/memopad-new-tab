@@ -13,13 +13,16 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    sort: 0,
     editor: null,
     currentFile: {},
     currentModelId: 'source',
     fileContainer: new FileContainer(),
     noteKeyList: JSON.parse(localStorage.getItem('noteKeyList')) || [],
     config: JSON.parse(localStorage.getItem('config')) || {
+      general: {
+        sort: '0',
+        i18n_locale: 'ja'
+      },
       editor: {
         automaticLayout: true,
         fontSize: 16,
@@ -70,28 +73,28 @@ export default new Vuex.Store({
         const label = tmpfile.getDescription() || tmpfile.getContent().split('\n')[0] || val
         items.push({ name: label, uri: val, isActive: (state.currentFile.projectName === tmpfileContainer.container.projectName), createdTime: tmpfileContainer.getCreatedTime() || 0, lastUpdatedTime: tmpfileContainer.getLastUpdatedTime() || 0 })
       })
-      if (state.sort === 0) {
+      if (state.sort === '0') {
       // sort: 0 desc lastUpdatedTime
         items.sort(function (a, b) {
           if (a.lastUpdatedTime > b.lastUpdatedTime) return -1
           if (a.lastUpdatedTime < b.lastUpdatedTime) return 1
           return 0
         })
-      } else if (state.sort === 1) {
+      } else if (state.sort === '1') {
       // sort: 1 asc lastUpdatedTime
         items.sort(function (a, b) {
           if (a.lastUpdatedTime < b.lastUpdatedTime) return -1
           if (a.lastUpdatedTime > b.lastUpdatedTime) return 1
           return 0
         })
-      } else if (state.sort === 2) {
+      } else if (state.sort === '2') {
       // sort: 2 desc createdTime
         items.sort(function (a, b) {
           if (a.createdTime > b.createdTime) return -1
           if (a.createdTime < b.createdTime) return 1
           return 0
         })
-      } else if (state.sort === 3) {
+      } else if (state.sort === '3') {
       // sort: 3 asc createdTime
         items.sort(function (a, b) {
           if (a.createdTime < b.createdTime) return -1
