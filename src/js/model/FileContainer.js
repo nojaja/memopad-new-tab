@@ -165,6 +165,14 @@ class FileContainer {
   getLastUpdatedTime () {
     return this.container.lastUpdatedTime
   }
+
+  setCreatedTime (createdTime) {
+    this.container.createdTime = createdTime
+  }
+
+  setLastUpdatedTime (lastUpdatedTime) {
+    this.container.lastUpdatedTime = lastUpdatedTime
+  }
 }
 export default FileContainer
 if (typeof window !== 'undefined') {

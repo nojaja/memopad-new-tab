@@ -1,5 +1,5 @@
 <template>
-  <div class="footer">
+  <div class="footer" v-bind:style="{ backgroundColor: this.backgroundColor }">
     <slot></slot>
   </div>
 </template>
@@ -8,6 +8,13 @@
 
 export default {
   components: {
+  },
+  props: {
+    backgroundColor: {
+      type: String,
+      required: false,
+      default: '#aaa'
+    }
   }
 }
 </script>
@@ -19,6 +26,5 @@ export default {
   position: fixed;
   bottom: 0;
   width: 100%;
-  background-color: #aaa;
 }
 </style>

@@ -5,6 +5,7 @@ import FileData from '../model/FileData.js'
 import FileContainer from '../model/FileContainer.js'
 import { debounce } from 'lodash'
 
+import jmd from '@/jmd.json'
 import i18n from '../lang'
 
 // import Debug from '../Debug.js'
@@ -21,6 +22,7 @@ export default new Vuex.Store({
     config: JSON.parse(localStorage.getItem('config')) || {
       general: {
         sort: '0',
+        cover: '-1',
         i18n_locale: 'ja'
       },
       editor: {
@@ -44,7 +46,9 @@ export default new Vuex.Store({
           multiline: true,
           rowspan: true,
           headerless: true
-        }
+        },
+        multibyteconvert: false,
+        multibyteconvertList: jmd.RegExpList || []
       }
     }
   },
@@ -157,6 +161,8 @@ export default new Vuex.Store({
       file.setDescription(content)
       state.fileContainer.putFile(file)
       console.log('fileContainer:' + state.fileContainer.getContainerJson())
+
+      state.fileContainer.setId(noteId)
       state.fileContainer.setProjectName(noteName)
 
       this.dispatch('saveProject')// プロジェクトの保存
@@ -205,6 +211,28 @@ export default new Vuex.Store({
       if (localStorage.getItem(name)) {
         state.config = JSON.parse(localStorage.getItem(name))
       }
+    },
+    importProject (state, pjdata) {
+      const noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random())
+      pjdata.id = pjdata.id || noteId
+      pjdata.projectName = pjdata.projectName || 'note_' + pjdata.id
+      const tmpfileContainer = new FileContainer()
+      tmpfileContainer.setId(pjdata.id)
+      tmpfileContainer.setProjectName(pjdata.projectName)
+
+      if (pjdata.files) {
+        tmpfileContainer.setContainerJson(pjdata.files)
+      } else {
+        const file = new FileData()
+        file.setFilename('index.md')
+        if (pjdata.text) file.setContent(pjdata.text)
+        if (pjdata.createdTime) file.setCreatedTime(pjdata.createdTime)
+        if (pjdata.lastUpdatedTime) file.setLastUpdatedTime(pjdata.lastUpdatedTime)
+        const label = file.getDescription() || file.getContent().split('\n')[0] || pjdata.projectName
+        file.setDescription(label)
+        tmpfileContainer.putFile(file)
+      }
+      localStorage.setItem(pjdata.projectName, tmpfileContainer.getContainerJson())
     }
   },
   actions: { // ミューテーションをコミットする関数(外部APIとの連携や非同期処理もここ)

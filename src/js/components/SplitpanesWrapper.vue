@@ -14,7 +14,6 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import Monaco from '@/components/Monaco.vue'
 import Preview from '@/components/Preview.vue'
-import jmd from '@/jmd.json'
 
 export default {
   components: {
@@ -54,7 +53,9 @@ export default {
             multiline: true,
             rowspan: true,
             headerless: true
-          }
+          },
+          multibyteconvert: false,
+          multibyteconvertList: []
         }
       })
     },
@@ -69,6 +70,11 @@ export default {
       default: false
     }
   },
+  data () {
+    return {
+      regExpData: []
+    }
+  },
   computed: {
     viewSource () { // 日本語markdown
       let w = this.source
@@ -78,17 +84,18 @@ export default {
       return w
     }
   },
-  data () {
-    return {
-      regExpData: []
+  watch: {
+    'config.markdown.multibyteconvert': function (val) {
+      console.log('config.markdown.multibyteconvert')
+      this.updateRegExpList()
+    },
+    'config.markdown.multibyteconvertList': function (val) {
+      console.log('config.markdown.multibyteconvertList')
+      this.updateRegExpList()
     }
   },
   created: function () {
-    console.log(jmd)
-    const regExpList = jmd.RegExpList || []
-    regExpList.forEach((element, index, array) => {
-      this.regExpData.push([new RegExp(element[0], 'gm'), element[1]])
-    })
+    this.updateRegExpList()
   },
   methods: {
     onChange (value) {
@@ -96,6 +103,15 @@ export default {
     },
     handleResize (event) { // パネルリサイズ時にmonaco側にリサイズ通知する
       this.$refs.monaco.resize()
+    },
+    updateRegExpList () {
+      this.regExpData = []
+      if (this.config.markdown.multibyteconvert) {
+        console.log(this.config.markdown.multibyteconvertList)
+        this.config.markdown.multibyteconvertList.forEach((element, index, array) => {
+          this.regExpData.push([new RegExp(element[0], 'gm'), element[1]])
+        })
+      }
     }
   }
 }
