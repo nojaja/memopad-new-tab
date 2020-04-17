@@ -1,10 +1,9 @@
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/nojaja/memopad-new-tab) 
-
 # Memopad New Tab
 
 [link-cws]: https://chrome.google.com/webstore/detail/iohinadgijcpmclidcgalomljfabkpde "Version published on Chrome Web Store"
 
 [![Licence](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE) 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/nojaja/memopad-new-tab) 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/users/iohinadgijcpmclidcgalomljfabkpde.svg?label=chrome%20users&style=flat-square)][link-cws]
 
 > Google Chromeの「新規タブ」の拡張機能。  
