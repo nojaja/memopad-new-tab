@@ -53,6 +53,11 @@ module.exports = {
             to: dist
           },
           {
+            context: 'assets/',
+            from: '_locales/**/*.*',
+            to: dist
+          },
+          {
             from: 'css/github-markdown-css.css',
             to: dist + '/css/github-markdown-css.css'
           }

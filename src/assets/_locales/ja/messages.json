@@ -1,4 +1,4 @@
 {
-    "ext_name": { "message": "MemoPad new tab" }
-   ,"ext_desc": { "message": "Memopad New TabはGoogle Chromeのデフォルトの「新しいタブ」の代わりにMarkdownエディタにしてくれます。 }
+    "ext_name": { "message": "MemoPad new tab" },
+   "ext_desc": { "message": "Memopad New TabはGoogle Chromeのデフォルトの「新しいタブ」の代わりにMarkdownエディタにしてくれます。" }
 }

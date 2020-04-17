@@ -38,7 +38,7 @@ function uploadZip() {
 
     // publish the uploaded zip
     webStore.publish().then(res => {
-      console.log('Successfully published the newer version');
+      console.log('Successfully published the newer version',res);
     }).catch((error) => {
       console.log(`Error while publishing uploaded extension: ${error}`);
       process.exit(1);
