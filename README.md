@@ -1,3 +1,5 @@
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/nojaja/memopad-new-tab) 
+
 # Memopad New Tab
 
 [link-cws]: https://chrome.google.com/webstore/detail/iohinadgijcpmclidcgalomljfabkpde "Version published on Chrome Web Store"
