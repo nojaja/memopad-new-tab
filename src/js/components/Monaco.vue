@@ -1,5 +1,5 @@
 <template>
-  <MonacoEditor class="editor" ref="editor" v-model="source" @change="change" :options="{automaticLayout: true}" language="markdown" />
+  <MonacoEditor class="editor" ref="editor" v-model="source" @change="change" :options="config" language="markdown" />
 </template>
 
 <script>
@@ -14,6 +14,17 @@ export default {
       type: String,
       required: false,
       default: ''
+    },
+    config: {
+      type: Object,
+      required: false,
+      default: () => ({
+        automaticLayout: true,
+        fontSize: 16,
+        fontFamily: '',
+        tabSize: 4,
+        theme: 'vs'
+      })
     },
     onChange: {
       type: Function,

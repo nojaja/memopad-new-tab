@@ -6,6 +6,8 @@
 import md from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import ruby from 'markdown-it-ruby'
+import multimdTable from 'markdown-it-multimd-table'
+import checkbox from 'markdown-it-checkbox'
 
 export default {
   components: {
@@ -15,18 +17,36 @@ export default {
       type: String,
       required: false,
       default: '# test  \n## hoge'
+    },
+    config: {
+      type: Object,
+      required: false,
+      default: () => ({
+        basicOption: {
+          html: true,
+          breaks: false,
+          linkify: true,
+          typography: true
+        },
+        emoji: true,
+        ruby: true,
+        multimdTable: true,
+        multimdTableOption: {
+          multiline: true,
+          rowspan: true,
+          headerless: true
+        }
+      })
     }
   },
   computed: {
     compiledMarkdown: function () {
-      const parseData = md({
-        html: true,
-        breaks: false,
-        linkify: true,
-        typography: true
-      })
-        .use(emoji).use(ruby)
-        .render(this.source.trim())
+      const mdInstance = md(this.config.basicOption)
+      if (this.config.emoji) mdInstance.use(emoji)
+      if (this.config.ruby) mdInstance.use(ruby)
+      if (this.config.multimdTable) mdInstance.use(multimdTable, this.config.multimdTableOption)
+      if (this.config.checkbox) mdInstance.use(checkbox)
+      const parseData = mdInstance.render(this.source.trim())
       const htmlheader = `
 <!DOCTYPE html>
 <html>

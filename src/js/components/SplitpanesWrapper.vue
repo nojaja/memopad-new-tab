@@ -1,10 +1,10 @@
 <template>
   <splitpanes @resize="handleResize" firstSplitter>
     <pane v-if="!hideEditPane" min-size="10" >
-      <Monaco ref="monaco" :source="source" :onChange="onChange"></Monaco>
+      <Monaco ref="monaco" :source="source" :onChange="onChange" :config="config.editor"></Monaco>
     </pane>
     <pane v-if="!hidePreviewPane">
-      <Preview :source="source"></Preview>
+      <Preview :source="viewSource" :config="config.markdown"></Preview>
     </pane>
   </splitpanes>
 </template>
@@ -28,6 +28,37 @@ export default {
       required: false,
       default: ''
     },
+    config: {
+      type: Object,
+      required: false,
+      default: () => ({
+        editor: {
+          automaticLayout: true,
+          fontSize: 16,
+          fontFamily: '',
+          tabSize: 4,
+          theme: 'vs'
+        },
+        markdown: {
+          basicOption: {
+            html: true,
+            breaks: false,
+            linkify: true,
+            typography: true
+          },
+          emoji: true,
+          ruby: true,
+          multimdTable: true,
+          multimdTableOption: {
+            multiline: true,
+            rowspan: true,
+            headerless: true
+          },
+          multibyteconvert: false,
+          multibyteconvertList: []
+        }
+      })
+    },
     hideEditPane: { // 編集パネルの表示非表示
       type: Boolean,
       required: false,
@@ -39,12 +70,48 @@ export default {
       default: false
     }
   },
+  data () {
+    return {
+      regExpData: []
+    }
+  },
+  computed: {
+    viewSource () { // 日本語markdown
+      let w = this.source
+      for (const i in this.regExpData) {
+        w = w.replace(this.regExpData[i][0], this.regExpData[i][1])
+      }
+      return w
+    }
+  },
+  watch: {
+    'config.markdown.multibyteconvert': function (val) {
+      console.log('config.markdown.multibyteconvert')
+      this.updateRegExpList()
+    },
+    'config.markdown.multibyteconvertList': function (val) {
+      console.log('config.markdown.multibyteconvertList')
+      this.updateRegExpList()
+    }
+  },
+  created: function () {
+    this.updateRegExpList()
+  },
   methods: {
     onChange (value) {
       this.$store.dispatch('update', value)
     },
     handleResize (event) { // パネルリサイズ時にmonaco側にリサイズ通知する
       this.$refs.monaco.resize()
+    },
+    updateRegExpList () {
+      this.regExpData = []
+      if (this.config.markdown.multibyteconvert) {
+        console.log(this.config.markdown.multibyteconvertList)
+        this.config.markdown.multibyteconvertList.forEach((element, index, array) => {
+          this.regExpData.push([new RegExp(element[0], 'gm'), element[1]])
+        })
+      }
     }
   }
 }

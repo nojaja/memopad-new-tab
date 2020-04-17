@@ -1,9 +1,8 @@
 <template>
-  <div class="noteListMenu">
-    <div class="newNote"  @click="onNew">+New</div>
-    <ul tabindex="0" class="noteList">
-      <li class="noteListItem" v-for="item in items" :key="item.uri" v-bind:class="{ active: item.isActive }">
-        <div class="noteListItem-text" :data-uri="item.uri" @click="select(item.uri)">
+  <div class="TabListMenu">
+    <ul tabindex="0" class="TabList">
+      <li class="TabListItem" v-for="item in items" :key="item.uri" v-bind:class="{ active: item.isActive }">
+        <div class="TabListItem-text" :data-uri="item.uri" @click="select(item.uri)">
             <div class="container">
               <div class="title">{{item.name}}</div>
             </div>
@@ -50,48 +49,37 @@ export default {
 </script>
 
 <style>
-.noteListMenu {
+.TabListMenu {
     position: relative;
     overflow: hidden;
     overflow-y: scroll;
     -ms-overflow-style: none;    /* IE, Edge 対応 */
     scrollbar-width: none;       /* Firefox 対応 */
     height: 100%;
-    width: 200px;
 }
-.noteListMenu::-webkit-scrollbar {
+.TabListMenu::-webkit-scrollbar {
     display: none;
 }
-.newNote {
-    position: fixed;
-    top: 0;
-    left: 0;
-    padding: 18px 16px;
-    opacity: .9;
-    width: 200px;
-    background: white;
-    z-index: 10;
-}
-.newNote, .noteListItem {
+.TabListItem {
     display: block;
     cursor: pointer;
     border-bottom: 1px solid rgba(0,0,0,.05);
     font-size: 15px;
-    height: 54px;
+    height: 32px;
     box-sizing: border-box;
 }
 
-.newNote:hover, .noteListItem:hover {
+.TabListItem:hover {
     opacity: 1;
     background-color: rgba(0,0,0,.01);
 }
 
-.noteListItem.active {
-    border-left: 3px solid #1e87f0
+.TabListItem.active {
+    border-left: 3px solid #87f01e;
 }
 
-.noteListItem-text {
-    padding: 18px 16px;
+.TabListItem-text {
+    padding: 4px 16px;
     -webkit-transition: .3s;
     transition: .3s;
     white-space: nowrap;
@@ -102,12 +90,12 @@ export default {
     opacity: .6
 }
 
-.noteListItem.active .noteListItem-text {
-    opacity: .9
+.TabListItem.active .noteListItem-text {
+    opacity: 1
 }
 
-.noteList {
-    padding: 54px 0;
+.TabList {
+    padding: 0px 0;
     height: 100%;
     box-sizing: border-box;
     margin-block-start: 0;
