@@ -28,7 +28,7 @@ export default new Vuex.Store({
       editor: {
         automaticLayout: true,
         fontSize: 16,
-        fontFamily: '',
+        // fontFamily: '',
         tabSize: 4,
         theme: 'vs'
       },

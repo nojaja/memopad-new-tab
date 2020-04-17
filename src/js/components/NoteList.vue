@@ -57,6 +57,7 @@ export default {
     -ms-overflow-style: none;    /* IE, Edge 対応 */
     scrollbar-width: none;       /* Firefox 対応 */
     height: 100%;
+    width: 200px;
 }
 .noteListMenu::-webkit-scrollbar {
     display: none;
