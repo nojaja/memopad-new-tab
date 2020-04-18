@@ -34,7 +34,7 @@ function uploadZip() {
 
   // upload the zip to webstore
   webStore.uploadExisting(extensionSource).then(res => {
-    console.log('Successfully uploaded the ZIP');
+    console.log('Successfully uploaded the ZIP',res);
 
     // publish the uploaded zip
     webStore.publish().then(res => {
