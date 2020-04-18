@@ -33,3 +33,8 @@ jobs:
         CLIENT_SECRET: ${{ secrets.CLIENT_SECRET}}
         EXTENSION_ID: ${{ secrets.EXTENSION_ID}}
         REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN}}
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: log
+        path: /home/runner/.npm/_logs/
