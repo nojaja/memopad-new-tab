@@ -58,7 +58,6 @@ export default {
       this.$store.dispatch('newProject')
     },
     loadProject (uri) {
-      console.log('methods : ' + uri)
       this.$store.dispatch('loadProject', uri)
     },
     settingOpen (e) {

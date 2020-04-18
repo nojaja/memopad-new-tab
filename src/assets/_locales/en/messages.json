@@ -1,4 +1,4 @@
 {
-    "ext_name": { "message": "MemoPad new tab" }
-   ,"ext_desc": { "message": "Memopad New Tab makes it a Markdown editor instead of the default [New Tab] in Google Chrome." }
+   "ext_name": { "message": "MemoPad New Tab" },
+   "ext_desc": { "message": "Memopad New Tab makes it a Markdown editor instead of the default [New Tab] in Google Chrome." }
 }

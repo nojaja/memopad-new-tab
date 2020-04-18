@@ -6,6 +6,7 @@ const messages = require('./messages.json')
 Vue.use(VueI18n)
 
 export default new VueI18n({
-  locale: 'ja',
+  locale: 'en',
+  fallbackLocale: 'en',
   messages
 })

@@ -14,9 +14,10 @@
         <!--
         <h3 class="h3">カバー</h3>
         <Select :items="coverSelectItems" :selected="config.general.cover"></Select>
-        <h3 class="h3">インタフェース言語</h3>
-        <Select :items="selectItems" :selected="config.general.i18n_locale" :onSelect="(newValue) => {config.general.i18n_locale = newValue}"></Select>
         -->
+        <h3 class="h3">Language</h3>
+        <Select :items="selectItems" :selected="config.general.i18n_locale" :onSelect="(newValue) => {config.general.i18n_locale = newValue}"></Select>
+
         <h3 class="h3">Import Data</h3>
         <button class="button" @click="this.importLocalStorage"><unicon name="import" fill="white"></unicon>Import Data</button>
         <h3 class="h3">Export Data</h3>
@@ -66,7 +67,7 @@
           <label for="checkbox-enable-auto-sync" class="label">typography - Set ON to enable some language-neutral replacement + quotes beautification (smartquotes).</label>
         </div>
 
-        <h3 class="h3">拡張</h3>
+        <h3 class="h3">Extensions</h3>
         <div>
           <ToggleButton v-model="config.markdown.emoji" :sync="true"></ToggleButton>
           <label for="checkbox-enable-auto-sync" class="label">Emoji - Set ON to enable Emoji syntax </label>
@@ -109,6 +110,7 @@ import Download from '@/components/Download.vue'
 // import ColorPicker from 'vue-sketch-color-picker'
 import { ToggleButton } from 'vue-js-toggle-button'
 import store from '@/store'
+import i18n from '@/lang'
 
 export default {
   name: 'App',
@@ -128,10 +130,10 @@ export default {
         { id: 3, name: 'Markdown', uri: '3', isActive: false }
       ],
       sortSelectItems: [
-        { name: '更新日-順', value: '0' },
-        { name: '更新日-逆順', value: '1' },
-        { name: '作成日-逆順', value: '2' },
-        { name: '作成日-逆順', value: '3' }
+        { name: i18n.tc('SettingPage.sortSelectItems.desc_lastUpdatedTime'), value: '0' },
+        { name: i18n.tc('SettingPage.sortSelectItems.asc_lastUpdatedTime'), value: '1' },
+        { name: i18n.tc('SettingPage.sortSelectItems.desc_createdTime'), value: '2' },
+        { name: i18n.tc('SettingPage.sortSelectItems.asc_createdTime'), value: '3' }
       ],
       coverSelectItems: [
         { name: '5min', value: '5' },
@@ -146,17 +148,18 @@ export default {
         { name: 'none', value: '-1' }
       ],
       selectItems: [
-        { name: '🇩🇪Deutsch', value: 'de' },
-        { name: '🇺🇸English (US)', value: 'en-US' },
-        { name: '🇪🇸Español (España)', value: 'es-ES' },
-        { name: '🇫🇷Français (France)', value: 'fr-FR' },
-        { name: '🇯🇵日本語', value: 'ja' },
-        { name: '🇰🇷한국어', value: 'ko' },
-        { name: '🇧🇷Português(BR)', value: 'pt-BR' },
-        { name: '🇺🇦Українська', value: 'uk-UA' },
-        { name: '🇨🇳中文 (CN)', value: 'zh-CN' },
-        { name: '🇭🇰中文 (HK)', value: 'zh-HK' },
-        { name: '🇹🇼中文 (TW)', value: 'zh-TW' }
+        // { name: '🇩🇪Deutsch', value: 'de' },
+        { name: '🇺🇸English (US)', value: 'en' },
+        // { name: '🇺🇸English (US)', value: 'en-US' },
+        // { name: '🇪🇸Español (España)', value: 'es-ES' },
+        // { name: '🇫🇷Français (France)', value: 'fr-FR' },
+        { name: '🇯🇵日本語', value: 'ja' }
+        // { name: '🇰🇷한국어', value: 'ko' },
+        // { name: '🇧🇷Português(BR)', value: 'pt-BR' },
+        // { name: '🇺🇦Українська', value: 'uk-UA' },
+        // { name: '🇨🇳中文 (CN)', value: 'zh-CN' },
+        // { name: '🇭🇰中文 (HK)', value: 'zh-HK' },
+        // { name: '🇹🇼中文 (TW)', value: 'zh-TW' }
       ],
       colors: {
         hex: '#194d33',
