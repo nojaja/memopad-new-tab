@@ -66,7 +66,6 @@ export default new Vuex.Store({
     refreshFileList (state) {
       // { name: 'いちご', uri: 'note_1583338656491', isActive: true },
       const items = []
-      console.log('noteKeyList:' + state.noteKeyList)
 
       state.noteKeyList.forEach(function (val, i) {
         const tmpfileContainer = new FileContainer()
@@ -77,28 +76,28 @@ export default new Vuex.Store({
         const label = tmpfile.getDescription() || tmpfile.getContent().split('\n')[0] || val
         items.push({ name: label, uri: val, isActive: (state.currentFile.projectName === tmpfileContainer.container.projectName), createdTime: tmpfileContainer.getCreatedTime() || 0, lastUpdatedTime: tmpfileContainer.getLastUpdatedTime() || 0 })
       })
-      if (state.sort === '0') {
+      if (state.config.general.sort === '0') {
       // sort: 0 desc lastUpdatedTime
         items.sort(function (a, b) {
           if (a.lastUpdatedTime > b.lastUpdatedTime) return -1
           if (a.lastUpdatedTime < b.lastUpdatedTime) return 1
           return 0
         })
-      } else if (state.sort === '1') {
+      } else if (state.config.general.sort === '1') {
       // sort: 1 asc lastUpdatedTime
         items.sort(function (a, b) {
           if (a.lastUpdatedTime < b.lastUpdatedTime) return -1
           if (a.lastUpdatedTime > b.lastUpdatedTime) return 1
           return 0
         })
-      } else if (state.sort === '2') {
+      } else if (state.config.general.sort === '2') {
       // sort: 2 desc createdTime
         items.sort(function (a, b) {
           if (a.createdTime > b.createdTime) return -1
           if (a.createdTime < b.createdTime) return 1
           return 0
         })
-      } else if (state.sort === '3') {
+      } else if (state.config.general.sort === '3') {
       // sort: 3 asc createdTime
         items.sort(function (a, b) {
           if (a.createdTime < b.createdTime) return -1
@@ -106,7 +105,6 @@ export default new Vuex.Store({
           return 0
         })
       }
-      console.log(items)
       return items
     }
   },
@@ -122,9 +120,10 @@ export default new Vuex.Store({
       this.dispatch('saveProject')
     },
     saveProject (state, cb) {
-      console.log('mutations saveProject')
+      // console.log('mutations saveProject')
       // state.currentFile をfileContainerに格納
       // ローカルストレージに最新の状態を保存
+      state.fileContainer.setLastUpdatedTime(new Date().getTime())
       localStorage.setItem(state.fileContainer.getProjectName(), state.fileContainer.getContainerJson())
       // console.log(state.fileContainer.getProjectName() + ':' + state.fileContainer.getContainerJson())
       // refreshFileList();
@@ -132,7 +131,7 @@ export default new Vuex.Store({
     },
     // プロジェクトの読み込み処理
     loadProject (state, noteName) {
-      console.log('loadProject:' + noteName)
+      // console.log('loadProject:' + noteName)
       if (localStorage.getItem(noteName)) {
         state.fileContainer.setContainerJson(localStorage.getItem(noteName))
         // console.log('fileContainer:' + state.fileContainer.getContainerJson())
@@ -142,8 +141,8 @@ export default new Vuex.Store({
       this.dispatch('fileOpen', state.fileContainer.getFiles()[0])// プロジェクト内のファイルを開く
       // this.fileOpen(state.fileContainer.getFiles()[0])// プロジェクト内のファイルを開く
 
-      const label = state.fileContainer.getFile(state.fileContainer.getFiles()[0]).getContent().split('\n')[0] || state.fileContainer.getProjectName()
-      console.log(label)
+      // const label = state.fileContainer.getFile(state.fileContainer.getFiles()[0]).getContent().split('\n')[0] || state.fileContainer.getProjectName()
+      // console.log(label)
       // return fileContainer.getContainerJson()
     },
     // プロジェクトの新規作成処理
@@ -153,21 +152,24 @@ export default new Vuex.Store({
       const today = new Date()
       const content = '' + today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate() + ' ' + today.getHours() + ':' + today.getMinutes() + '\n'
 
-      console.log('state.fileContainer:' + state.fileContainer)
+      // console.log('state.fileContainer:' + state.fileContainer)
       state.fileContainer.init()
+      state.fileContainer.setCreatedTime(new Date().getTime())
+      state.fileContainer.setLastUpdatedTime(new Date().getTime())
       const file = new FileData()
       file.setFilename('index.md')
       file.setContent(content)
       file.setDescription(content)
       state.fileContainer.putFile(file)
-      console.log('fileContainer:' + state.fileContainer.getContainerJson())
+      // console.log('fileContainer:' + state.fileContainer.getContainerJson())
 
       state.fileContainer.setId(noteId)
       state.fileContainer.setProjectName(noteName)
 
       this.dispatch('saveProject')// プロジェクトの保存
       this.dispatch('saveNoteKeyList', noteName)// ファイル一覧の保存
-      console.log('noteKeyList:' + state.noteKeyList)
+      this.dispatch('loadProject', noteName)
+      // console.log('noteKeyList:' + state.noteKeyList)
     },
     // プロジェクト内のFileを開く
     fileOpen (state, filename) {
@@ -180,7 +182,7 @@ export default new Vuex.Store({
       if (localStorage.getItem(name)) {
         state.noteKeyList = JSON.parse(localStorage.getItem(name))
       }
-      console.log('loadNoteKeyList:' + state.noteKeyList)
+      // console.log('loadNoteKeyList:' + state.noteKeyList)
     },
     saveNoteKeyList (state, noteName) { // ローカルストレージに状態を保存する
       const name = 'noteKeyList'
@@ -205,12 +207,14 @@ export default new Vuex.Store({
       state.config = config
       const name = 'config'
       localStorage.setItem(name, JSON.stringify(state.config))
+      i18n.locale = state.config.general.i18n_locale || i18n.locale
     },
     loadConfig (state) {
       const name = 'config'
       if (localStorage.getItem(name)) {
         state.config = JSON.parse(localStorage.getItem(name))
       }
+      i18n.locale = state.config.general.i18n_locale || i18n.locale
     },
     importProject (state, pjdata) {
       const noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random())
@@ -250,7 +254,6 @@ export default new Vuex.Store({
     },
     // プロジェクトの読み込み処理
     loadProject (context, noteName) {
-      console.log('loadProject : ' + noteName)
       context.commit('loadProject', noteName)
     },
     // プロジェクトの保存処理

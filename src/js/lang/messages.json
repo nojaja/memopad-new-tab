@@ -3,12 +3,30 @@
     "message" : {
       "welcome" : "Welcome to Your Vue.js App",
       "Delete" : "Can I delete it?"
+    },
+    "SettingPage" : {
+      "Settings" : "Settings",
+      "sortSelectItems" : {
+          "desc_lastUpdatedTime" : "Desc LastUpdated",
+          "asc_lastUpdatedTime" : "Asc LastUpdated",
+          "desc_createdTime" : "Desc Created",
+          "asc_createdTime" : "Aesc Created"
+      }
     }
   },
   "ja" : {
     "message" : {
       "welcome" : "Vue.jsアプリケーションへようこそ",
       "Delete" : "削除してよいですか？"
+    },
+    "SettingPage" : {
+      "Settings" : "Settings",
+      "sortSelectItems" : {
+          "desc_lastUpdatedTime" : "更新日-順",
+          "asc_lastUpdatedTime" : "更新日-逆順",
+          "desc_createdTime" : "作成日-順",
+          "asc_createdTime" : "作成日-逆順"
+      }
     }
   }
 }
