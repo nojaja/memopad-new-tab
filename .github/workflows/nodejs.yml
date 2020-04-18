@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x]
+        node-version: [12.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -26,5 +26,10 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run build
+    - run: npm run publish
       env:
         CI: true
+        CLIENT_ID: ${{ secrets.CLIENT_ID}}
+        CLIENT_SECRET: ${{ secrets.CLIENT_SECRET}}
+        EXTENSION_ID: ${{ secrets.EXTENSION_ID}}
+        REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN}}
