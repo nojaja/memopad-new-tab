@@ -26,15 +26,30 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run build
-    - run: npm run publish
       env:
         CI: true
-        CLIENT_ID: ${{ secrets.CLIENT_ID}}
-        CLIENT_SECRET: ${{ secrets.CLIENT_SECRET}}
-        EXTENSION_ID: ${{ secrets.EXTENSION_ID}}
-        REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN}}
     - name: Archive production artifacts
       uses: actions/upload-artifact@v1
       with:
         name: log
         path: /home/runner/.npm/_logs/
+    - name: Zip Release
+      uses: TheDoctor0/zip-release@v0.3.0
+      with:
+        # Filename for archive
+        filename: 'extension.zip'
+        # Base path for archive files
+        path: 'dist'
+    - name: Chrome Addon Action
+      uses: trmcnvn/chrome-addon@v2
+      with:
+        # ID of the extension that you are updating
+        extension: ${{ secrets.EXTENSION_ID }}
+        # Path to a .zip of your addon
+        zip: 'extension.zip'
+        # Google OAuth2 client id
+        client-id: ${{ secrets.CLIENT_ID}}
+        # Google OAuth2 client secret
+        client-secret: ${{ secrets.CLIENT_SECRET}}
+        # Google OAuth2 refresh token
+        refresh-token: ${{ secrets.REFRESH_TOKEN}}
