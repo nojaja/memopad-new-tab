@@ -35,6 +35,13 @@ jobs:
         filename: 'extension.zip'
         # Base path for archive files
         path: 'dist'
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        # Artifact name
+        name: extension
+        # Directory containing files to upload
+        path: extension.zip
     - name: Chrome Addon Action
       uses: trmcnvn/chrome-addon@v2
       with:
