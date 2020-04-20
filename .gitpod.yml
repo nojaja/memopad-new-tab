@@ -1,5 +1,7 @@
 tasks:
-  - init: eval $(gp env -e) && npm install && npm run serve
+  - init: eval $(gp env -e) && npm install
+  - command: export TZ="Asia/Tokyo"
+  - command: npm run serve
 image:
   file: .gitpod.Dockerfile
 vscode:
