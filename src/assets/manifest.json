@@ -13,7 +13,7 @@
   },
   "version": "0.0.8",
   "offline_enabled": true,
-  "permissions" : ["management"],
+  "permissions" : [],
   "default_locale": "en",
   "chrome_url_overrides" : {
     "newtab": "index.html"
