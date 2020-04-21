@@ -58,6 +58,11 @@ module.exports = {
             to: dist
           },
           {
+            context: 'assets/',
+            from: 'icons/*.*',
+            to: dist
+          },
+          {
             from: 'css/github-markdown-css.css',
             to: dist + '/css/github-markdown-css.css'
           }

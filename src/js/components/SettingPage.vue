@@ -98,6 +98,17 @@
           <ToggleButton v-model="config.markdown.multibyteconvert" :sync="true"></ToggleButton>
           <label for="checkbox-enable-auto-sync" class="label">Enable convert</label>
         </div>
+        <draggable tag="ul" v-model="multibyteconvertList" class="list-group" handle=".handle">
+          <li class="ListItem" v-for="(element, idx) in multibyteconvertList" :key="element.id">
+            <div>
+            <unicon class="handle" name="bars" fill="white"></unicon>
+            <input type="text" class="form-control text" v-model="element.reg" />
+            <input type="text" class="form-control text" v-model="element.val" />
+            <button class="button-small del" @click="removeMultibyteconvertList(idx)"><unicon name="times" fill="white" width="16px"></unicon></button>
+            </div>
+          </li>
+          <button class="button-small-secondary" @click="addMultibyteconvertList">+ Add Record</button>
+        </draggable>
       </div>
     </div>
   </div>
@@ -109,6 +120,7 @@ import Select from '@/components/Select.vue'
 import Download from '@/components/Download.vue'
 // import ColorPicker from 'vue-sketch-color-picker'
 import { ToggleButton } from 'vue-js-toggle-button'
+import draggable from 'vuedraggable'
 import store from '@/store'
 import i18n from '@/lang'
 
@@ -119,10 +131,12 @@ export default {
     Select,
     Download,
     // ColorPicker,
-    ToggleButton
+    ToggleButton,
+    draggable
   },
   data () {
     return {
+      dragging: true,
       currentId: '1',
       items: [
         { id: 1, name: 'General', uri: '1', isActive: true },
@@ -189,6 +203,20 @@ export default {
   computed: {
     config () {
       return this.$store.getters.config
+    },
+    multibyteconvertList: {
+      get: function () {
+        const ret = this.config.markdown.multibyteconvertList.map((value, index) => {
+          return { id: index, reg: value[0], val: value[1] }
+        })
+        return ret
+      },
+      set: function (newValue) {
+        const ret = newValue.map((value, index) => {
+          return [value.reg, value.val]
+        })
+        this.config.markdown.multibyteconvertList = ret
+      }
     }
   },
   watch: {
@@ -201,6 +229,12 @@ export default {
     }
   },
   methods: {
+    removeMultibyteconvertList (idx) {
+      this.config.markdown.multibyteconvertList.splice(idx, 1)
+    },
+    addMultibyteconvertList () {
+      this.config.markdown.multibyteconvertList.push(['', ''])
+    },
     selectItem (uri) {
       this.currentId = uri
     },
@@ -288,7 +322,7 @@ export default {
     font-size: 16px;
 }
 .button {
-    background-color: rgb(3, 197, 136);
+    background-color: rgb(72, 201, 160);
     color: rgb(255, 255, 255);
     font-size: 16px;
     height: 40px;
@@ -302,5 +336,79 @@ export default {
     border-image: initial;
     padding: 0px 16px;
     border-radius: 2px;
+}
+.button:hover {
+    background-color: rgb(3, 197, 136);
+}
+.button-small {
+    background-color: rgb(72, 201, 160);
+    color: rgb(255, 255, 255);
+    font-size: 11px;
+    height: 20px;
+    cursor: pointer;
+    vertical-align: middle;
+    -webkit-box-align: center;
+    align-items: center;
+    border-width: initial;
+    border-style: none;
+    border-color: initial;
+    border-image: initial;
+    padding: 0px 8px;
+    border-radius: 2px;
+}
+.button-small:hover {
+    background-color: rgb(3, 197, 136);
+}
+.button-small-secondary {
+    background-color: rgb(128, 128, 128);
+    color: rgb(255, 255, 255);
+    font-size: 11px;
+    height: 20px;
+    cursor: pointer;
+    vertical-align: middle;
+    -webkit-box-align: center;
+    align-items: center;
+    border-width: initial;
+    border-style: none;
+    border-color: initial;
+    border-image: initial;
+    padding: 0px 8px;
+    border-radius: 2px;
+}
+.button-small-secondary:hover {
+    background-color: rgb(71, 71, 71);
+}
+.ListItem {
+    display: block;
+    border-bottom: 1px solid rgba(0,0,0,.05);
+    font-size: 15px;
+    height: 34px;
+    box-sizing: border-box;
+}
+.handle {
+  cursor: pointer;
+}
+.del {
+  margin-left: 5px;
+  padding: 1px 1px;
+}
+.text {
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 16px;
+  height: 30px;
+  border-width: initial;
+  border-style: none;
+  border-color: initial;
+  -o-border-image: initial;
+  border-image: initial;
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 0%;
+  flex: 1 1 0%;
+  outline: none;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box; /* Firefox */
+  -webkit-box-sizing: border-box; /* Chrome, Safari */
+  border-radius: 2px;
 }
 </style>
