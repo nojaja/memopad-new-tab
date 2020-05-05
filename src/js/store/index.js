@@ -1,8 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import FileData from '../model/FileData.js'
-import FileContainer from '../model/FileContainer.js'
+import { FileContainer, FileData } from 'filecontainer'
 import { debounce } from 'lodash'
 
 import jmd from '@/jmd.json'
