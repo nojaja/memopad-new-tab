@@ -1,9 +1,15 @@
-tasks:
-  - init: npm install
-    command: export TZ="Asia/Tokyo"
-    command: eval $(gp env -e) && npm run serve
 image:
   file: .gitpod.Dockerfile
+tasks:
+  - name: init
+    init: >
+      npm install;
+  - name: npmstart
+    command: >
+      export TZ="Asia/Tokyo";
+      export URL=`gp url 8080`;
+      eval $(gp env -e) ;
+      npm run serve;
 vscode:
   extensions:
     - octref.vetur@0.23.0:TEzauMObB6f3i2JqlvrOpA==
