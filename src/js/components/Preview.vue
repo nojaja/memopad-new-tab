@@ -8,6 +8,7 @@ import emoji from 'markdown-it-emoji'
 import ruby from 'markdown-it-ruby'
 import multimdTable from 'markdown-it-multimd-table'
 import checkbox from 'markdown-it-checkbox'
+import uml from 'markdown-it-plantuml'
 
 export default {
   components: {
@@ -30,6 +31,7 @@ export default {
         },
         emoji: true,
         ruby: true,
+        uml: true,
         multimdTable: true,
         multimdTableOption: {
           multiline: true,
@@ -46,6 +48,8 @@ export default {
       if (this.config.ruby) mdInstance.use(ruby)
       if (this.config.multimdTable) mdInstance.use(multimdTable, this.config.multimdTableOption)
       if (this.config.checkbox) mdInstance.use(checkbox)
+      if (this.config.uml) mdInstance.use(uml)
+
       const parseData = mdInstance.render(this.source.trim())
       const htmlheader = `
 <!DOCTYPE html>

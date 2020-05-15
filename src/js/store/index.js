@@ -41,6 +41,7 @@ export default new Vuex.Store({
         },
         emoji: true,
         ruby: true,
+        uml: true,
         multimdTable: true,
         multimdTableOption: {
           multiline: true,

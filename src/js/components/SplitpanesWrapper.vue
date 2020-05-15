@@ -48,6 +48,7 @@ export default {
           },
           emoji: true,
           ruby: true,
+          uml: true,
           multimdTable: true,
           multimdTableOption: {
             multiline: true,

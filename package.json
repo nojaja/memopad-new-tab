@@ -1,14 +1,14 @@
 {
   "name": "memopad-new-tab",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "private": true,
   "description": "Save memo in Markdown directly in the 'New Tab' page",
   "author": "",
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "publish": "node ./deploy.js"
+    "serve": "cross-env NODE_OPTIONS=--max_old_space_size=2048 vue-cli-service serve",
+    "build": "cross-env NODE_OPTIONS=--max_old_space_size=2048 vue-cli-service build",
+    "lint": "cross-env NODE_OPTIONS=--max_old_space_size=2048 vue-cli-service lint",
+    "publish": "cross-env NODE_OPTIONS=--max_old_space_size=2048 node ./deploy.js"
   },
   "dependencies": {
     "@vue/cli": "^4.3.1",
@@ -23,6 +23,7 @@
     "markdown-it-container": "^2.0.0",
     "markdown-it-emoji": "^1.4.0",
     "markdown-it-multimd-table": "^4.0.1",
+    "markdown-it-plantuml": "^1.4.1",
     "markdown-it-ruby": "^0.1.1",
     "mini-css-extract-plugin": "^0.9.0",
     "monaco-editor": "^0.20.0",
@@ -54,6 +55,7 @@
     "@vue/cli-service": "~4.2.3",
     "@vue/eslint-config-standard": "^5.1.2",
     "babel-eslint": "^10.1.0",
+    "cross-env": "^7.0.2",
     "eslint": "^6.8.0",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-node": "^11.0.0",
