@@ -77,6 +77,10 @@
           <label for="checkbox-enable-auto-sync" class="label">Ruby - Set ON to enable ruby</label>
         </div>
         <div>
+          <ToggleButton v-model="config.markdown.uml" :sync="true"></ToggleButton>
+          <label for="checkbox-enable-auto-sync" class="label">UML - Set ON to enable UML</label>
+        </div>
+        <div>
           <ToggleButton v-model="config.markdown.multimdTable" :sync="true"></ToggleButton>
           <label for="checkbox-enable-auto-sync" class="label">Enable multimdTable</label>
         </div>

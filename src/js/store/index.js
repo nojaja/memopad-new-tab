@@ -40,6 +40,7 @@ export default new Vuex.Store({
         },
         emoji: true,
         ruby: true,
+        uml: true,
         multimdTable: true,
         multimdTableOption: {
           multiline: true,
@@ -56,7 +57,7 @@ export default new Vuex.Store({
       return state.currentFile
     },
     source (state) {
-      return state.currentFile.file.content
+      return state.currentFile ? state.currentFile.file.content : ''
     },
     config (state) {
       return state.config
@@ -71,9 +72,9 @@ export default new Vuex.Store({
         tmpfileContainer.setContainerJson(localStorage.getItem(val))
 
         // const label = tmpfileContainer.getFile(tmpfileContainer.getFiles()[0]).getContent().split('\n')[0] || val
-        const tmpfile = tmpfileContainer.getFile(tmpfileContainer.getFiles()[0])
-        const label = tmpfile.getDescription() || tmpfile.getContent().split('\n')[0] || val
-        items.push({ name: label, uri: val, isActive: (state.currentFile.projectName === tmpfileContainer.container.projectName), createdTime: tmpfileContainer.getCreatedTime() || 0, lastUpdatedTime: tmpfileContainer.getLastUpdatedTime() || 0 })
+        const tmpfile = tmpfileContainer.getFile(tmpfileContainer.getFiles()[0].name) || null
+        const label = (tmpfile) ? (tmpfile.getDescription() || tmpfile.getContent().split('\n')[0] || val) : val
+        if (tmpfile) items.push({ name: label, uri: val, isActive: (state.currentFile.projectName === tmpfileContainer.container.projectName), createdTime: tmpfileContainer.getCreatedTime() || 0, lastUpdatedTime: tmpfileContainer.getLastUpdatedTime() || 0 })
       })
       if (state.config.general.sort === '0') {
       // sort: 0 desc lastUpdatedTime
@@ -137,7 +138,7 @@ export default new Vuex.Store({
       } else { // 存在しない場合は新規作成する
         this.dispatch('newProject')
       }
-      this.dispatch('fileOpen', state.fileContainer.getFiles()[0])// プロジェクト内のファイルを開く
+      this.dispatch('fileOpen', state.fileContainer.getFiles()[0].name)// プロジェクト内のファイルを開く
       // this.fileOpen(state.fileContainer.getFiles()[0])// プロジェクト内のファイルを開く
 
       // const label = state.fileContainer.getFile(state.fileContainer.getFiles()[0]).getContent().split('\n')[0] || state.fileContainer.getProjectName()
@@ -172,8 +173,10 @@ export default new Vuex.Store({
     },
     // プロジェクト内のFileを開く
     fileOpen (state, filename) {
-      state.currentFile = state.fileContainer.getFile(filename)
-      state.currentFile.projectName = state.fileContainer.container.projectName
+      const file = state.fileContainer.getFile(filename) || null
+      state.currentFile = file
+      state.currentFile.projectName = (file) ? state.fileContainer.getProjectName() : ''
+      // state.currentFile.projectName = (file) ? state.fileContainer.getProjectName() : ''
     },
     loadNoteKeyList (state) { // ページが読み込まれたら、ローカルストレージから状態を読み込む
       const name = 'noteKeyList'
