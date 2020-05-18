@@ -34,7 +34,7 @@ export default {
       return this.$store.getters.config
     },
     title () {
-      const file = this.$store.getters.currentFile.file
+      const file = (this.$store.getters.currentFile) ? this.$store.getters.currentFile.file : null
       return (file ? file.description : '')
     }
   },
