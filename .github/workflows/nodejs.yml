@@ -8,6 +8,12 @@ on:
     branches: [ master ]
     paths:
       - 'src/assets/*'
+  pull_request:
+    branches: 
+      - master
+    paths:
+      - 'src/assets/*'
+    types: [closed]
 jobs:
   build:
 
