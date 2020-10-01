@@ -45,8 +45,8 @@ module.exports = {
         // Languages are loaded on demand at runtime
         languages: ['javascript', 'css', 'html', 'typescript']
       }),
-      new CopyFilePlugin(
-        [
+      new CopyFilePlugin({
+        patterns:[
           {
             context: 'assets/',
             from: '*.json',
@@ -66,7 +66,7 @@ module.exports = {
             from: 'css/github-markdown-css.css',
             to: dist + '/css/github-markdown-css.css'
           }
-        ],
+        ]},
         { copyUnmodified: true }
       ),
       new WriteFilePlugin()
