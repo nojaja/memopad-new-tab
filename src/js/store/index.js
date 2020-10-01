@@ -150,7 +150,7 @@ export default new Vuex.Store({
       const noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random())
       const noteName = 'note_' + noteId
       const today = new Date()
-      const content = '' + today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate() + ' ' + today.getHours() + ':' + today.getMinutes() + '\n'
+      const content = '' + today.getFullYear() + '/' + ('0' + (today.getMonth() + 1)).slice(-2) + '/' + ('0' + today.getDate()).slice(-2) + ' ' + ('0' + today.getHours()).slice(-2) + ':' + ('0' + today.getMinutes()).slice(-2) + '\n'
 
       // console.log('state.fileContainer:' + state.fileContainer)
       state.fileContainer.init()
