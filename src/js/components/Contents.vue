@@ -41,7 +41,7 @@ export default {
   data () {
     return {
       hideEditPane: false,
-      hidePreviewPane: false,
+      hidePreviewPane: true,
       width: window.innerWidth,
       height: window.innerHeight
     }
