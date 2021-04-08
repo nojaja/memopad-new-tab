@@ -11,7 +11,7 @@
 		"32": "icons/icon_32.png"
 	}
   },
-  "version": "0.0.10",
+  "version": "0.0.11",
   "offline_enabled": true,
   "permissions" : [],
   "default_locale": "en",
