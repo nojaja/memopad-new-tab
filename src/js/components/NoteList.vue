@@ -2,6 +2,14 @@
   <div class="noteListMenu">
     <div class="newNote"  @click="onNew">+New</div>
     <ul tabindex="0" class="noteList">
+      <li class="noteListItem-search">
+        <div class="noteListItem-input">
+            <unicon class="input-icon" name="search-alt"></unicon>
+            <div class="input-wrapper">
+              <input type="text" class="input" v-model="itemList.filter"/>
+            </div>
+        </div>
+      </li>
       <li class="noteListItem" v-for="item in items" :key="item.uri" v-bind:class="{ active: item.isActive }">
         <div class="noteListItem-text" :data-uri="item.uri" @click="select(item.uri)">
             <div class="container">
@@ -14,8 +22,16 @@
 </template>
 
 <script>
+import store from '@/store'
+
 export default {
   components: {
+  },
+  store,
+  computed: {
+    itemList () {
+      return this.$store.getters.itemList
+    }
   },
   props: {
     items: {
@@ -80,7 +96,13 @@ export default {
     height: 54px;
     box-sizing: border-box;
 }
-
+.newNote, .noteListItem-search {
+    display: block;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(0,0,0,.05);
+    font-size: 15px;
+    box-sizing: border-box;
+}
 .newNote:hover, .noteListItem:hover {
     opacity: 1;
     background-color: rgba(0,0,0,.01);
@@ -116,4 +138,49 @@ export default {
     outline: none;
 }
 
+.input-icon {
+  margin-right: 6px;
+    -webkit-box-flex: 1;
+    -ms-flex: auto 0 0px;
+    flex: auto 0 0;
+    width: 16px;
+    height: 16px;
+    color: #2c3e50;
+}
+
+.input-wrapper {
+  position: relative;
+      width: 0;
+    -webkit-box-flex: 1;
+    -ms-flex: auto 1 1;
+    flex: auto 1 1;
+}
+.noteListItem-input {
+    border-radius: 17px;
+    display: flex;
+    padding: 8px 1px;
+    -webkit-transition: .3s;
+    transition: .3s;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height: 17px;
+    font-size: 14px;
+    opacity: .6;
+    position: relative;
+}
+.input {
+    position: relative;
+    z-index: 1;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 14px;
+    color: #2c3e50;
+    padding: 0;
+    width: 100%;
+    display: block;
+    border: none;
+    background: 0 0;
+    outline: 0;
+}
 </style>
