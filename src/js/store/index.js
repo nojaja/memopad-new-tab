@@ -13,6 +13,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    itemList: { filter: '' },
     editor: null,
     currentFile: {},
     currentModelId: 'source',
@@ -62,6 +63,9 @@ export default new Vuex.Store({
     config (state) {
       return state.config
     },
+    itemList (state) {
+      return state.itemList
+    },
     // File一覧の更新
     refreshFileList (state) {
       // { name: 'いちご', uri: 'note_1583338656491', isActive: true },
@@ -73,8 +77,10 @@ export default new Vuex.Store({
 
         // const label = tmpfileContainer.getFile(tmpfileContainer.getFiles()[0]).getContent().split('\n')[0] || val
         const tmpfile = tmpfileContainer.getFile(tmpfileContainer.getFiles()[0].name) || null
-        const label = (tmpfile) ? (tmpfile.getDescription() || tmpfile.getContent().split('\n')[0] || val) : val
-        if (tmpfile) items.push({ name: label, uri: val, isActive: (state.currentFile.projectName === tmpfileContainer.container.projectName), createdTime: tmpfileContainer.getCreatedTime() || 0, lastUpdatedTime: tmpfileContainer.getLastUpdatedTime() || 0 })
+        if (state.itemList.filter === '' || (tmpfile.getContent().indexOf(state.itemList.filter) !== -1)) {
+          const label = (tmpfile) ? (tmpfile.getDescription() || tmpfile.getContent().split('\n')[0] || val) : val
+          if (tmpfile) items.push({ name: label, uri: val, isActive: (state.currentFile.projectName === tmpfileContainer.container.projectName), createdTime: tmpfileContainer.getCreatedTime() || 0, lastUpdatedTime: tmpfileContainer.getLastUpdatedTime() || 0 })
+        }
       })
       if (state.config.general.sort === '0') {
       // sort: 0 desc lastUpdatedTime
