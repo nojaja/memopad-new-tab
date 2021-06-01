@@ -5,9 +5,9 @@
     </div>
     <SplitpanesWrapper :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
     <Footer>
-      <button @click="hideEditPane = false;hidePreviewPane=true"><unicon name="edit"></unicon></button>
-      <button @click="hideEditPane = false;hidePreviewPane=false"><unicon name="columns"></unicon></button>
-      <button @click="hideEditPane = true;hidePreviewPane=false"><unicon name="eye"></unicon></button>
+      <button @click="switchPanel(false, true)"><unicon name="edit"></unicon></button>
+      <button @click="switchPanel(false, false)"><unicon name="columns"></unicon></button>
+      <button @click="switchPanel(true, false)"><unicon name="eye"></unicon></button>
       <button @click="this.delete"><unicon name="trash-alt"></unicon></button>
     </Footer>
   </div>
@@ -38,10 +38,20 @@ export default {
       return (file ? file.description : '')
     }
   },
+  props: {
+    hideEditPane: { // 編集パネルの表示非表示
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    hidePreviewPane: { // previewパネルの表示非表示
+      type: Boolean,
+      required: false,
+      default: true
+    }
+  },
   data () {
     return {
-      hideEditPane: false,
-      hidePreviewPane: true,
       width: window.innerWidth,
       height: window.innerHeight
     }
@@ -53,6 +63,11 @@ export default {
     },
     updateTitle (e) {
       this.$store.commit('updateTitle', e.target.value)
+    },
+    switchPanel (hideEditPane, hidePreviewPane) {
+      this.hideEditPane = hideEditPane
+      this.hidePreviewPane = hidePreviewPane
+      console.log('this:', this)
     },
     delete () {
       DialogHelper.showDialog(this, {

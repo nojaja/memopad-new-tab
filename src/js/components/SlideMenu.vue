@@ -30,7 +30,6 @@ export default {
   },
   methods: {
     handleResize: function () {
-      console.log('resize')
       this.width = window.innerWidth
       // this.$refs.slideMenu.$children[0].width = this.width
     },
