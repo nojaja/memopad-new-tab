@@ -5,17 +5,17 @@
   "description": "Save memo in Markdown directly in the 'New Tab' page",
   "author": "",
   "scripts": {
-    "serve": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048 --openssl-legacy-provider\" vue-cli-service serve",
-    "build": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048 --openssl-legacy-provider\" vue-cli-service build",
+    "serve": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048 \" vue-cli-service serve",
+    "build": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048 \" vue-cli-service build",
     "build-legacy": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048 --openssl-legacy-provider\" vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "publish": "cross-env NODE_OPTIONS=--max_old_space_size=2048 node ./deploy.js",
-    "test:e2e": "playwright test"
+    "publish": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048 \" node ./deploy.js",
+    "test:e2e": "cross-env NODE_OPTIONS=\"--openssl-legacy-provider\" playwright test"
   },
   "dependencies": {
     "core-js": "^3.6.5",
     "cross-env": "^7.0.2",
-    "filecontainer": "git+https://github.com/nojaja/FileContainer.git",
+    "filecontainer": "github:nojaja/FileContainer",
     "lodash": "^4.17.20",
     "markdown-it": "^12.3.2",
     "markdown-it-checkbox": "^1.1.0",
