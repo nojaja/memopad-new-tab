@@ -45,16 +45,12 @@ jobs:
         name: extension
         # Directory containing files to upload
         path: extension.zip
-    - name: Chrome Addon Action
-      uses: trmcnvn/chrome-addon@v2
+    - name: Upload to Chrome Web Store
+      uses: mobilefirstllc/cws-publish@latest
       with:
-        # ID of the extension that you are updating
-        extension: ${{ secrets.EXTENSION_ID }}
-        # Path to a .zip of your addon
-        zip: 'extension.zip'
-        # Google OAuth2 client id
-        client-id: ${{ secrets.CLIENT_ID}}
-        # Google OAuth2 client secret
-        client-secret: ${{ secrets.CLIENT_SECRET}}
-        # Google OAuth2 refresh token
-        refresh-token: ${{ secrets.REFRESH_TOKEN}}
+        action: 'publish' # 'upload', 'publish', 'testers'から選択
+        client_id: ${{ secrets.CLIENT_ID}}
+        client_secret: ${{ secrets.CLIENT_SECRET}}
+        refresh_token: ${{ secrets.REFRESH_TOKEN}}
+        extension_id:  ${{ secrets.EXTENSION_ID }}
+        zip_file: 'extension.zip'
