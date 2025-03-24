@@ -46,13 +46,13 @@ export default {
       })
     }
   },
-  data () { // プロパティの値を設定
+  data() { // プロパティの値を設定
     return {
       cache: ''
     }
   },
   computed: {
-    compiledMarkdown: function () {
+    compiledMarkdown: function() {
       if (this.autoUpdate) {
         this.changeCache()
       }
@@ -76,7 +76,7 @@ export default {
     }
   },
   methods: {
-    changeCache () {
+    changeCache() {
       const mdInstance = md(this.config.basicOption)
       if (this.config.emoji) mdInstance.use(emoji)
       if (this.config.ruby) mdInstance.use(ruby)

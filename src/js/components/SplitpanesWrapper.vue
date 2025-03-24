@@ -71,13 +71,13 @@ export default {
       default: false
     }
   },
-  data () {
+  data() {
     return {
       regExpData: []
     }
   },
   computed: {
-    viewSource () { // 日本語markdown
+    viewSource() { // 日本語markdown
       let w = this.source
       for (const i in this.regExpData) {
         w = w.replace(this.regExpData[i][0], this.regExpData[i][1])
@@ -86,26 +86,26 @@ export default {
     }
   },
   watch: {
-    'config.markdown.multibyteconvert': function (val) {
+    'config.markdown.multibyteconvert': function(val) {
       console.log('config.markdown.multibyteconvert')
       this.updateRegExpList()
     },
-    'config.markdown.multibyteconvertList': function (val) {
+    'config.markdown.multibyteconvertList': function(val) {
       console.log('config.markdown.multibyteconvertList')
       this.updateRegExpList()
     }
   },
-  created: function () {
+  created: function() {
     this.updateRegExpList()
   },
   methods: {
-    onChange (value) {
+    onChange(value) {
       this.$store.dispatch('update', value)
     },
-    handleResize (event) { // パネルリサイズ時にmonaco側にリサイズ通知する
+    handleResize(event) { // パネルリサイズ時にmonaco側にリサイズ通知する
       this.$refs.monaco.resize()
     },
-    updateRegExpList () {
+    updateRegExpList() {
       this.regExpData = []
       if (this.config.markdown.multibyteconvert) {
         console.log(this.config.markdown.multibyteconvertList)

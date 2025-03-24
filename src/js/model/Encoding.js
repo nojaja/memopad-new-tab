@@ -19,7 +19,7 @@
 
 /* jshint bitwise:false,eqnull:true,newcap:false */
 
-(function (name, context, factory) {
+(function(name, context, factory) {
 // Supports UMD. AMD, CommonJS/Node.js and browser context
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
@@ -32,7 +32,7 @@
   } else {
     context[name] = factory()
   }
-})('Encoding', this, function () {
+})('Encoding', this, function() {
   'use strict'
 
   var UTF8_UNKNOWN = '?'.charCodeAt(0)
@@ -125,7 +125,7 @@
  *
  * @ignore
  */
-  var EncodingOrders = (function () {
+  var EncodingOrders = (function() {
     var aliases = EncodingAliases
 
     var names = getKeys(EncodingNames)
@@ -151,7 +151,7 @@
       }
     }
 
-    orders.sort(function (a, b) {
+    orders.sort(function(a, b) {
       return EncodingNames[a].order - EncodingNames[b].order
     })
 
@@ -190,7 +190,7 @@
    * @public
    * @function
    */
-    detect: function (data, encodings) {
+    detect: function(data, encodings) {
       if (data == null || data.length === 0) {
         return false
       }
@@ -254,7 +254,7 @@
    * @public
    * @function
    */
-    convert: function (data, to, from) {
+    convert: function(data, to, from) {
       var result
       var type
       var options = {}
@@ -313,7 +313,7 @@
    * @public
    * @function
    */
-    urlEncode: function (data) {
+    urlEncode: function(data) {
       if (isString(data)) {
         data = stringToBuffer(data)
       }
@@ -365,7 +365,7 @@
    * @public
    * @function
    */
-    urlDecode: function (string) {
+    urlDecode: function(string) {
       var results = []
       var i = 0
       var len = string && string.length
@@ -392,7 +392,7 @@
    * @public
    * @function
    */
-    base64Encode: function (data) {
+    base64Encode: function(data) {
       if (isString(data)) {
         data = stringToBuffer(data)
       }
@@ -407,7 +407,7 @@
    * @public
    * @function
    */
-    base64Decode: function (string) {
+    base64Decode: function(string) {
       return base64decode(string)
     },
     /**
@@ -446,7 +446,7 @@
    * @public
    * @function
    */
-    toHankakuCase: function (data) {
+    toHankakuCase: function(data) {
       var asString = false
       if (isString(data)) {
         asString = true
@@ -484,7 +484,7 @@
    * @public
    * @function
    */
-    toZenkakuCase: function (data) {
+    toZenkakuCase: function(data) {
       var asString = false
       if (isString(data)) {
         asString = true
@@ -521,7 +521,7 @@
    * @public
    * @function
    */
-    toHiraganaCase: function (data) {
+    toHiraganaCase: function(data) {
       var asString = false
       if (isString(data)) {
         asString = true
@@ -566,7 +566,7 @@
    * @public
    * @function
    */
-    toKatakanaCase: function (data) {
+    toKatakanaCase: function(data) {
       var asString = false
       if (isString(data)) {
         asString = true
@@ -610,7 +610,7 @@
    * @public
    * @function
    */
-    toHankanaCase: function (data) {
+    toHankanaCase: function(data) {
       var asString = false
       if (isString(data)) {
         asString = true
@@ -668,7 +668,7 @@
    * @public
    * @function
    */
-    toZenkanaCase: function (data) {
+    toZenkanaCase: function(data) {
       var asString = false
       if (isString(data)) {
         asString = true
@@ -730,7 +730,7 @@
    * @public
    * @function
    */
-    toHankakuSpace: function (data) {
+    toHankakuSpace: function(data) {
       if (isString(data)) {
         return data.replace(/\u3000/g, ' ')
       }
@@ -761,7 +761,7 @@
    * @public
    * @function
    */
-    toZenkakuSpace: function (data) {
+    toZenkakuSpace: function(data) {
       if (isString(data)) {
         return data.replace(/\u0020/g, '\u3000')
       }
@@ -888,7 +888,7 @@
  * @private
  * @ignore
  */
-  function isBINARY (data) {
+  function isBINARY(data) {
     var i = 0
     var len = data && data.length
     var c
@@ -913,7 +913,7 @@
  * @private
  * @ignore
  */
-  function isASCII (data) {
+  function isASCII(data) {
     var i = 0
     var len = data && data.length
     var b
@@ -940,7 +940,7 @@
  * @private
  * @ignore
  */
-  function isJIS (data) {
+  function isJIS(data) {
     var i = 0
     var len = data && data.length
     var b, esc1, esc2
@@ -986,7 +986,7 @@
  * @private
  * @ignore
  */
-  function isEUCJP (data) {
+  function isEUCJP(data) {
     var i = 0
     var len = data && data.length
     var b
@@ -1047,7 +1047,7 @@
  * @private
  * @ignore
  */
-  function isSJIS (data) {
+  function isSJIS(data) {
     var i = 0
     var len = data && data.length
     var b
@@ -1084,7 +1084,7 @@
  * @private
  * @ignore
  */
-  function isUTF8 (data) {
+  function isUTF8(data) {
     var i = 0
     var len = data && data.length
     var b
@@ -1168,7 +1168,7 @@
  * @private
  * @ignore
  */
-  function isUTF16 (data) {
+  function isUTF16(data) {
     var i = 0
     var len = data && data.length
     var pos = null
@@ -1228,7 +1228,7 @@
  * @private
  * @ignore
  */
-  function isUTF16BE (data) {
+  function isUTF16BE(data) {
     var i = 0
     var len = data && data.length
     var pos = null
@@ -1274,7 +1274,7 @@
  * @private
  * @ignore
  */
-  function isUTF16LE (data) {
+  function isUTF16LE(data) {
     var i = 0
     var len = data && data.length
     var pos = null
@@ -1323,7 +1323,7 @@
  * @private
  * @ignore
  */
-  function isUTF32 (data) {
+  function isUTF32(data) {
     var i = 0
     var len = data && data.length
     var pos = null
@@ -1387,7 +1387,7 @@
  * @private
  * @ignore
  */
-  function isUNICODE (data) {
+  function isUNICODE(data) {
     var i = 0
     var len = data && data.length
     var c
@@ -1408,7 +1408,7 @@
  * @private
  * @ignore
  */
-  function JISToSJIS (data) {
+  function JISToSJIS(data) {
     var results = []
     var index = 0
     var i = 0
@@ -1482,7 +1482,7 @@
  * @private
  * @ignore
  */
-  function JISToEUCJP (data) {
+  function JISToEUCJP(data) {
     var results = []
     var index = 0
     var len = data && data.length
@@ -1534,7 +1534,7 @@
  * @private
  * @ignore
  */
-  function SJISToJIS (data) {
+  function SJISToJIS(data) {
     var results = []
     var index = 0
     var len = data && data.length
@@ -1614,7 +1614,7 @@
  * @private
  * @ignore
  */
-  function SJISToEUCJP (data) {
+  function SJISToEUCJP(data) {
     var results = []
     var len = data && data.length
     var i = 0
@@ -1664,7 +1664,7 @@
  * @private
  * @ignore
  */
-  function EUCJPToJIS (data) {
+  function EUCJPToJIS(data) {
     var results = []
     var index = 0
     var len = data && data.length
@@ -1734,7 +1734,7 @@
  * @private
  * @ignore
  */
-  function EUCJPToSJIS (data) {
+  function EUCJPToSJIS(data) {
     var results = []
     var len = data && data.length
     var i = 0
@@ -1787,7 +1787,7 @@
  * @private
  * @ignore
  */
-  function SJISToUTF8 (data) {
+  function SJISToUTF8(data) {
     init_JIS_TO_UTF8_TABLE()
 
     var results = []
@@ -1860,7 +1860,7 @@
  * @private
  * @ignore
  */
-  function EUCJPToUTF8 (data) {
+  function EUCJPToUTF8(data) {
     init_JIS_TO_UTF8_TABLE()
 
     var results = []
@@ -1926,7 +1926,7 @@
  * @private
  * @ignore
  */
-  function JISToUTF8 (data) {
+  function JISToUTF8(data) {
     init_JIS_TO_UTF8_TABLE()
 
     var results = []
@@ -2010,7 +2010,7 @@
  * @private
  * @ignore
  */
-  function UTF8ToSJIS (data) {
+  function UTF8ToSJIS(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2082,7 +2082,7 @@
  * @private
  * @ignore
  */
-  function UTF8ToEUCJP (data) {
+  function UTF8ToEUCJP(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2135,7 +2135,7 @@
  * @private
  * @ignore
  */
-  function UTF8ToJIS (data) {
+  function UTF8ToJIS(data) {
     var results = []
     var index = 0
     var len = data && data.length
@@ -2230,7 +2230,7 @@
  * @private
  * @ignore
  */
-  function UNICODEToUTF8 (data) {
+  function UNICODEToUTF8(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2275,7 +2275,7 @@
  * @private
  * @ignore
  */
-  function UTF8ToUNICODE (data) {
+  function UTF8ToUNICODE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2345,7 +2345,7 @@
  * @private
  * @ignore
  */
-  function UNICODEToUTF16 (data, options) {
+  function UNICODEToUTF16(data, options) {
     var results
 
     if (options && options.bom) {
@@ -2389,7 +2389,7 @@
  * @private
  * @ignore
  */
-  function UNICODEToUTF16BE (data) {
+  function UNICODEToUTF16BE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2418,7 +2418,7 @@
  * @private
  * @ignore
  */
-  function UNICODEToUTF16LE (data) {
+  function UNICODEToUTF16LE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2447,7 +2447,7 @@
  * @private
  * @ignore
  */
-  function UTF16BEToUNICODE (data) {
+  function UTF16BEToUNICODE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2482,7 +2482,7 @@
  * @private
  * @ignore
  */
-  function UTF16LEToUNICODE (data) {
+  function UTF16LEToUNICODE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2517,7 +2517,7 @@
  * @private
  * @ignore
  */
-  function UTF16ToUNICODE (data) {
+  function UTF16ToUNICODE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2567,7 +2567,7 @@
  * @private
  * @ignore
  */
-  function UTF16ToUTF16BE (data) {
+  function UTF16ToUTF16BE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2611,7 +2611,7 @@
  * @private
  * @ignore
  */
-  function UTF16BEToUTF16 (data, options) {
+  function UTF16BEToUTF16(data, options) {
     var isLE = false
     var bom
 
@@ -2670,7 +2670,7 @@
  * @private
  * @ignore
  */
-  function UTF16ToUTF16LE (data) {
+  function UTF16ToUTF16LE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2714,7 +2714,7 @@
  * @private
  * @ignore
  */
-  function UTF16LEToUTF16 (data, options) {
+  function UTF16LEToUTF16(data, options) {
     var isLE = false
     var bom
 
@@ -2773,7 +2773,7 @@
  * @private
  * @ignore
  */
-  function UTF16BEToUTF16LE (data) {
+  function UTF16BEToUTF16LE(data) {
     var results = []
     var i = 0
     var len = data && data.length
@@ -2802,7 +2802,7 @@
  * @private
  * @ignore
  */
-  function UTF16LEToUTF16BE (data) {
+  function UTF16LEToUTF16BE(data) {
     return UTF16BEToUTF16LE(data)
   }
 
@@ -2812,7 +2812,7 @@
  * @private
  * @ignore
  */
-  function UNICODEToJIS (data) {
+  function UNICODEToJIS(data) {
     return UTF8ToJIS(UNICODEToUTF8(data))
   }
 
@@ -2822,7 +2822,7 @@
  * @private
  * @ignore
  */
-  function JISToUNICODE (data) {
+  function JISToUNICODE(data) {
     return UTF8ToUNICODE(JISToUTF8(data))
   }
 
@@ -2832,7 +2832,7 @@
  * @private
  * @ignore
  */
-  function UNICODEToEUCJP (data) {
+  function UNICODEToEUCJP(data) {
     return UTF8ToEUCJP(UNICODEToUTF8(data))
   }
 
@@ -2842,7 +2842,7 @@
  * @private
  * @ignore
  */
-  function EUCJPToUNICODE (data) {
+  function EUCJPToUNICODE(data) {
     return UTF8ToUNICODE(EUCJPToUTF8(data))
   }
 
@@ -2852,7 +2852,7 @@
  * @private
  * @ignore
  */
-  function UNICODEToSJIS (data) {
+  function UNICODEToSJIS(data) {
     return UTF8ToSJIS(UNICODEToUTF8(data))
   }
 
@@ -2862,7 +2862,7 @@
  * @private
  * @ignore
  */
-  function SJISToUNICODE (data) {
+  function SJISToUNICODE(data) {
     return UTF8ToUNICODE(SJISToUTF8(data))
   }
 
@@ -2872,7 +2872,7 @@
  * @private
  * @ignore
  */
-  function UTF8ToUTF16 (data, options) {
+  function UTF8ToUTF16(data, options) {
     return UNICODEToUTF16(UTF8ToUNICODE(data), options)
   }
 
@@ -2882,7 +2882,7 @@
  * @private
  * @ignore
  */
-  function UTF16ToUTF8 (data) {
+  function UTF16ToUTF8(data) {
     return UNICODEToUTF8(UTF16ToUNICODE(data))
   }
 
@@ -2892,7 +2892,7 @@
  * @private
  * @ignore
  */
-  function UTF8ToUTF16BE (data) {
+  function UTF8ToUTF16BE(data) {
     return UNICODEToUTF16BE(UTF8ToUNICODE(data))
   }
 
@@ -2902,7 +2902,7 @@
  * @private
  * @ignore
  */
-  function UTF16BEToUTF8 (data) {
+  function UTF16BEToUTF8(data) {
     return UNICODEToUTF8(UTF16BEToUNICODE(data))
   }
 
@@ -2912,7 +2912,7 @@
  * @private
  * @ignore
  */
-  function UTF8ToUTF16LE (data) {
+  function UTF8ToUTF16LE(data) {
     return UNICODEToUTF16LE(UTF8ToUNICODE(data))
   }
 
@@ -2922,7 +2922,7 @@
  * @private
  * @ignore
  */
-  function UTF16LEToUTF8 (data) {
+  function UTF16LEToUTF8(data) {
     return UNICODEToUTF8(UTF16LEToUNICODE(data))
   }
 
@@ -2932,7 +2932,7 @@
  * @private
  * @ignore
  */
-  function JISToUTF16 (data, options) {
+  function JISToUTF16(data, options) {
     return UTF8ToUTF16(JISToUTF8(data), options)
   }
 
@@ -2942,7 +2942,7 @@
  * @private
  * @ignore
  */
-  function UTF16ToJIS (data) {
+  function UTF16ToJIS(data) {
     return UTF8ToJIS(UTF16ToUTF8(data))
   }
 
@@ -2952,7 +2952,7 @@
  * @private
  * @ignore
  */
-  function JISToUTF16BE (data) {
+  function JISToUTF16BE(data) {
     return UTF8ToUTF16BE(JISToUTF8(data))
   }
 
@@ -2962,7 +2962,7 @@
  * @private
  * @ignore
  */
-  function UTF16BEToJIS (data) {
+  function UTF16BEToJIS(data) {
     return UTF8ToJIS(UTF16BEToUTF8(data))
   }
 
@@ -2972,7 +2972,7 @@
  * @private
  * @ignore
  */
-  function JISToUTF16LE (data) {
+  function JISToUTF16LE(data) {
     return UTF8ToUTF16LE(JISToUTF8(data))
   }
 
@@ -2982,7 +2982,7 @@
  * @private
  * @ignore
  */
-  function UTF16LEToJIS (data) {
+  function UTF16LEToJIS(data) {
     return UTF8ToJIS(UTF16LEToUTF8(data))
   }
 
@@ -2992,7 +2992,7 @@
  * @private
  * @ignore
  */
-  function EUCJPToUTF16 (data, options) {
+  function EUCJPToUTF16(data, options) {
     return UTF8ToUTF16(EUCJPToUTF8(data), options)
   }
 
@@ -3002,7 +3002,7 @@
  * @private
  * @ignore
  */
-  function UTF16ToEUCJP (data) {
+  function UTF16ToEUCJP(data) {
     return UTF8ToEUCJP(UTF16ToUTF8(data))
   }
 
@@ -3012,7 +3012,7 @@
  * @private
  * @ignore
  */
-  function EUCJPToUTF16BE (data) {
+  function EUCJPToUTF16BE(data) {
     return UTF8ToUTF16BE(EUCJPToUTF8(data))
   }
 
@@ -3022,7 +3022,7 @@
  * @private
  * @ignore
  */
-  function UTF16BEToEUCJP (data) {
+  function UTF16BEToEUCJP(data) {
     return UTF8ToEUCJP(UTF16BEToUTF8(data))
   }
 
@@ -3032,7 +3032,7 @@
  * @private
  * @ignore
  */
-  function EUCJPToUTF16LE (data) {
+  function EUCJPToUTF16LE(data) {
     return UTF8ToUTF16LE(EUCJPToUTF8(data))
   }
 
@@ -3042,7 +3042,7 @@
  * @private
  * @ignore
  */
-  function UTF16LEToEUCJP (data) {
+  function UTF16LEToEUCJP(data) {
     return UTF8ToEUCJP(UTF16LEToUTF8(data))
   }
 
@@ -3052,7 +3052,7 @@
  * @private
  * @ignore
  */
-  function SJISToUTF16 (data, options) {
+  function SJISToUTF16(data, options) {
     return UTF8ToUTF16(SJISToUTF8(data), options)
   }
 
@@ -3062,7 +3062,7 @@
  * @private
  * @ignore
  */
-  function UTF16ToSJIS (data) {
+  function UTF16ToSJIS(data) {
     return UTF8ToSJIS(UTF16ToUTF8(data))
   }
 
@@ -3072,7 +3072,7 @@
  * @private
  * @ignore
  */
-  function SJISToUTF16BE (data) {
+  function SJISToUTF16BE(data) {
     return UTF8ToUTF16BE(SJISToUTF8(data))
   }
 
@@ -3082,7 +3082,7 @@
  * @private
  * @ignore
  */
-  function UTF16BEToSJIS (data) {
+  function UTF16BEToSJIS(data) {
     return UTF8ToSJIS(UTF16BEToUTF8(data))
   }
 
@@ -3092,7 +3092,7 @@
  * @private
  * @ignore
  */
-  function SJISToUTF16LE (data) {
+  function SJISToUTF16LE(data) {
     return UTF8ToUTF16LE(SJISToUTF8(data))
   }
 
@@ -3102,7 +3102,7 @@
  * @private
  * @ignore
  */
-  function UTF16LEToSJIS (data) {
+  function UTF16LEToSJIS(data) {
     return UTF8ToSJIS(UTF16LEToUTF8(data))
   }
 
@@ -3112,7 +3112,7 @@
  * @private
  * @ignore
  */
-  function assignEncodingName (target) {
+  function assignEncodingName(target) {
     var name = ''
     var expect = ('' + target).toUpperCase().replace(/[^A-Z0-9]+/g, '')
     var aliasNames = getKeys(EncodingAliases)
@@ -3146,21 +3146,21 @@
 
   // Helpers
 
-  function isObject (x) {
+  function isObject(x) {
     var type = typeof x
     return type === 'function' || type === 'object' && !!x
   }
 
-  function isArray (x) {
+  function isArray(x) {
     return Array.isArray ? Array.isArray(x)
       : toString.call(x) === '[object Array]'
   }
 
-  function isString (x) {
+  function isString(x) {
     return typeof x === 'string' || toString.call(x) === '[object String]'
   }
 
-  function getKeys (object) {
+  function getKeys(object) {
     if (Object.keys) {
       return Object.keys(object)
     }
@@ -3175,7 +3175,7 @@
     return keys
   }
 
-  function createBuffer (bits, size) {
+  function createBuffer(bits, size) {
     if (!HAS_TYPED) {
       return new Array(size)
     }
@@ -3186,7 +3186,7 @@
     }
   }
 
-  function stringToBuffer (string) {
+  function stringToBuffer(string) {
     var length = string.length
     var buffer = createBuffer(16, length)
 
@@ -3197,7 +3197,7 @@
     return buffer
   }
 
-  function codeToString_fast (code) {
+  function codeToString_fast(code) {
     if (CAN_CHARCODE_APPLY && CAN_CHARCODE_APPLY_TYPED) {
       var len = code && code.length
       if (len < APPLY_BUFFER_SIZE) {
@@ -3223,7 +3223,7 @@
     return codeToString_chunked(code)
   }
 
-  function codeToString_chunked (code) {
+  function codeToString_chunked(code) {
     var string = ''
     var length = code && code.length
     var i = 0
@@ -3260,7 +3260,7 @@
     return string
   }
 
-  function codeToString_slow (code) {
+  function codeToString_slow(code) {
     var string = ''
     var length = code && code.length
 
@@ -3271,7 +3271,7 @@
     return string
   }
 
-  function stringToCode (string) {
+  function stringToCode(string) {
     var code = []
     var len = string && string.length
 
@@ -3282,7 +3282,7 @@
     return code
   }
 
-  function codeToBuffer (code) {
+  function codeToBuffer(code) {
     if (HAS_TYPED) {
     // Use Uint16Array for Unicode codepoint.
       return new Uint16Array(code)
@@ -3302,7 +3302,7 @@
     return buffer
   }
 
-  function bufferToCode (buffer) {
+  function bufferToCode(buffer) {
     if (isArray(buffer)) {
       return buffer
     }
@@ -3340,7 +3340,7 @@
 
   var base64EncodePadding = '='.charCodeAt(0)
 
-  function base64encode (data) {
+  function base64encode(data) {
     var out, i, len
     var c1, c2, c3
 
@@ -3377,7 +3377,7 @@
     return codeToString_fast(out)
   }
 
-  function base64decode (str) {
+  function base64decode(str) {
     var c1, c2, c3, c4
     var i, len, out
 
@@ -16937,7 +16937,7 @@
  */
   var JISX0212_TO_UTF8_TABLE = null
 
-  function init_JIS_TO_UTF8_TABLE () {
+  function init_JIS_TO_UTF8_TABLE() {
     if (JIS_TO_UTF8_TABLE === null) {
       JIS_TO_UTF8_TABLE = {}
 

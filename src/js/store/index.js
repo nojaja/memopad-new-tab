@@ -265,34 +265,34 @@ export default new Vuex.Store({
       context.commit('loadProject', noteName)
     },
     // プロジェクトの保存処理
-    saveProject (context, cb) {
+    saveProject(context, cb) {
       context.commit('saveProject', cb)
       debounce(function () {
         console.log('saveProject')
       }, 3000)()
     },
-    fileOpen (context, filename) {
+    fileOpen(context, filename) {
       context.commit('fileOpen', filename)
     },
-    newProject (context) {
+    newProject(context) {
       context.commit('newProject')
     },
-    updateTitle (context, title) {
+    updateTitle(context, title) {
       context.commit('updateTitle', title)
     },
-    update (context, content) {
+    update(context, content) {
       context.commit('updateContent', content)
     },
-    deleteProject (context) {
+    deleteProject(context) {
       context.commit('deleteProject')
     },
-    init (context) {
+    init(context){
       context.commit('openFirst')
     },
-    setConfig (context, config) {
+    setConfig(context, config) {
       context.commit('setConfig', config)
     },
-    importProject (context, pjdata) {
+    importProject(context, pjdata) {
       context.commit('importProject', pjdata)
     }
   }

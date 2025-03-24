@@ -29,14 +29,14 @@ export default {
     onChange: {
       type: Function,
       required: false,
-      default: function (value) { console.log(value) }
+      default: function(value) { console.log(value) }
     }
   },
   methods: {
-    resize () {
+    resize() {
       this.$refs.editor.getMonaco().layout()
     },
-    change (value, event) {
+    change(value, event) {
       this.onChange(value)
       // console.log(value, event)
       // debounce(function (e) {

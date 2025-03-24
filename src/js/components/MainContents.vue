@@ -33,11 +33,11 @@ export default {
   },
   store,
   computed: {
-    fileList () {
+    fileList() {
       return this.$store.getters.refreshFileList
     }
   },
-  data () {
+  data() {
     return {
       width: window.innerWidth,
       height: window.innerHeight,
@@ -50,24 +50,24 @@ export default {
     }
   },
   methods: {
-    handleResize: function () {
+    handleResize: function() {
       this.width = window.innerWidth
       this.height = window.innerHeight
     },
-    newProject () {
+    newProject() {
       this.$store.dispatch('newProject')
     },
-    loadProject (uri) {
+    loadProject(uri) {
       this.$store.dispatch('loadProject', uri)
     },
-    settingOpen (e) {
+    settingOpen(e) {
       this.$refs.slideMenu.open(e)
     }
   },
-  mounted: function () {
+  mounted: function() {
     window.addEventListener('resize', this.handleResize)
   },
-  beforeDestroy: function () {
+  beforeDestroy: function() {
     window.removeEventListener('resize', this.handleResize)
   }
 }

@@ -37,13 +37,13 @@ export default {
       default: null
     }
   },
-  data () {
+  data() {
     return {
       isShow: false
     }
   },
   methods: {
-    attach () {
+    attach() {
       if (!this.$parent) {
         this.$mount()
         document.body.appendChild(this.$el)
@@ -52,7 +52,7 @@ export default {
         this.$parent.$el.appendChild(this.$el)
       }
     },
-    remove () {
+    remove() {
       if (!this.$parent) {
         document.body.removeChild(this.$el)
         this.$destroy()
@@ -61,14 +61,14 @@ export default {
         this.$destroy()
       }
     },
-    close () {
+    close() {
       this.isShow = false
     },
-    show () {
+    show() {
       this.attach()
       this.isShow = true
     },
-    afterLeave () {
+    afterLeave() {
       this.remove()
     }
   }

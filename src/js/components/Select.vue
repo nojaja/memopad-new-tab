@@ -12,10 +12,10 @@ export default {
   },
   computed: {
     selectedInfo: {
-      get: function () {
+      get: function() {
         return this.dataSelected
       },
-      set: function (newValue) {
+      set: function(newValue) {
         this.dataSelected = newValue
         this.onSelect(newValue)
       }
@@ -30,15 +30,15 @@ export default {
     items: {
       type: Array,
       required: false,
-      default: function () { return [{ name: 'test', value: '' }] }
+      default: function() { return [{ name: 'test', value: '' }] }
     },
     onSelect: {
       type: Function,
       required: false,
-      default: function (newValue) { console.log(newValue) }
+      default: function(newValue) { console.log(newValue) }
     }
   },
-  data () {
+  data() {
     return {
       dataSelected: this.selected,
       dataItems: this.items

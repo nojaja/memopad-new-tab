@@ -1,13 +1,13 @@
 class Debug {
-  constructor () {
+  constructor() {
   }
 
   // デバッグ用stringify
-  stringify (str) {
+  stringify(str) {
     var cache = []
     return JSON.stringify(
       str,
-      function (key, value) {
+      function(key, value) {
         if (typeof value === 'object' && value !== null) {
           if (cache.indexOf(value) !== -1) {
             // Circular reference found, discard key

@@ -27,18 +27,18 @@ export default {
   },
   store,
   computed: {
-    source () {
+    source() {
       return this.$store.getters.source
     },
-    config () {
+    config() {
       return this.$store.getters.config
     },
-    title () {
+    title() {
       const file = (this.$store.getters.currentFile) ? this.$store.getters.currentFile.file : null
       return (file ? file.description : '')
     }
   },
-  data () {
+  data() {
     return {
       hideEditPane: false,
       hidePreviewPane: true,
@@ -47,14 +47,14 @@ export default {
     }
   },
   methods: {
-    handleResize: function () {
+    handleResize: function() {
       this.width = window.innerWidth
       this.height = window.innerHeight
     },
-    updateTitle (e) {
+    updateTitle(e) {
       this.$store.commit('updateTitle', e.target.value)
     },
-    delete () {
+    delete() {
       DialogHelper.showDialog(this, {
         subject: 'Delete',
         message: i18n.tc('message.Delete'),
@@ -65,10 +65,10 @@ export default {
       })
     }
   },
-  mounted: function () {
+  mounted: function() {
     window.addEventListener('resize', this.handleResize)
   },
-  beforeDestroy: function () {
+  beforeDestroy: function() {
     window.removeEventListener('resize', this.handleResize)
   }
 }

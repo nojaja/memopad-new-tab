@@ -14,7 +14,7 @@ export default {
   components: {
     Slide
   },
-  data () {
+  data() {
     return {
       width: window.innerWidth
     }
@@ -29,12 +29,12 @@ export default {
   computed: {
   },
   methods: {
-    handleResize: function () {
+    handleResize: function() {
       console.log('resize')
       this.width = window.innerWidth
       // this.$refs.slideMenu.$children[0].width = this.width
     },
-    open (e) {
+    open(e) {
       // console.log('Open')
       if (e)e.preventDefault()
       if (e)e.stopPropagation()
@@ -44,10 +44,10 @@ export default {
       this.$refs.slideMenu.$children[0].openMenu()
     }
   },
-  mounted: function () {
+  mounted: function() {
     window.addEventListener('resize', this.handleResize)
   },
-  beforeDestroy: function () {
+  beforeDestroy: function() {
     window.removeEventListener('resize', this.handleResize)
   }
 }

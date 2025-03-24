@@ -9,7 +9,9 @@ const WriteFilePlugin = require('write-file-webpack-plugin')
 // require('jquery-ui/ui/widgets/resizable.js');
 module.exports = {
   devServer: {
-    disableHostCheck: true
+    disableHostCheck: true,
+    port: 3001,
+    host: 'localhost'
   },
   pages: {
     index: {
@@ -46,7 +48,7 @@ module.exports = {
         languages: ['javascript', 'css', 'html', 'typescript']
       }),
       new CopyFilePlugin({
-        patterns:[
+        patterns: [
           {
             context: 'assets/',
             from: '*.json',
@@ -66,8 +68,9 @@ module.exports = {
             from: 'css/github-markdown-css.css',
             to: dist + '/css/github-markdown-css.css'
           }
-        ]},
-        { copyUnmodified: true }
+        ]
+      },
+      { copyUnmodified: true }
       ),
       new WriteFilePlugin()
     ]

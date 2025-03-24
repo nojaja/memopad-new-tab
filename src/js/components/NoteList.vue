@@ -42,16 +42,16 @@ export default {
     onNew: {
       type: Function,
       required: false,
-      default: function () {}
+      default: function() {}
     },
     onSelect: {
       type: Function,
       required: false,
-      default: function () {}
+      default: function() {}
     }
   },
   methods: {
-    select: function (uri) { // リスト選択時の挙動制御
+    select: function(uri) { // リスト選択時の挙動制御
       for (const i in this.items) {
         if (this.items[i].uri === uri) {
           this.items[i].isActive = true

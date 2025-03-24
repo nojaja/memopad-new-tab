@@ -21,7 +21,7 @@ Vue.use(VueI18n)
 new Vue({
   store,
   i18n: lang,
-  created: function () {
+  created: function() {
     // `this` は vm インスタンスを指します
     console.log('created : ' + this.a)
     this.$store.dispatch('init')
