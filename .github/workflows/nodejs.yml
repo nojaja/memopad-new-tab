@@ -49,8 +49,8 @@ jobs:
       uses: mobilefirstllc/cws-publish@latest
       with:
         action: 'publish' # 'upload', 'publish', 'testers'から選択
-        client_id: ${{ secrets.CLIENT_ID}}
-        client_secret: ${{ secrets.CLIENT_SECRET}}
-        refresh_token: ${{ secrets.REFRESH_TOKEN}}
-        extension_id:  ${{ secrets.EXTENSION_ID }}
+        client_id: ${{secrets.CLIENT_ID}}
+        client_secret: ${{secrets.CLIENT_SECRET}}
+        refresh_token: ${{secrets.REFRESH_TOKEN}}
+        extension_id:  ${{secrets.EXTENSION_ID }}
         zip_file: 'extension.zip'
