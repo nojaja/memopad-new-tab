@@ -5,9 +5,9 @@
     </div>
     <SplitpanesWrapper :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
     <Footer>
-      <button @click="switchPanel(false, true)"><unicon name="edit"></unicon></button>
-      <button @click="switchPanel(false, false)"><unicon name="columns"></unicon></button>
-      <button @click="switchPanel(true, false)"><unicon name="eye"></unicon></button>
+      <button @click="hideEditPane = false;hidePreviewPane=true"><unicon name="edit"></unicon></button>
+      <button @click="hideEditPane = false;hidePreviewPane=false"><unicon name="columns"></unicon></button>
+      <button @click="hideEditPane = true;hidePreviewPane=false"><unicon name="eye"></unicon></button>
       <button @click="this.delete"><unicon name="trash-alt"></unicon></button>
     </Footer>
   </div>
@@ -27,49 +27,34 @@ export default {
   },
   store,
   computed: {
-    source () {
+    source() {
       return this.$store.getters.source
     },
-    config () {
+    config() {
       return this.$store.getters.config
     },
-    title () {
+    title() {
       const file = (this.$store.getters.currentFile) ? this.$store.getters.currentFile.file : null
       return (file ? file.description : '')
     }
   },
-  props: {
-    hideEditPane: { // 編集パネルの表示非表示
-      type: Boolean,
-      required: false,
-      default: false
-    },
-    hidePreviewPane: { // previewパネルの表示非表示
-      type: Boolean,
-      required: false,
-      default: true
-    }
-  },
-  data () {
+  data() {
     return {
+      hideEditPane: false,
+      hidePreviewPane: true,
       width: window.innerWidth,
       height: window.innerHeight
     }
   },
   methods: {
-    handleResize: function () {
+    handleResize: function() {
       this.width = window.innerWidth
       this.height = window.innerHeight
     },
-    updateTitle (e) {
+    updateTitle(e) {
       this.$store.commit('updateTitle', e.target.value)
     },
-    switchPanel (hideEditPane, hidePreviewPane) {
-      this.hideEditPane = hideEditPane
-      this.hidePreviewPane = hidePreviewPane
-      console.log('this:', this)
-    },
-    delete () {
+    delete() {
       DialogHelper.showDialog(this, {
         subject: 'Delete',
         message: i18n.tc('message.Delete'),
@@ -80,10 +65,10 @@ export default {
       })
     }
   },
-  mounted: function () {
+  mounted: function() {
     window.addEventListener('resize', this.handleResize)
   },
-  beforeDestroy: function () {
+  beforeDestroy: function() {
     window.removeEventListener('resize', this.handleResize)
   }
 }

@@ -17,17 +17,17 @@ export default {
   components: {
   },
   methods: {
-    getFileLegacy () {
-      return new Promise(function (resolve, reject) {
+    getFileLegacy() {
+      return new Promise(function(resolve, reject) {
         const ultag = document.getElementById('filePicker')
-        ultag.onchange = function (event) {
+        ultag.onchange = function(event) {
           const fileObject = event.target.files[0]
           fileObject ? resolve(fileObject) : reject(new Error('AbortError'))
         }
         ultag.click()
       })
     },
-    saveAsLegacy (content, filename, contentType) {
+    saveAsLegacy(content, filename, contentType) {
       contentType = contentType || 'text/plain'
       filename = filename || 'Untitled.txt'
 

@@ -18,7 +18,7 @@ export default {
   },
   store,
   methods: {
-    saveProject (e) {
+    saveProject(e) {
       e.preventDefault()
       this.$store.dispatch('saveProject')
       this.$toasted.show('Save Project', { position: 'top-center', duration: 900 })

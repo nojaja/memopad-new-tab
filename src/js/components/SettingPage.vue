@@ -138,7 +138,7 @@ export default {
     ToggleButton,
     draggable
   },
-  data () {
+  data() {
     return {
       dragging: true,
       currentId: '1',
@@ -205,17 +205,17 @@ export default {
   },
   store,
   computed: {
-    config () {
+    config() {
       return this.$store.getters.config
     },
     multibyteconvertList: {
-      get: function () {
+      get: function() {
         const ret = this.config.markdown.multibyteconvertList.map((value, index) => {
           return { id: index, reg: value[0], val: value[1] }
         })
         return ret
       },
-      set: function (newValue) {
+      set: function(newValue) {
         const ret = newValue.map((value, index) => {
           return [value.reg, value.val]
         })
@@ -225,7 +225,7 @@ export default {
   },
   watch: {
     config: {
-      handler: function (val, oldVal) {
+      handler: function(val, oldVal) {
         console.log('Config changed', val, oldVal)
         this.$store.dispatch('setConfig', val)
       },
@@ -233,23 +233,23 @@ export default {
     }
   },
   methods: {
-    removeMultibyteconvertList (idx) {
+    removeMultibyteconvertList(idx) {
       this.config.markdown.multibyteconvertList.splice(idx, 1)
     },
-    addMultibyteconvertList () {
+    addMultibyteconvertList() {
       this.config.markdown.multibyteconvertList.push(['', ''])
     },
-    selectItem (uri) {
+    selectItem(uri) {
       this.currentId = uri
     },
-    exportLocalStorage () {
+    exportLocalStorage() {
       localStorage.setItem('currentVersion', '0.0.1')
       this.$refs.export.saveAsLegacy(JSON.stringify(localStorage))
     },
-    importLocalStorage () {
+    importLocalStorage() {
       const cmp = this
       const e = this.$refs.export.getFileLegacy()
-      e.then(function (result) {
+      e.then(function(result) {
         new Promise((resolve, reject) => {
           const reader = new FileReader()
           reader.onload = (event) => {
@@ -270,7 +270,7 @@ export default {
               } else if (key === 'noteKeyList') {
                 const array = JSON.parse(localStorage.getItem('noteKeyList')).concat(JSON.parse(importData[key]))
                 // 重複を削除したリスト
-                const noteKeyList = array.filter(function (x, i, self) {
+                const noteKeyList = array.filter(function(x, i, self) {
                   return self.indexOf(x) === i
                 })
                 localStorage.setItem(key, JSON.stringify(noteKeyList))
@@ -288,7 +288,7 @@ export default {
               } else if (key === 'noteKeyList') {
                 const array = JSON.parse(localStorage.getItem('noteKeyList')).concat(JSON.parse(importData[key]))
                 // 重複を削除したリスト
-                const noteKeyList = array.filter(function (x, i, self) {
+                const noteKeyList = array.filter(function(x, i, self) {
                   return self.indexOf(x) === i
                 })
                 localStorage.setItem(key, JSON.stringify(noteKeyList))
