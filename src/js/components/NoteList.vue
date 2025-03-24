@@ -29,7 +29,7 @@ export default {
   },
   store,
   computed: {
-    itemList () {
+    itemList() {
       return this.$store.getters.itemList
     }
   },
@@ -37,7 +37,7 @@ export default {
     items: {
       type: Array,
       required: false,
-      default: function () { return [] }
+      default: function() { return [] }
     },
     onNew: {
       type: Function,

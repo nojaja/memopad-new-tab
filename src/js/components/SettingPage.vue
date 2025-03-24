@@ -138,7 +138,7 @@ export default {
     ToggleButton,
     draggable
   },
-  data () {
+  data() {
     return {
       dragging: true,
       currentId: '1',
@@ -249,7 +249,7 @@ export default {
     importLocalStorage() {
       const cmp = this
       const e = this.$refs.export.getFileLegacy()
-      e.then(function (result) {
+      e.then(function(result) {
         new Promise((resolve, reject) => {
           const reader = new FileReader()
           reader.onload = (event) => {
@@ -270,7 +270,7 @@ export default {
               } else if (key === 'noteKeyList') {
                 const array = JSON.parse(localStorage.getItem('noteKeyList')).concat(JSON.parse(importData[key]))
                 // 重複を削除したリスト
-                const noteKeyList = array.filter(function (x, i, self) {
+                const noteKeyList = array.filter(function(x, i, self) {
                   return self.indexOf(x) === i
                 })
                 localStorage.setItem(key, JSON.stringify(noteKeyList))
@@ -288,7 +288,7 @@ export default {
               } else if (key === 'noteKeyList') {
                 const array = JSON.parse(localStorage.getItem('noteKeyList')).concat(JSON.parse(importData[key]))
                 // 重複を削除したリスト
-                const noteKeyList = array.filter(function (x, i, self) {
+                const noteKeyList = array.filter(function(x, i, self) {
                   return self.indexOf(x) === i
                 })
                 localStorage.setItem(key, JSON.stringify(noteKeyList))

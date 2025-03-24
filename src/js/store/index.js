@@ -54,24 +54,24 @@ export default new Vuex.Store({
     }
   },
   getters: { // state の参照
-    currentFile (state) {
+    currentFile(state) {
       return state.currentFile
     },
-    source (state) {
+    source(state) {
       return state.currentFile ? state.currentFile.file.content : ''
     },
-    config (state) {
+    config(state) {
       return state.config
     },
-    itemList (state) {
+    itemList(state) {
       return state.itemList
     },
     // File一覧の更新
-    refreshFileList (state) {
+    refreshFileList(state) {
       // { name: 'いちご', uri: 'note_1583338656491', isActive: true },
       const items = []
 
-      state.noteKeyList.forEach(function (val, i) {
+      state.noteKeyList.forEach(function(val, i) {
         const tmpfileContainer = new FileContainer()
         tmpfileContainer.setContainerJson(localStorage.getItem(val))
 
@@ -84,28 +84,28 @@ export default new Vuex.Store({
       })
       if (state.config.general.sort === '0') {
       // sort: 0 desc lastUpdatedTime
-        items.sort(function (a, b) {
+        items.sort(function(a, b) {
           if (a.lastUpdatedTime > b.lastUpdatedTime) return -1
           if (a.lastUpdatedTime < b.lastUpdatedTime) return 1
           return 0
         })
       } else if (state.config.general.sort === '1') {
       // sort: 1 asc lastUpdatedTime
-        items.sort(function (a, b) {
+        items.sort(function(a, b) {
           if (a.lastUpdatedTime < b.lastUpdatedTime) return -1
           if (a.lastUpdatedTime > b.lastUpdatedTime) return 1
           return 0
         })
       } else if (state.config.general.sort === '2') {
       // sort: 2 desc createdTime
-        items.sort(function (a, b) {
+        items.sort(function(a, b) {
           if (a.createdTime > b.createdTime) return -1
           if (a.createdTime < b.createdTime) return 1
           return 0
         })
       } else if (state.config.general.sort === '3') {
       // sort: 3 asc createdTime
-        items.sort(function (a, b) {
+        items.sort(function(a, b) {
           if (a.createdTime < b.createdTime) return -1
           if (a.createdTime > b.createdTime) return 1
           return 0
@@ -115,17 +115,17 @@ export default new Vuex.Store({
     }
   },
   mutations: { // stateを変更する為の処理(同期処理のみ)
-    updateTitle (state, title) {
+    updateTitle(state, title) {
       state.currentFile.file.description = title
       state.fileContainer.putFile(state.currentFile)
       this.dispatch('saveProject')
     },
-    updateContent (state, content) {
+    updateContent(state, content) {
       state.currentFile.file.content = content
       state.fileContainer.putFile(state.currentFile)
       this.dispatch('saveProject')
     },
-    saveProject (state, cb) {
+    saveProject(state, cb) {
       // console.log('mutations saveProject')
       // state.currentFile をfileContainerに格納
       // ローカルストレージに最新の状態を保存
@@ -136,7 +136,7 @@ export default new Vuex.Store({
       // return cb ? cb() : true
     },
     // プロジェクトの読み込み処理
-    loadProject (state, noteName) {
+    loadProject(state, noteName) {
       // console.log('loadProject:' + noteName)
       if (localStorage.getItem(noteName)) {
         state.fileContainer.setContainerJson(localStorage.getItem(noteName))
@@ -152,7 +152,7 @@ export default new Vuex.Store({
       // return fileContainer.getContainerJson()
     },
     // プロジェクトの新規作成処理
-    newProject (state) {
+    newProject(state) {
       const noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random())
       const noteName = 'note_' + noteId
       const today = new Date()
@@ -178,13 +178,13 @@ export default new Vuex.Store({
       // console.log('noteKeyList:' + state.noteKeyList)
     },
     // プロジェクト内のFileを開く
-    fileOpen (state, filename) {
+    fileOpen(state, filename) {
       const file = state.fileContainer.getFile(filename) || null
       state.currentFile = file
       state.currentFile.projectName = (file) ? state.fileContainer.getProjectName() : ''
       // state.currentFile.projectName = (file) ? state.fileContainer.getProjectName() : ''
     },
-    loadNoteKeyList (state) { // ページが読み込まれたら、ローカルストレージから状態を読み込む
+    loadNoteKeyList(state) { // ページが読み込まれたら、ローカルストレージから状態を読み込む
       const name = 'noteKeyList'
       state.noteKeyList = []
       if (localStorage.getItem(name)) {
@@ -192,39 +192,39 @@ export default new Vuex.Store({
       }
       // console.log('loadNoteKeyList:' + state.noteKeyList)
     },
-    saveNoteKeyList (state, noteName) { // ローカルストレージに状態を保存する
+    saveNoteKeyList(state, noteName) { // ローカルストレージに状態を保存する
       const name = 'noteKeyList'
       state.noteKeyList.push(noteName)
       localStorage.setItem(name, JSON.stringify(state.noteKeyList))
     },
-    deleteProject (state) {
+    deleteProject(state) {
       const noteName = state.currentFile.projectName
       state.noteKeyList = state.noteKeyList.filter((v) => v !== noteName)// リストから対象を消して新しいリストにする
       const name = 'noteKeyList'
       localStorage.setItem(name, JSON.stringify(state.noteKeyList))
       this.dispatch('init')
     },
-    openFirst (state) {
+    openFirst(state) {
       if (state.noteKeyList.length === 0) {
         this.dispatch('newProject')
       }
       this.dispatch('loadProject', state.noteKeyList[state.noteKeyList.length - 1])
       console.log(i18n.tc('message.welcome'))
     },
-    setConfig (state, config) {
+    setConfig(state, config) {
       state.config = config
       const name = 'config'
       localStorage.setItem(name, JSON.stringify(state.config))
       i18n.locale = state.config.general.i18n_locale || i18n.locale
     },
-    loadConfig (state) {
+    loadConfig(state) {
       const name = 'config'
       if (localStorage.getItem(name)) {
         state.config = JSON.parse(localStorage.getItem(name))
       }
       i18n.locale = state.config.general.i18n_locale || i18n.locale
     },
-    importProject (state, pjdata) {
+    importProject(state, pjdata) {
       const noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random())
       pjdata.id = pjdata.id || noteId
       pjdata.projectName = pjdata.projectName || 'note_' + pjdata.id
@@ -247,27 +247,27 @@ export default new Vuex.Store({
     }
   },
   actions: { // ミューテーションをコミットする関数(外部APIとの連携や非同期処理もここ)
-    loadNoteKeyList (context) { // ページが読み込まれたら、ローカルストレージから状態を読み込む
+    loadNoteKeyList(context) { // ページが読み込まれたら、ローカルストレージから状態を読み込む
       context.commit('loadNoteKeyList')
     },
     // ファイル一覧の保存処理
-    saveNoteKeyList (context, noteName) { // ローカルストレージに状態を保存する
+    saveNoteKeyList(context, noteName) { // ローカルストレージに状態を保存する
       context.commit('saveNoteKeyList', noteName)
     },
     // ファイル一覧の削除処理
-    deleteNoteKeyList (context, noteName) {
+    deleteNoteKeyList(context, noteName) {
       this.noteKeyList = this.noteKeyList.filter((v) => v !== noteName)// リストから対象を消して新しいリストにする
       const name = 'noteKeyList'
       localStorage.setItem(name, JSON.stringify(this.noteKeyList))
     },
     // プロジェクトの読み込み処理
-    loadProject (context, noteName) {
+    loadProject(context, noteName) {
       context.commit('loadProject', noteName)
     },
     // プロジェクトの保存処理
     saveProject(context, cb) {
       context.commit('saveProject', cb)
-      debounce(function () {
+      debounce(function() {
         console.log('saveProject')
       }, 3000)()
     },
@@ -286,7 +286,7 @@ export default new Vuex.Store({
     deleteProject(context) {
       context.commit('deleteProject')
     },
-    init(context){
+    init(context) {
       context.commit('openFirst')
     },
     setConfig(context, config) {
