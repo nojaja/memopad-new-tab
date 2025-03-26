@@ -7,13 +7,15 @@
     "128": "icons/icon_128.png"
   },
   "action": {
-	"default_icon": {
-		"32": "icons/icon_32.png"
-	}
+    "default_icon": {
+      "32": "icons/icon_32.png"
+    }
   },
   "version": "1.0.14",
   "offline_enabled": true,
-  "permissions" : [],
+  "permissions": [
+    "storage"
+  ],
   "default_locale": "en",
   "chrome_url_overrides": {
     "newtab": "index.html"
