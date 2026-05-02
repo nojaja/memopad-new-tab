@@ -20,9 +20,12 @@ export default {
     getFileLegacy() {
       return new Promise(function(resolve, reject) {
         const ultag = document.getElementById('filePicker')
+        // Reset so selecting the same file again still triggers change.
+        ultag.value = ''
         ultag.onchange = function(event) {
           const fileObject = event.target.files[0]
           fileObject ? resolve(fileObject) : reject(new Error('AbortError'))
+          ultag.onchange = null
         }
         ultag.click()
       })

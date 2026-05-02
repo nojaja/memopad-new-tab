@@ -13,6 +13,12 @@ import uml from 'markdown-it-plantuml'
 export default {
   components: {
   },
+  data() {
+    return {
+      parserCacheKey: '',
+      parser: null
+    }
+  },
   props: {
     autoUpdate: {
       type: Boolean,
@@ -46,17 +52,9 @@ export default {
       })
     }
   },
-  data() { // プロパティの値を設定
-    return {
-      cache: ''
-    }
-  },
   computed: {
     compiledMarkdown: function() {
-      if (this.autoUpdate) {
-        this.changeCache()
-      }
-      const parseData = this.cache
+      const parseData = this.autoUpdate ? this.renderMarkdown() : ''
       const htmlheader = `
 <!DOCTYPE html>
 <html>
@@ -76,14 +74,26 @@ export default {
     }
   },
   methods: {
-    changeCache() {
+    getMarkdownParser() {
+      const cacheKey = JSON.stringify(this.config || {})
+      if (this.parser && this.parserCacheKey === cacheKey) {
+        return this.parser
+      }
+
       const mdInstance = md(this.config.basicOption)
       if (this.config.emoji) mdInstance.use(emoji)
       if (this.config.ruby) mdInstance.use(ruby)
       if (this.config.multimdTable) mdInstance.use(multimdTable, this.config.multimdTableOption)
       if (this.config.checkbox) mdInstance.use(checkbox)
       if (this.config.uml) mdInstance.use(uml)
-      this.cache = mdInstance.render(this.source.trim())
+
+      this.parser = mdInstance
+      this.parserCacheKey = cacheKey
+      return mdInstance
+    },
+    renderMarkdown() {
+      const mdInstance = this.getMarkdownParser()
+      return mdInstance.render(this.source.trim())
     }
   }
 }

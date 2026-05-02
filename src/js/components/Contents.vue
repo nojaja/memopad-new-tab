@@ -1,14 +1,14 @@
 <template>
-  <div v-bind:style="{ height: this.height-20-50+'px' , width : '100%' }" >
+  <div class="contents-wrapper" >
     <div class="titleSection">
       <input placeholder="Title" :value="title" @input="updateTitle">
     </div>
-    <SplitpanesWrapper :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
+    <SplitpanesWrapper class="contents-main" :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
     <Footer>
       <button @click="hideEditPane = false;hidePreviewPane=true"><unicon name="edit"></unicon></button>
       <button @click="hideEditPane = false;hidePreviewPane=false"><unicon name="columns"></unicon></button>
       <button @click="hideEditPane = true;hidePreviewPane=false"><unicon name="eye"></unicon></button>
-      <button @click="this.delete"><unicon name="trash-alt"></unicon></button>
+      <button @click="onDelete"><unicon name="trash-alt"></unicon></button>
     </Footer>
   </div>
 </template>
@@ -16,16 +16,13 @@
 <script>
 import SplitpanesWrapper from '@/components/SplitpanesWrapper.vue'
 import Footer from '@/components/Footer.vue'
-import DialogHelper from '@/DialogHelper.js'
-import store from '@/store'
-import i18n from '@/lang'
+import DialogHelper from '@/DialogHelper'
 
 export default {
   components: {
     SplitpanesWrapper,
     Footer
   },
-  store,
   computed: {
     source() {
       return this.$store.getters.source
@@ -35,7 +32,9 @@ export default {
     },
     title() {
       const file = (this.$store.getters.currentFile) ? this.$store.getters.currentFile.file : null
-      return (file ? file.description : '')
+      if (!file) return ''
+      if (typeof file.getDescription === 'function') return file.getDescription() || ''
+      return file.description || ''
     }
   },
   data() {
@@ -54,10 +53,10 @@ export default {
     updateTitle(e) {
       this.$store.commit('updateTitle', e.target.value)
     },
-    delete() {
+    onDelete() {
       DialogHelper.showDialog(this, {
         subject: 'Delete',
-        message: i18n.tc('message.Delete'),
+        message: this.$t('message.Delete'),
         ok: () => {
           this.$store.commit('deleteProject')
         },
@@ -68,13 +67,26 @@ export default {
   mounted: function() {
     window.addEventListener('resize', this.handleResize)
   },
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     window.removeEventListener('resize', this.handleResize)
   }
 }
 </script>
 
 <style>
+.contents-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.contents-main {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .titleSection {
     display: flex;
     height: 50px;

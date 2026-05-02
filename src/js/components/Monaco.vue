@@ -1,13 +1,23 @@
 <template>
-  <MonacoEditor class="editor" ref="editor" v-model="source" @change="change" :options="config" language="markdown" />
+  <div class="editor">
+    <CodeEditor
+      ref="codeEditor"
+      :value="source"
+      language="markdown"
+      :theme="editorTheme"
+      :options="editorOptions"
+      @change="handleChange"
+      @editorDidMount="handleEditorDidMount"
+    />
+  </div>
 </template>
 
 <script>
-import MonacoEditor from 'vue-monaco'
+import { CodeEditor } from 'monaco-editor-vue3'
 
 export default {
   components: {
-    MonacoEditor
+    CodeEditor
   },
   props: {
     source: {
@@ -32,17 +42,39 @@ export default {
       default: function(value) { console.log(value) }
     }
   },
-  methods: {
-    resize() {
-      this.$refs.editor.getMonaco().layout()
-    },
-    change(value, event) {
-      this.onChange(value)
-      // console.log(value, event)
-      // debounce(function (e) {
-      //   console.log(e)
-      // }, 300)
+  emits: ['update:source'],
+  data() {
+    return {
+      editor: null
     }
+  },
+  computed: {
+    editorTheme() {
+      return this.config && this.config.theme ? this.config.theme : 'vs'
+    },
+    editorOptions() {
+      const options = { ...(this.config || {}) }
+      delete options.theme
+      return options
+    }
+  },
+  methods: {
+    handleEditorDidMount(editor) {
+      this.editor = editor
+    },
+    handleChange(value) {
+      if (value === this.source) return
+      this.$emit('update:source', value)
+      this.onChange(value)
+    },
+    resize() {
+      if (this.editor) {
+        this.editor.layout()
+      }
+    }
+  },
+  beforeUnmount() {
+    this.editor = null
   }
 }
 </script>
@@ -52,4 +84,11 @@ export default {
   width: 100%;
   height: 100%;
 }
+
+.editor :deep(.enable-motion),
+.editor :deep(.monaco-editor),
+.editor :deep(.overflow-guard) {
+  height: 100% !important;
+}
 </style>
+

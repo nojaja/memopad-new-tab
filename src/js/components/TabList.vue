@@ -66,6 +66,7 @@ export default {
     border-bottom: 1px solid rgba(0,0,0,.05);
     font-size: 15px;
     height: 32px;
+  list-style: none;
     box-sizing: border-box;
 }
 
@@ -90,12 +91,13 @@ export default {
     opacity: .6
 }
 
-.TabListItem.active .noteListItem-text {
+.TabListItem.active .TabListItem-text {
     opacity: 1
 }
 
 .TabList {
     padding: 0px 0;
+  list-style: none;
     height: 100%;
     box-sizing: border-box;
     margin-block-start: 0;

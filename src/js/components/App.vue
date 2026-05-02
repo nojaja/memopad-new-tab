@@ -1,27 +1,42 @@
 <template>
   <div id="app">
     <MainContents></MainContents>
-    <global-events @keydown.ctrl.s="saveProject"></global-events>
   </div>
 </template>
 
 <script>
 import MainContents from '@/components/MainContents.vue'
-import store from '@/store'
 
 export default {
   name: 'App',
   components: {
     MainContents
   },
-  props: {
+  mounted() {
+    window.addEventListener('keydown', this.handleKeydown)
   },
-  store,
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleKeydown)
+  },
   methods: {
+    handleKeydown(e) {
+      if (e.ctrlKey && e.key === 's') {
+        this.saveProject(e)
+      }
+    },
     saveProject(e) {
       e.preventDefault()
       this.$store.dispatch('saveProject')
-      this.$toasted.show('Save Project', { position: 'top-center', duration: 900 })
+      this.showToast('Save Project')
+    },
+    showToast(message, duration = 900) {
+      const toast = document.createElement('div')
+      toast.textContent = message
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:8px 16px;border-radius:4px;z-index:9999;font-size:14px'
+      document.body.appendChild(toast)
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast)
+      }, duration)
     }
   }
 }

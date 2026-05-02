@@ -14,11 +14,11 @@
               v-if="onSecondary"
               type="button"
               class="button button--base button--base-secondary"
-              @click.prevent="onSecondary">キャンセル</button>
+              @click.prevent="handleSecondary">キャンセル</button>
             <button
               type="submit"
               class="button button--base button--base-primary"
-              @click.prevent="onPrimary">OK</button>
+              @click.prevent="handlePrimary">OK</button>
           </div>
         </div>
       </div>
@@ -39,37 +39,23 @@ export default {
   },
   data() {
     return {
-      isShow: false
+      isShow: true,
+      pendingCallback: null
     }
   },
   methods: {
-    attach() {
-      if (!this.$parent) {
-        this.$mount()
-        document.body.appendChild(this.$el)
-      } else {
-        this.$mount()
-        this.$parent.$el.appendChild(this.$el)
-      }
-    },
-    remove() {
-      if (!this.$parent) {
-        document.body.removeChild(this.$el)
-        this.$destroy()
-      } else {
-        this.$parent.$el.removeChild(this.$el)
-        this.$destroy()
-      }
-    },
-    close() {
+    handlePrimary() {
+      this.pendingCallback = this.onPrimary
       this.isShow = false
     },
-    show() {
-      this.attach()
-      this.isShow = true
+    handleSecondary() {
+      this.pendingCallback = this.onSecondary
+      this.isShow = false
     },
     afterLeave() {
-      this.remove()
+      if (this.pendingCallback) {
+        this.pendingCallback()
+      }
     }
   }
 }

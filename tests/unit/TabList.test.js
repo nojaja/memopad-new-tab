@@ -1,5 +1,5 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils'
-import TabList from '@/js/components/TabList.vue'
+import { shallowMount } from '@vue/test-utils'
+import TabList from '@/components/TabList.vue'
 
 describe('TabList.vue', () => {
   let wrapper

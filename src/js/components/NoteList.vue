@@ -22,12 +22,10 @@
 </template>
 
 <script>
-import store from '@/store'
 
 export default {
   components: {
   },
-  store,
   computed: {
     itemList() {
       return this.$store.getters.itemList
@@ -52,13 +50,6 @@ export default {
   },
   methods: {
     select: function(uri) { // リスト選択時の挙動制御
-      for (const i in this.items) {
-        if (this.items[i].uri === uri) {
-          this.items[i].isActive = true
-        } else {
-          this.items[i].isActive = false
-        }
-      }
       this.onSelect(uri)
     }
   }
@@ -72,7 +63,8 @@ export default {
     overflow-y: scroll;
     -ms-overflow-style: none;    /* IE, Edge 対応 */
     scrollbar-width: none;       /* Firefox 対応 */
-    height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
     width: 200px;
 }
 .noteListMenu::-webkit-scrollbar {

@@ -4,10 +4,10 @@
       <SettingPage></SettingPage>
     </SlideMenu>
     <div class="wrapper">
-      <div v-bind:style="{ height: this.height-50+'px' , width : '200px' }">
+      <div class="sidebar" :style="{ width : '200px' }">
         <NoteList :items="fileList" :onNew="newProject" :onSelect="loadProject"></NoteList>
         <Footer backgroundColor="#fff" >
-          <div  @click="settingOpen"><unicon name="bright" @click="settingOpen"></unicon></div>
+          <div  @click="settingOpen"><unicon name="setting" @click="settingOpen"></unicon></div>
         </Footer>
       </div>
       <Contents></Contents>
@@ -21,7 +21,6 @@ import Contents from '@/components/Contents.vue'
 import Footer from '@/components/Footer.vue'
 import SlideMenu from '@/components/SlideMenu.vue'
 import SettingPage from '@/components/SettingPage.vue'
-import store from '@/store'
 
 export default {
   components: {
@@ -31,7 +30,6 @@ export default {
     SettingPage,
     Footer
   },
-  store,
   computed: {
     fileList() {
       return this.$store.getters.refreshFileList
@@ -58,7 +56,9 @@ export default {
       this.$store.dispatch('newProject')
     },
     loadProject(uri) {
-      this.$store.dispatch('loadProject', uri)
+      setTimeout(() => {
+        this.$store.dispatch('loadProject', uri)
+      }, 0)
     },
     settingOpen(e) {
       this.$refs.slideMenu.open(e)
@@ -67,7 +67,7 @@ export default {
   mounted: function() {
     window.addEventListener('resize', this.handleResize)
   },
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     window.removeEventListener('resize', this.handleResize)
   }
 }
@@ -78,6 +78,14 @@ export default {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
+    height: 100vh;
+}
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 200px;
+  height: 100%;
+  min-height: 0;
 }
 .blurIn {
     -webkit-animation: blurIn .3s ease both;

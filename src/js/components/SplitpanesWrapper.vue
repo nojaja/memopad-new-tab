@@ -1,10 +1,14 @@
 <template>
   <splitpanes @resize="handleResize" firstSplitter>
-    <pane v-if="!hideEditPane" min-size="10" >
-      <Monaco ref="monaco" :source="source" :onChange="onChange" :config="config.editor"></Monaco>
+    <pane min-size="0" :size="editPaneSize">
+      <div v-show="!hideEditPane" class="pane-body">
+          <Monaco ref="monaco" :source="source" :onChange="onChange" :config="config.editor"></Monaco>
+      </div>
     </pane>
-    <pane v-if="!hidePreviewPane">
-      <Preview :source="viewSource" :config="config.markdown"></Preview>
+    <pane min-size="0" :size="previewPaneSize">
+      <div v-if="!hidePreviewPane" class="pane-body">
+        <Preview :source="viewSource" :config="config.markdown"></Preview>
+      </div>
     </pane>
   </splitpanes>
 </template>
@@ -83,6 +87,16 @@ export default {
         w = w.replace(this.regExpData[i][0], this.regExpData[i][1])
       }
       return w
+    },
+    editPaneSize() {
+      if (this.hideEditPane) return 0
+      if (this.hidePreviewPane) return 100
+      return 50
+    },
+    previewPaneSize() {
+      if (this.hidePreviewPane) return 0
+      if (this.hideEditPane) return 100
+      return 50
     }
   },
   watch: {
@@ -102,8 +116,14 @@ export default {
     onChange(value) {
       this.$store.dispatch('update', value)
     },
-    handleResize(event) { // パネルリサイズ時にmonaco側にリサイズ通知する
-      this.$refs.monaco.resize()
+    handleResize() { // パネルリサイズ時にmonaco側にリサイズ通知する
+      // Monaco automaticLayout is enabled by default and already uses ResizeObserver.
+      if (this.config?.editor?.automaticLayout) return
+      if (this.$refs.monaco && typeof this.$refs.monaco.resize === 'function') {
+        requestAnimationFrame(() => {
+          this.$refs.monaco.resize()
+        })
+      }
     },
     updateRegExpList() {
       this.regExpData = []
@@ -119,7 +139,13 @@ export default {
 </script>
 
 <style>
-.splitpanes .splitpanes__pane {
+.splitpanes {
+  height: 100%;
+}
+
+.pane-body {
+  width: 100%;
+  height: 100%;
 }
 
 .splitpanes--vertical>.splitpanes__splitter {
