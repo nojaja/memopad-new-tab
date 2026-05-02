@@ -96,8 +96,7 @@
     "rules": {}
   },
   "browserslist": [
-    "> 1%",
-    "last 2 versions"
+    "last 2 Chrome versions"
   ],
   "bugs": {
     "url": "https://github.com/nojaja/memopad-new-tab/issues"
