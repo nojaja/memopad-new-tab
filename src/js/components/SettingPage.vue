@@ -18,6 +18,12 @@
         <h3 class="h3">Language</h3>
         <Select :items="selectItems" :selected="localConfig.general.i18n_locale" :onSelect="(newValue) => {localConfig.general.i18n_locale = newValue}"></Select>
 
+        <h3 class="h3">Privacy Blur</h3>
+        <div>
+          <input type="checkbox" v-model="localConfig.general.privacyBlur" class="toggle-checkbox">
+          <label class="label">Privacy Blur - Set ON to blur the screen when the window is inactive.</label>
+        </div>
+
         <h3 class="h3">Import Data</h3>
         <button class="button" @click="importLocalStorage"><unicon name="import" fill="white"></unicon>Import Data</button>
         <h3 class="h3">Export Data</h3>
@@ -143,7 +149,8 @@ export default {
       localConfig: {
         general: {
           sort: '0',
-          i18n_locale: 'ja'
+          i18n_locale: 'ja',
+          privacyBlur: false
         },
         editor: {
           fontSize: 16,

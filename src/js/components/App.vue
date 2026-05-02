@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <div v-if="isBlurred" class="privacy-blur-overlay"></div>
     <MainContents></MainContents>
   </div>
 </template>
@@ -12,13 +13,36 @@ export default {
   components: {
     MainContents
   },
+  data() {
+    return {
+      windowActive: true
+    }
+  },
+  computed: {
+    privacyBlurEnabled() {
+      return this.$store.getters.config?.general?.privacyBlur === true
+    },
+    isBlurred() {
+      return this.privacyBlurEnabled && !this.windowActive
+    }
+  },
   mounted() {
     window.addEventListener('keydown', this.handleKeydown)
+    window.addEventListener('blur', this.handleWindowBlur)
+    window.addEventListener('focus', this.handleWindowFocus)
   },
   beforeUnmount() {
     window.removeEventListener('keydown', this.handleKeydown)
+    window.removeEventListener('blur', this.handleWindowBlur)
+    window.removeEventListener('focus', this.handleWindowFocus)
   },
   methods: {
+    handleWindowBlur() {
+      this.windowActive = false
+    },
+    handleWindowFocus() {
+      this.windowActive = true
+    },
     handleKeydown(e) {
       if (e.ctrlKey && e.key === 's') {
         this.saveProject(e)
@@ -54,5 +78,16 @@ export default {
 }
 body {
   margin: 0px;
+}
+.privacy-blur-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 99999;
+  pointer-events: none;
 }
 </style>

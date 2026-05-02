@@ -15,7 +15,8 @@ const defaultConfig = {
   general: {
     sort: '0',
     cover: '-1',
-    i18n_locale: 'ja'
+    i18n_locale: 'ja',
+    privacyBlur: false
   },
   editor: {
     automaticLayout: true,
