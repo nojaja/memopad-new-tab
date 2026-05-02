@@ -12,7 +12,9 @@
           <span class="bm-cross bm-cross-a"></span>
           <span class="bm-cross bm-cross-b"></span>
         </button>
-        <slot></slot>
+        <div class="bm-item-list">
+          <slot></slot>
+        </div>
       </template>
     </div>
   </div>

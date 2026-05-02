@@ -72,6 +72,7 @@ export default {
   filter:alpha(opacity=50);
   -moz-opacity: 0.5;
   opacity: 0.5;
+  z-index: 100;
 }
 .dialog {
   position: fixed;
@@ -82,9 +83,10 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 101;
 }
 .dialog__inner {
-  z-index: 11;
+  z-index: 101;
   width: 70vw;
   padding: 20px;
   background-color: #fff;
