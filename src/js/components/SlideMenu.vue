@@ -65,8 +65,8 @@ export default {
   overflow-y: auto;
 }
 .slide-panel--open {
-  width: 80vw;
-  max-width: 600px;
+  width: 100vw;
+  max-width: none;
 }
 
 .slide-close {

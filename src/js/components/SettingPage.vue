@@ -385,7 +385,22 @@ export default {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
+  width: 100%;
+  box-sizing: border-box;
   color: #ffffff;
+}
+
+.setting-wrapper > div:first-child {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 200px;
+  flex: 0 0 200px;
+}
+
+.setting-wrapper > div:nth-child(2) {
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .h1 {
