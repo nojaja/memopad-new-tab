@@ -14,6 +14,7 @@
 
 <script>
 import { CodeEditor } from 'monaco-editor-vue3'
+import { registerCompletions } from '@/editorCompletions'
 
 export default {
   components: {
@@ -61,6 +62,7 @@ export default {
   methods: {
     handleEditorDidMount(editor) {
       this.editor = editor
+      registerCompletions()
     },
     handleChange(value) {
       if (value === this.source) return
