@@ -10,7 +10,6 @@ import i18n from '../lang'
 // import Debug from '../Debug'
 
 let latestFileListCache: any[] = []
-const noteMetaPrefix = 'note_meta_'
 
 const defaultConfig = {
   general: {
@@ -136,61 +135,6 @@ function parseJsonSafely(raw: string | null, fallback: any): any {
   }
 }
 
-function getNoteMetaStorageKey(noteKey: string): string {
-  return noteMetaPrefix + noteKey
-}
-
-function sanitizeTimestamp(value: any): number {
-  const num = Number(value)
-  return Number.isFinite(num) ? num : 0
-}
-
-function readNoteMeta(noteKey: string): any | null {
-  const raw = localStorage.getItem(getNoteMetaStorageKey(noteKey))
-  const parsed = parseJsonSafely(raw, null)
-  if (!parsed || typeof parsed !== 'object') return null
-
-  const name = typeof parsed.name === 'string' ? parsed.name : ''
-  if (!name) return null
-
-  return {
-    name,
-    createdTime: sanitizeTimestamp(parsed.createdTime),
-    lastUpdatedTime: sanitizeTimestamp(parsed.lastUpdatedTime)
-  }
-}
-
-function writeNoteMeta(noteKey: string, meta: any) {
-  if (typeof noteKey !== 'string' || !noteKey.startsWith('note_')) return
-  if (!meta || typeof meta !== 'object') return
-
-  const name = typeof meta.name === 'string' && meta.name ? meta.name : noteKey
-  const normalized = {
-    name,
-    createdTime: sanitizeTimestamp(meta.createdTime),
-    lastUpdatedTime: sanitizeTimestamp(meta.lastUpdatedTime)
-  }
-  localStorage.setItem(getNoteMetaStorageKey(noteKey), JSON.stringify(normalized))
-}
-
-function writeNoteMetaFromContainer(container: any, noteKey: string) {
-  if (!container || typeof container.getFiles !== 'function') return
-
-  const files = container.getFiles()
-  const first = Array.isArray(files) && files.length > 0 ? files[0] : null
-  const description = getFileDescription(first)
-  const content = getFileContent(first)
-  const name = description || content.split('\n')[0] || noteKey
-  const createdTime = typeof container.getCreatedTime === 'function' ? container.getCreatedTime() : 0
-  const lastUpdatedTime = typeof container.getLastUpdatedTime === 'function' ? container.getLastUpdatedTime() : 0
-
-  writeNoteMeta(noteKey, {
-    name,
-    createdTime,
-    lastUpdatedTime
-  })
-}
-
 function getCurrentFileFromState(state: any): any | null {
   const filename = typeof state.currentFile?.filename === 'string' ? state.currentFile.filename : ''
   if (!filename) return null
@@ -275,17 +219,6 @@ function getProjectFromStorage(raw: any): FileContainer | null {
 
 function getListItemFromRaw(raw: string, noteKey: string, currentProjectName: string, filter: string): any | null {
   if (filter === '') {
-    const meta = readNoteMeta(noteKey)
-    if (meta) {
-      return {
-        name: meta.name,
-        uri: noteKey,
-        isActive: currentProjectName === noteKey,
-        createdTime: meta.createdTime,
-        lastUpdatedTime: meta.lastUpdatedTime
-      }
-    }
-
     const parsed = parseJsonSafely(raw, null)
     if (parsed && typeof parsed === 'object' && parsed.files && typeof parsed.files === 'object') {
       const fileKeys = Object.keys(parsed.files)
@@ -484,7 +417,6 @@ export default createStore({
       state.fileContainer.setLastUpdatedTime(new Date().getTime())
       const noteName = state.fileContainer.getProjectName()
       localStorage.setItem(noteName, state.fileContainer.getContainerJson())
-      writeNoteMetaFromContainer(state.fileContainer, noteName)
       // console.log(state.fileContainer.getProjectName() + ':' + state.fileContainer.getContainerJson())
       // refreshFileList();
       // return cb ? cb() : true
@@ -511,7 +443,6 @@ export default createStore({
       } else {
         state.fileContainer.setContainerJson(JSON.stringify(normalizedProject))
       }
-      writeNoteMetaFromContainer(state.fileContainer, noteName)
 
       const files = state.fileContainer.getFiles()
       if (!files || files.length === 0) {
@@ -594,7 +525,6 @@ export default createStore({
       state.noteKeyList = state.noteKeyList.filter((v: string) => v !== noteName)// リストから対象を消して新しいリストにする
       const name = 'noteKeyList'
       localStorage.setItem(name, JSON.stringify(state.noteKeyList))
-      localStorage.removeItem(getNoteMetaStorageKey(noteName))
       this.dispatch('init')
     },
     openFirst(state) {
@@ -639,7 +569,6 @@ export default createStore({
         })
         if (importedContainer) {
           localStorage.setItem(pjdata.projectName, importedContainer.getContainerJson())
-          writeNoteMetaFromContainer(importedContainer, pjdata.projectName)
           return
         }
       } else {
@@ -651,7 +580,6 @@ export default createStore({
         tmpfileContainer.putFile(file)
       }
       localStorage.setItem(pjdata.projectName, tmpfileContainer.getContainerJson())
-      writeNoteMetaFromContainer(tmpfileContainer, pjdata.projectName)
     }
   },
   actions: { // ミューテーションをコミットする関数(外部APIとの連携や非同期処理もここ)
