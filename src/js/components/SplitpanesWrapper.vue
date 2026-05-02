@@ -2,7 +2,7 @@
   <splitpanes @resize="handleResize" firstSplitter>
     <pane min-size="0" :size="editPaneSize">
       <div v-show="!hideEditPane" class="pane-body">
-          <Monaco ref="monaco" :source="source" :onChange="onChange" :config="config.editor"></Monaco>
+          <Monaco ref="monaco" :source="source" :onChange="onChange" @update:source="onChange" :config="config.editor"></Monaco>
       </div>
     </pane>
     <pane min-size="0" :size="previewPaneSize">

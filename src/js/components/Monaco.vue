@@ -7,6 +7,7 @@
       :theme="editorTheme"
       :options="editorOptions"
       @change="handleChange"
+      @update:value="handleChange"
       @editorDidMount="handleEditorDidMount"
     />
   </div>
@@ -65,6 +66,7 @@ export default {
       registerCompletions()
     },
     handleChange(value) {
+      if (typeof value !== 'string') return
       if (value === this.source) return
       this.$emit('update:source', value)
       this.onChange(value)

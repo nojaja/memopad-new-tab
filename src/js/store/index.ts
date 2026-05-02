@@ -305,6 +305,7 @@ export default createStore({
     editor: null as any,
     currentFile: {} as any,
     currentModelId: 'source',
+    sourceVersion: 0,
     fileContainer: markRaw(new FileContainer()),
     noteKeyList: sanitizeNoteKeyList(parseJsonSafely(localStorage.getItem('noteKeyList'), [])) as string[],
     config: normalizeConfig(parseJsonSafely(localStorage.getItem('config'), null) as any),
@@ -320,7 +321,10 @@ export default createStore({
       }
     },
     source(state) {
-      return getFileContent(getCurrentFileFromState(state))
+      // fileContainer is markRaw, so keep a reactive counter dependency.
+      return state.sourceVersion >= 0
+        ? getFileContent(getCurrentFileFromState(state))
+        : ''
     },
     config(state) {
       return state.config
@@ -409,6 +413,7 @@ export default createStore({
         currentFile.content = content
       }
       state.fileContainer.putFile(currentFile)
+      state.sourceVersion += 1
       this.dispatch('saveProject')
     },
     saveProject(state) {
