@@ -595,7 +595,7 @@ export default {
     font-size: 16px;
 }
 .button {
-    background-color: rgb(72, 201, 160);
+    background-color: rgb(117, 199, 145);
     color: rgb(255, 255, 255);
     font-size: 16px;
     height: 40px;
@@ -614,7 +614,7 @@ export default {
     background-color: rgb(3, 197, 136);
 }
 .button-small {
-    background-color: rgb(72, 201, 160);
+    background-color: rgb(117, 199, 145);
     color: rgb(255, 255, 255);
     font-size: 11px;
     height: 20px;
@@ -660,6 +660,38 @@ export default {
 }
 .handle {
   cursor: pointer;
+}
+.toggle-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  display: inline-block;
+  width: 56px;
+  height: 28px;
+  border-radius: 14px;
+  background-color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+  outline: none;
+}
+.toggle-checkbox::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  transition: transform 0.2s ease;
+}
+.toggle-checkbox:checked {
+  background-color: rgb(117, 199, 145);
+}
+.toggle-checkbox:checked::before {
+  transform: translateX(28px);
 }
 .del {
   margin-left: 5px;
