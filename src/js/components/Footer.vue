@@ -9,6 +9,7 @@
 export default {
   components: {
   },
+  name: 'AppFooter',
   props: {
     backgroundColor: {
       type: String,

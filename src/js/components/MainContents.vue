@@ -6,11 +6,11 @@
     <div class="wrapper">
       <div class="sidebar" :style="{ width : '200px' }">
         <NoteList :items="fileList" :onNew="newProject" :onSelect="loadProject"></NoteList>
-        <Footer backgroundColor="#fff" >
-          <div  @click="settingOpen"><unicon name="setting" @click="settingOpen"></unicon></div>
-        </Footer>
+        <AppFooter backgroundColor="#fff" >
+          <div  @click="settingOpen"><UniconIcon name="setting" @click="settingOpen"></UniconIcon></div>
+        </AppFooter>
       </div>
-      <Contents></Contents>
+      <NoteContents></NoteContents>
     </div>
   </div>
 </template>
@@ -25,16 +25,28 @@ import SettingPage from '@/components/SettingPage.vue'
 export default {
   components: {
     NoteList,
-    Contents,
+    NoteContents: Contents,
     SlideMenu,
     SettingPage,
-    Footer
+    AppFooter: Footer
   },
   computed: {
+    /**
+     * 処理名: ファイルリスト取得
+     * 処理概要: ストアから最新のノートリストを返す
+     * 実装理由: ストアの状態をサイドバーリストに反映するため
+     * @returns {Array} ノートリスト
+     */
     fileList() {
       return this.$store.getters.refreshFileList
     }
   },
+  /**
+   * 処理名: コンポーネントデータ初期化
+   * 処理概要: ウィンドウサイズとサンプルアイテムの初期値を設定する
+   * 実装理由: レイアウト管理に必要な初期状態を用意するため
+   * @returns {{ width: number, height: number, items: Array }} 初期データ
+   */
   data() {
     return {
       width: window.innerWidth,
@@ -48,25 +60,57 @@ export default {
     }
   },
   methods: {
+    /**
+     * 処理名: リサイズハンドラ
+     * 処理概要: ウィンドウリサイズ時に現在のサイズをステートに反映する
+     * 実装理由: レイアウト計算に最新のウィンドウサイズを提供するため
+     */
     handleResize: function() {
       this.width = window.innerWidth
       this.height = window.innerHeight
     },
+    /**
+     * 処理名: 新規プロジェクト作成
+     * 処理概要: ストアに新規プロジェクト作成アクションをディスパッチする
+     * 実装理由: サイドバーの新規作成ボタンとストアを接続するため
+     */
     newProject() {
       this.$store.dispatch('newProject')
     },
+    /**
+     * 処理名: プロジェクト読み込み
+     * 処理概要: 指定 URI のプロジェクトをストアに読み込む
+     * 実装理由: ノートリストのアイテム選択時にエディタを切り替えるため
+     * @param {string} uri - 読み込むノートのキー
+     */
     loadProject(uri) {
       setTimeout(() => {
         this.$store.dispatch('loadProject', uri)
       }, 0)
     },
+    /**
+     * 処理名: 設定パネル開く
+     * 処理概要: スライドメニューを開いて設定パネルを表示する
+     * 実装理由: フッターの設定アイコンクリックとスライドメニューを接続するため
+     * @param {Event} e - クリックイベント
+     */
     settingOpen(e) {
       this.$refs.slideMenu.open(e)
     }
   },
+  /**
+   * 処理名: マウント後初期化
+   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
+   * 実装理由: ウィンドウサイズ変更に追従するため
+   */
   mounted: function() {
     window.addEventListener('resize', this.handleResize)
   },
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
+   * 実装理由: メモリリークを防ぐため
+   */
   beforeUnmount: function() {
     window.removeEventListener('resize', this.handleResize)
   }

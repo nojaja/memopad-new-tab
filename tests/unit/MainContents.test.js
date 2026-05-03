@@ -62,12 +62,12 @@ describe('MainContents.vue', () => {
         stubs: {
           'monaco-editor': true,
           'markdown-preview': true,
-          unicon: true,
+          UniconIcon: true,
           NoteList: true,
-          Contents: true,
+          NoteContents: true,
           SlideMenu: true,
           SettingPage: true,
-          Footer: true
+          AppFooter: true
         }
       }
     })
@@ -84,7 +84,7 @@ describe('MainContents.vue', () => {
 
   test('NotListとContentsが表示される', () => {
     expect(wrapper.findComponent({ name: 'NoteList' }).exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'Contents' }).exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'NoteContents' }).exists()).toBe(true)
   })
 
   test('ストアのステートが正しく動作する', () => {

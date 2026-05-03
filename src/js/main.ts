@@ -5,11 +5,10 @@ import lang from '@/lang'
 import UniconCompat from '@/components/UniconCompat.vue'
 
 const app = createApp(App)
-app.config.devtools = false
 
 app.use(store)
 app.use(lang)
-app.component('unicon', UniconCompat)
+app.component('UniconIcon', UniconCompat)
 
 app.mount('#app')
 

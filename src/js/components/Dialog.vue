@@ -28,6 +28,7 @@
 
 <script>
 export default {
+    name: 'AppDialog',
   props: {
     subject: String,
     message: String,
@@ -37,6 +38,12 @@ export default {
       default: null
     }
   },
+  /**
+   * 処理名: 初期データ生成
+   * 処理概要: ダイアログ表示状態と保留コールバックを初期化する
+   * 実装理由: 表示制御とトランジション後実行コールバックを state で管理するため
+   * @returns {{ isShow: boolean, pendingCallback: Function|null }} 初期データ
+   */
   data() {
     return {
       isShow: true,
@@ -44,14 +51,29 @@ export default {
     }
   },
   methods: {
+    /**
+     * 処理名: 確認ボタン処理
+     * 処理概要: 確認ボタン押下時にコールバックを保存しダイアログを非表示にする
+     * 実装理由: トランジション終了後にコールバックを呼ぶため afterLeave で実行する
+     */
     handlePrimary() {
       this.pendingCallback = this.onPrimary
       this.isShow = false
     },
+    /**
+     * 処理名: キャンセルボタン処理
+     * 処理概要: キャンセルボタン押下時にコールバックを保存しダイアログを非表示にする
+     * 実装理由: トランジション終了後にコールバックを呼ぶため afterLeave で実行する
+     */
     handleSecondary() {
       this.pendingCallback = this.onSecondary
       this.isShow = false
     },
+    /**
+     * 処理名: トランジション完了後処理
+     * 処理概要: フェードアウト完了後に保留中のコールバックを実行する
+     * 実装理由: アニメーション中にコールバックが呼ばれると UI が乱れるため
+     */
     afterLeave() {
       if (this.pendingCallback) {
         this.pendingCallback()

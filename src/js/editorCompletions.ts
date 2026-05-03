@@ -12,6 +12,14 @@ export function registerCompletions(): void {
 
   monaco.languages.registerCompletionItemProvider('markdown', {
     triggerCharacters: ['#', '*', '`', '[', '!', '-', '>', '|', '@', ':'],
+    /**
+     * 処理名: 補完候補提供
+     * 処理概要: カーソル位置に応じた補完候補リストを返す
+     * 実装理由: Markdown/PlantUML の文脈に応じた候補を提供するため
+     * @param {monaco.editor.ITextModel} model - Monaco テキストモデル
+     * @param {monaco.Position} position - 現在カーソル位置
+     * @returns {monaco.languages.CompletionList} 補完候補リスト
+     */
     provideCompletionItems(
       model: monaco.editor.ITextModel,
       position: monaco.Position
@@ -37,6 +45,14 @@ export function registerCompletions(): void {
 // ヘルパー
 // ---------------------------------------------------------------------------
 
+/**
+ * 処理名: PlantUML ブロック内判定
+ * 処理概要: カーソル位置がコードブロック内の PlantUML セクションにあるか判定する
+ * 実装理由: コンテキストに応じた補完候補を提供するため
+ * @param {monaco.editor.ITextModel} model - Monaco テキストモデル
+ * @param {monaco.Position} position - 現在のカーソル位置
+ * @returns {boolean} PlantUML ブロック内なら true
+ */
 function isInsidePlantUMLBlock(
   model: monaco.editor.ITextModel,
   position: monaco.Position
@@ -57,6 +73,13 @@ function isInsidePlantUMLBlock(
 // Markdown 補完候補
 // ---------------------------------------------------------------------------
 
+/**
+ * 処理名: Markdown 補完候補取得
+ * 処理概要: Markdown 構文の補完候補スニペットの配列を返す
+ * 実装理由: Monaco エディタの Markdown 補完機能に候補を提供するため
+ * @param {monaco.IRange} range - 補完を挿入する範囲
+ * @returns {monaco.languages.CompletionItem[]} Markdown 補完候補の配列
+ */
 function getMarkdownSuggestions(
   range: monaco.IRange
 ): monaco.languages.CompletionItem[] {
@@ -406,6 +429,13 @@ function getMarkdownSuggestions(
 // PlantUML ブロック内 補完候補
 // ---------------------------------------------------------------------------
 
+/**
+ * 処理名: PlantUML 補完候補取得
+ * 処理概要: PlantUML 構文の補完候補スニペットの配列を返す
+ * 実装理由: Monaco エディタの PlantUML ブロック内補完機能に候補を提供するため
+ * @param {monaco.IRange} range - 補完を挿入する範囲
+ * @returns {monaco.languages.CompletionItem[]} PlantUML 補完候補の配列
+ */
 function getPlantUMLSuggestions(
   range: monaco.IRange
 ): monaco.languages.CompletionItem[] {

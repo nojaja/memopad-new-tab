@@ -4,7 +4,7 @@
     <ul tabindex="0" class="noteList">
       <li class="noteListItem-search">
         <div class="noteListItem-input">
-            <unicon class="input-icon" name="search-alt"></unicon>
+            <UniconIcon class="input-icon" name="search-alt"></UniconIcon>
             <div class="input-wrapper">
               <input type="text" class="input" v-model="itemList.filter"/>
             </div>
@@ -27,6 +27,12 @@ export default {
   components: {
   },
   computed: {
+    /**
+     * 処理名: アイテムリスト取得
+     * 処理概要: ストアから検索フィルター状態を含むアイテムリストを返す
+     * 実装理由: フィルター状態をストアで集中管理するため
+     * @returns {object} フィルター情報を含むアイテムリスト
+     */
     itemList() {
       return this.$store.getters.itemList
     }
@@ -35,21 +41,43 @@ export default {
     items: {
       type: Array,
       required: false,
-      default: function() { return [] }
+      default: /**
+       * 処理名: items デフォルト値
+       * 処理概要: ノートリストのデフォルトを空配列で初期化する
+       * 実装理由: prop が渡されなかった場合の安全なデフォルト値
+       * @returns {Array} 空配列
+       */
+      function() { return [] }
     },
     onNew: {
       type: Function,
       required: false,
-      default: function() {}
+      default: /**
+       * 処理名: onNew デフォルトハンドラ
+       * 処理概要: 新規作成イベントのデフォルトコールバック（何もしない）
+       * 実装理由: prop が渡されなかった場合の安全なデフォルト実装
+       */
+      function() {}
     },
     onSelect: {
       type: Function,
       required: false,
-      default: function() {}
+      default: /**
+       * 処理名: onSelect デフォルトハンドラ
+       * 処理概要: 選択イベントのデフォルトコールバック（何もしない）
+       * 実装理由: prop が渡されなかった場合の安全なデフォルト実装
+       */
+      function() {}
     }
   },
   methods: {
-    select: function(uri) { // リスト選択時の挙動制御
+    /**
+     * 処理名: アイテム選択
+     * 処理概要: 指定 URI のノートを選択して onSelect コールバックを呼び出す
+     * 実装理由: リスト選択時の挙動を親コンポーネントに委譲するため
+     * @param {string} uri - 選択されたノートのキー
+     */
+    select: function(uri) {
       this.onSelect(uri)
     }
   }

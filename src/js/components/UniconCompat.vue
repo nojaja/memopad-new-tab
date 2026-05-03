@@ -1,5 +1,5 @@
 <template>
-  <Icon
+  <IconWrapper
     :icon="iconName"
     :style="iconStyle"
     :width="width"
@@ -45,7 +45,7 @@ const iconMap = {
 
 export default defineComponent({
   name: 'UniconCompat',
-  components: { Icon },
+  components: { IconWrapper: Icon },
   inheritAttrs: false,
   props: {
     name: {
@@ -65,9 +65,28 @@ export default defineComponent({
       default: '24px'
     }
   },
+  /**
+   * 処理名: コンポーネントセットアップ
+   * 処理概要: アイコン名・スタイルの算出プロパティを定義して返す
+   * 実装理由: name prop をアイコンデータに変換し fill を CSS スタイルに変換するため
+   * @param {object} props - コンポーネント props
+   * @returns {{ iconName: object, iconStyle: object }} テンプレートで使用する算出値
+   */
   setup(props) {
-    const iconName = computed(() => iconMap[props.name] || uilCircle)
-    const iconStyle = computed(() => (props.fill ? { color: props.fill } : {}))
+    const iconName = computed(/**
+     * 処理名: アイコン名算出
+     * 処理概要: name prop をアイコンマップで解決し未登録の場合は円形アイコンを返す
+     * 実装理由: 未知のアイコン名でもフォールバック表示するため
+     * @returns {object} アイコンデータ
+     */
+    () => iconMap[props.name] || uilCircle)
+    const iconStyle = computed(/**
+     * 処理名: アイコンスタイル算出
+     * 処理概要: fill prop がある場合にカラースタイルオブジェクトを返す
+     * 実装理由: fill prop をインラインスタイルとしてアイコンに適用するため
+     * @returns {object} CSS スタイルオブジェクト
+     */
+    () => (props.fill ? { color: props.fill } : {}))
 
     return {
       iconName,

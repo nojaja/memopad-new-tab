@@ -23,16 +23,33 @@
 <script>
 export default {
   name: 'SlideMenu',
+  /**
+   * 処理名: コンポーネントデータ初期化
+   * 処理概要: パネルの開閉状態初期値を設定する
+   * 実装理由: スライドパネルの表示状態をリアクティブに管理するため
+   * @returns {{ panelOpen: boolean }} 初期データ
+   */
   data() {
     return {
       panelOpen: false
     }
   },
   methods: {
+    /**
+     * 処理名: パネルを開く
+     * 処理概要: イベントの伝播を止めてスライドパネルを表示する
+     * 実装理由: 設定ボタンからのクリックで設定パネルを開くため
+     * @param {Event} e - クリックイベント（オプション）
+     */
     open(e) {
       if (e) { e.preventDefault(); e.stopPropagation() }
       this.panelOpen = true
     },
+    /**
+     * 処理名: パネルを閉じる
+     * 処理概要: スライドパネルを非表示にする
+     * 実装理由: オーバーレイや閉じるボタンのクリックでパネルを閉じるため
+     */
     close() {
       this.panelOpen = false
     }
