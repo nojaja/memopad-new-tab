@@ -65,11 +65,18 @@ export default {
     },
     /**
      * 処理名: タブ選択
-     * 処理概要: 指定 URI を親に通知する
-     * 実装理由: アクティブ状態管理は親コンポーネントに委譲するため
+     * 処理概要: アクティブ状態を更新し、指定 URI を親に通知する
+     * 実装理由: クリック時に isActive を自コンポーネント内で更新するため
      * @param {string} uri - 選択されたタブの URI
      */
     select(uri) {
+      for (const i in this.items) {
+        if (this.items[i].uri === uri) {
+          this.items[i].isActive = true
+        } else {
+          this.items[i].isActive = false
+        }
+      }
       this.onSelect(uri)
     }
   }
@@ -89,7 +96,8 @@ export default {
     display: none;
 }
 .TabListItem {
-    display: block;
+    display: flex;
+    align-items: center;
     cursor: pointer;
     border-bottom: 1px solid rgba(0,0,0,.05);
     font-size: 15px;
@@ -107,19 +115,27 @@ export default {
     border-left: 3px solid #87f01e;
 }
 
-.TabListItem-text {
+.TabListButton {
+    display: block;
+    width: 100%;
     padding: 4px 16px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
     -webkit-transition: .3s;
     transition: .3s;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    height: 17px;
     font-size: 14px;
-    opacity: .6
+    line-height: 32px;
+    opacity: .6;
+    color: inherit;
+    box-sizing: border-box;
 }
 
-.TabListItem.active .TabListItem-text {
+.TabListItem.active .TabListButton {
     opacity: 1
 }
 
