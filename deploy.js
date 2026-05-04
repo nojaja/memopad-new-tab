@@ -1,4 +1,4 @@
-const zipFolder = require('zip-folder')
+const AdmZip = require('adm-zip')
 const fs = require('fs')
 
 let folder = 'dist'
@@ -18,15 +18,16 @@ const webStore = require('chrome-webstore-upload')({
 })
 
 // zipping the output folder
-zipFolder(folder, zipName, function(err) {
-  if (err) {
-    console.log('oh no!', err)
-    process.exit(1)
-  } else {
-    console.log(`Successfully Zipped ${folder} and saved as ${zipName}`)
-    uploadZip() // on successful zipping, call upload
-  }
-})
+try {
+  const zip = new AdmZip()
+  zip.addLocalFolder(folder)
+  zip.writeZip(zipName)
+  console.log(`Successfully Zipped ${folder} and saved as ${zipName}`)
+  uploadZip() // on successful zipping, call upload
+} catch (err) {
+  console.log('oh no!', err)
+  process.exit(1)
+}
 
 function uploadZip() {
   // creating file stream to upload
