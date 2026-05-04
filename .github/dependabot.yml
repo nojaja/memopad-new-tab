@@ -1,0 +1,11 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Vue CLI 5 pulls @vue/component-compiler-utils@3.x, which is pinned to postcss@^7.
+    # Dependabot security updates for postcss cannot be applied automatically (max is 7.0.39).
+    # Ignore postcss updates until the build stack is migrated away from Vue CLI.
+    ignore:
+      - dependency-name: "postcss"
