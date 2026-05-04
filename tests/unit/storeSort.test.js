@@ -78,6 +78,21 @@ describe('store refreshFileList - ソート機能', () => {
     expect(list[0].uri).toBe('note_f')
   })
 
+  test('sort: 2 は lastUpdatedTime ではなく createdTime を優先する', () => {
+    const now = Date.now()
+    // note_new_created は作成日時が新しいが最終更新は古い
+    window.localStorage.setItem('note_new_created', makeProjectJson('note_new_created', '# New Created', now - 1000, now - 3000))
+    // note_new_updated は作成日時が古いが最終更新は新しい
+    window.localStorage.setItem('note_new_updated', makeProjectJson('note_new_updated', '# New Updated', now - 3000, now - 1000))
+    storeModule.commit('replaceNoteKeyList', ['note_new_updated', 'note_new_created'])
+    storeModule.commit('setConfig', { general: { sort: '2', i18n_locale: 'ja' } })
+
+    const list = storeModule.getters.refreshFileList
+    expect(Array.isArray(list)).toBe(true)
+    expect(list.length).toBe(2)
+    expect(list[0].uri).toBe('note_new_created')
+  })
+
   test('sort: 3 (createdTime 昇順) でリストが返る', () => {
     const now = Date.now()
     window.localStorage.setItem('note_g', makeProjectJson('note_g', '# Gノート', now - 2000, now))
