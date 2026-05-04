@@ -455,12 +455,19 @@ export default {
     },
     /**
      * 処理名: データエクスポート
-     * 処理概要: localStorage の全データを JSON 文字列としてファイルダウンロードする
-     * 実装理由: ユーザーがメモデータをバックアップできるようにするため
+     * 処理概要: localStorage の全データを整形済み JSON としてファイルダウンロードする
+     * 実装理由: ユーザーが読みやすい形式でメモデータをバックアップできるようにするため
      */
     exportLocalStorage() {
       localStorage.setItem('currentVersion', '0.0.1')
-      this.$refs.export.saveAsLegacy(JSON.stringify(localStorage))
+      const now = new Date()
+      const year = String(now.getFullYear())
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      const hour = String(now.getHours()).padStart(2, '0')
+      const fileName = `MemoPad_${year}${month}${day}${hour}.json`
+      const formattedJson = JSON.stringify(localStorage, null, 2)
+      this.$refs.export.saveAsLegacy(formattedJson, fileName, 'application/json')
     },
     /**
      * 処理名: ファイル読み込み
