@@ -1,5 +1,5 @@
 <template>
-  <SplitpanesLayout @resize="handleResize" firstSplitter>
+  <SplitpanesLayout :class="{ 'splitter-dragging': isSplitterDragging, 'single-pane-mode': !isDualPaneMode }" @resize="handleResize">
     <PaneSection min-size="0" :size="editPaneSize">
       <div v-show="!hideEditPane" class="pane-body">
           <MonacoEditor ref="monaco" :source="source" :onChange="onChange" @update:source="onChange" :config="config.editor"></MonacoEditor>
@@ -89,7 +89,8 @@ export default {
    */
   data() {
     return {
-      regExpData: []
+      regExpData: [],
+      isSplitterDragging: false
     }
   },
   computed: {
@@ -127,6 +128,15 @@ export default {
       if (this.hidePreviewPane) return 0
       if (this.hideEditPane) return 100
       return 50
+    },
+    /**
+     * 処理名: 両ペイン表示判定
+     * 処理概要: editor と preview の両方が表示中かどうかを返す
+     * 実装理由: 両方表示時のみ splitter を表示するため
+     * @returns {boolean} 両ペイン表示時 true
+     */
+    isDualPaneMode() {
+      return !this.hideEditPane && !this.hidePreviewPane
     }
   },
   watch: {
@@ -159,7 +169,61 @@ export default {
   created: function() {
     this.updateRegExpList()
   },
+  /**
+   * 処理名: マウント後初期化
+   * 処理概要: splitter ドラッグ状態を監視するグローバルイベントを登録する
+   * 実装理由: 高速ドラッグ時に iframe がイベントを奪うケースでも状態を安定化するため
+   */
+  mounted() {
+    window.addEventListener('mousedown', this.handleGlobalPointerDown, true)
+    window.addEventListener('touchstart', this.handleGlobalPointerDown, true)
+    window.addEventListener('mouseup', this.handleGlobalPointerUp, true)
+    window.addEventListener('touchend', this.handleGlobalPointerUp, true)
+    window.addEventListener('blur', this.handleGlobalPointerUp)
+  },
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: splitter 監視用のグローバルイベントを解除する
+   * 実装理由: コンポーネント破棄後の状態残留やイベントリークを防止するため
+   */
+  beforeUnmount() {
+    window.removeEventListener('mousedown', this.handleGlobalPointerDown, true)
+    window.removeEventListener('touchstart', this.handleGlobalPointerDown, true)
+    window.removeEventListener('mouseup', this.handleGlobalPointerUp, true)
+    window.removeEventListener('touchend', this.handleGlobalPointerUp, true)
+    window.removeEventListener('blur', this.handleGlobalPointerUp)
+  },
   methods: {
+    /**
+     * 処理名: splitter ターゲット判定
+     * 処理概要: イベント発生元が splitpanes の splitter 要素か判定する
+     * 実装理由: 不要な操作でドラッグ状態が立たないようにするため
+     * @param {EventTarget|null} target - イベント発生元
+     * @returns {boolean} splitter 要素なら true
+     */
+    isSplitterTarget(target) {
+      if (!(target instanceof Element)) return false
+      return !!target.closest('.splitpanes__splitter')
+    },
+    /**
+     * 処理名: グローバル押下ハンドラ
+     * 処理概要: splitter 押下を検出した場合のみドラッグ中フラグを立てる
+     * 実装理由: ドラッグ中に iframe のイベントを無効化するため
+     * @param {MouseEvent|TouchEvent} event - ポインタイベント
+     */
+    handleGlobalPointerDown(event) {
+      if (this.isSplitterTarget(event.target)) {
+        this.isSplitterDragging = true
+      }
+    },
+    /**
+     * 処理名: グローバル解放ハンドラ
+     * 処理概要: マウス/タッチ解放時にドラッグ中フラグを解除する
+     * 実装理由: ドラッグ状態の残留を防ぎ意図しない再移動を回避するため
+     */
+    handleGlobalPointerUp() {
+      this.isSplitterDragging = false
+    },
     /**
      * 処理名: 変更ハンドラ
      * 処理概要: エディタ内容変更をストアに dispatch する
@@ -222,34 +286,37 @@ export default {
 }
 
 .splitpanes--vertical>.splitpanes__splitter {
-    width: 7px;
-    border-left: 1px solid #eee;
-    margin-left: -1px;
+  flex: none;
+  width: 5px;
+  cursor: col-resize;
+  background-color: #f0f0f0;
 }
+
 .splitpanes .splitpanes__splitter {
-    background-color: #fff;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    position: relative;
-    -ms-flex-negative: 0;
-    flex-shrink: 0;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  position: relative;
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
 }
-.splitpanes--vertical>.splitpanes__splitter:before, .splitpanes--vertical>.splitpanes__splitter:before {
-    margin-left: -2px;
+
+.splitpanes--vertical>.splitpanes__splitter:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }
-.splitpanes--vertical>.splitpanes__splitter:after, .splitpanes--vertical>.splitpanes__splitter:before {
-    -webkit-transform: translateY(-50%);
-    transform: translateY(-50%);
-    width: 1px;
-    height: 30px;
+
+.splitpanes.single-pane-mode > .splitpanes__splitter {
+  display: none;
 }
-.splitpanes .splitpanes__splitter:after, .splitpanes .splitpanes__splitter:before {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    background-color: rgba(0,0,0,.15);
-    -webkit-transition: background-color .3s;
-    transition: background-color .3s;
+
+.splitter-dragging iframe {
+  pointer-events: none;
+}
+
+@media (max-width: 1400px) {
+  .splitpanes--vertical>.splitpanes__splitter {
+    width: 16px !important;
+    min-width: 16px !important;
+    background-color: #f0f0f0;
+  }
 }
 </style>

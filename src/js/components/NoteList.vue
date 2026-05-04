@@ -124,13 +124,15 @@ export default {
   position: relative;
   overflow: hidden;
   overflow-y: scroll;
+  overflow-x: hidden;
   -ms-overflow-style: none;
   /* IE, Edge 対応 */
   scrollbar-width: none;
   /* Firefox 対応 */
   flex: 1 1 auto;
   min-height: 0;
-  width: 200px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .noteListMenu::-webkit-scrollbar {
@@ -138,14 +140,16 @@ export default {
 }
 
 .newNote {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
+  left: auto;
   padding: 18px 16px;
   opacity: .9;
-  width: 200px;
+  width: 100%;
+  max-width: 100%;
   background: white;
   z-index: 10;
+  box-sizing: border-box;
 }
 
 .newNote,
@@ -208,7 +212,6 @@ export default {
 }
 
 .noteList {
-  padding: 54px 0;
   height: 100%;
   box-sizing: border-box;
   margin-block-start: 0;

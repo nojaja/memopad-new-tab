@@ -4,12 +4,17 @@
       <SettingPage></SettingPage>
     </SlideMenu>
     <div class="wrapper">
-      <div class="sidebar" :style="{ width : '200px' }">
+      <div class="sidebar" :style="sidebarStyle">
         <NoteList :items="fileList" :onNew="newProject" :onSelect="loadProject"></NoteList>
         <AppFooter backgroundColor="#fff" >
           <div  @click="settingOpen"><UniconIcon name="setting" @click="settingOpen"></UniconIcon></div>
         </AppFooter>
       </div>
+      <div
+        class="splitpanes__splitter layout-splitter"
+        @mousedown="startSidebarResize"
+        @touchstart="startSidebarResize"
+      ></div>
       <NoteContents></NoteContents>
     </div>
   </div>
@@ -30,17 +35,6 @@ export default {
     SettingPage,
     AppFooter: Footer
   },
-  computed: {
-    /**
-     * 処理名: ファイルリスト取得
-     * 処理概要: ストアから最新のノートリストを返す
-     * 実装理由: ストアの状態をサイドバーリストに反映するため
-     * @returns {Array} ノートリスト
-     */
-    fileList() {
-      return this.$store.getters.refreshFileList
-    }
-  },
   /**
    * 処理名: コンポーネントデータ初期化
    * 処理概要: ウィンドウサイズとサンプルアイテムの初期値を設定する
@@ -51,6 +45,8 @@ export default {
     return {
       width: window.innerWidth,
       height: window.innerHeight,
+      sidebarWidth: 200,
+      isSidebarResizing: false,
       items: [
         { name: 'いちご', uri: 'note_1583338656491', isActive: true },
         { name: 'りんご', uri: 'note_1583338656492', isActive: false },
@@ -60,6 +56,65 @@ export default {
     }
   },
   methods: {
+    /**
+     * 処理名: サイドバー幅更新
+     * 処理概要: ポインタ位置からサイドバー幅を最小/最大範囲内で更新する
+     * 実装理由: 画面外にはみ出さないよう安全にリサイズするため
+     * @param {number} clientX - ポインタの X 座標
+     */
+    updateSidebarWidth(clientX) {
+      const minWidth = 120
+      const maxWidth = Math.max(minWidth, window.innerWidth - 240)
+      const next = Math.min(maxWidth, Math.max(minWidth, Math.floor(clientX)))
+      this.sidebarWidth = next
+    },
+    /**
+     * 処理名: リサイズ開始
+     * 処理概要: splitter 押下で document へ move/up リスナを登録してリサイズを開始する
+     * 実装理由: カーソルが splitter 外へ出てもドラッグ操作を継続するため
+     * @param {MouseEvent|TouchEvent} event - 開始イベント
+     */
+    startSidebarResize(event) {
+      event.preventDefault()
+      this.isSidebarResizing = true
+
+      /**
+       * 処理名: マウス移動コールバック
+       * 処理概要: マウス座標からサイドバー幅を更新する
+       * 実装理由: マウスドラッグ操作で連続的に幅を変更するため
+       * @param {MouseEvent} moveEvent - マウス移動イベント
+       */
+      const onMouseMove = (moveEvent) => {
+        this.updateSidebarWidth(moveEvent.clientX)
+      }
+      /**
+       * 処理名: タッチ移動コールバック
+       * 処理概要: タッチ座標からサイドバー幅を更新する
+       * 実装理由: モバイル環境でもドラッグで幅変更を可能にするため
+       * @param {TouchEvent} moveEvent - タッチ移動イベント
+       */
+      const onTouchMove = (moveEvent) => {
+        if (!moveEvent.touches || !moveEvent.touches.length) return
+        this.updateSidebarWidth(moveEvent.touches[0].clientX)
+      }
+      /**
+       * 処理名: リサイズ終了コールバック
+       * 処理概要: ドラッグ状態を解除し関連イベントリスナーを削除する
+       * 実装理由: 操作終了後のイベントリークと意図しない更新を防ぐため
+       */
+      const stop = () => {
+        this.isSidebarResizing = false
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', stop)
+        document.removeEventListener('touchmove', onTouchMove)
+        document.removeEventListener('touchend', stop)
+      }
+
+      document.addEventListener('mousemove', onMouseMove)
+      document.addEventListener('mouseup', stop)
+      document.addEventListener('touchmove', onTouchMove)
+      document.addEventListener('touchend', stop)
+    },
     /**
      * 処理名: リサイズハンドラ
      * 処理概要: ウィンドウリサイズ時に現在のサイズをステートに反映する
@@ -113,6 +168,28 @@ export default {
    */
   beforeUnmount: function() {
     window.removeEventListener('resize', this.handleResize)
+    this.isSidebarResizing = false
+  },
+  computed: {
+    /**
+     * 処理名: サイドバースタイル取得
+     * 処理概要: テンプレートへバインドするサイドバー幅 style を返す
+     * 実装理由: 幅変更をリアクティブに DOM へ反映するため
+     * @returns {{ width: string, flex: string }} style オブジェクト
+     */
+    sidebarStyle() {
+      const px = `${this.sidebarWidth}px`
+      return { width: px, flex: `0 0 ${px}` }
+    },
+    /**
+     * 処理名: ファイルリスト取得
+     * 処理概要: ストアから最新のノートリストを返す
+     * 実装理由: ストアの状態をサイドバーリストに反映するため
+     * @returns {Array} ノートリスト
+     */
+    fileList() {
+      return this.$store.getters.refreshFileList
+    }
   }
 }
 </script>
@@ -130,6 +207,17 @@ export default {
   flex: 0 0 200px;
   height: 100%;
   min-height: 0;
+}
+
+.layout-splitter {
+  flex: none;
+  width: 5px;
+  cursor: col-resize;
+  background-color: #f0f0f0;
+}
+
+.layout-splitter:hover {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .blurIn {
     -webkit-animation: blurIn .3s ease both;
