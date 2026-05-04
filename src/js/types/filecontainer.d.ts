@@ -1,4 +1,4 @@
-declare module 'filecontainer' {
+declare module '@nojaja/filecontainer' {
   /** FileContainer 型定義 */
   export class FileContainer {
     container: { projectName: string }

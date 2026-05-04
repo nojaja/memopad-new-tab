@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import { markRaw } from 'vue'
 
-import { FileContainer, FileData } from 'filecontainer'
+import { FileContainer, FileData } from '@nojaja/filecontainer'
 import { debounce } from 'lodash'
 
 import jmd from '@/jmd.json'

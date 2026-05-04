@@ -82,43 +82,33 @@ $ git clone https://github.com/nojaja/memopad-new-tab.git
 ```
 
 
-2. Vue CLIのインストール
-今回の開発はVue CLIを使って行いました。
-今回はVue CLI 4を使っています。 npmを使ってグローバルにVue CLI 4をインストールします．
-```
-$ npm install -g @vue/cli
-$ vue --version
-4.2.3
-```
-
-3. VueUI Project Dashboardの起動
-何かと便利なので起動しておく
-```
-$ vue ui
-```
-
-4. アプリケーション起動
-「npm run serve」によって起動します。
+2. 依存関係のインストール
 ```
 $ cd memopad-new-tab
+$ npm install
+```
+
+3. アプリケーション起動
+「npm run serve」によって起動します。
+```
 $ npm run serve
 ```
-「npm run」は「packeage.jsonのscripts」に追加されているコマンドが実行されるので、 
-「serve」に書かれた「vue-cli-service serve」が実行されます。
+「npm run」は「package.jsonのscripts」に追加されているコマンドが実行されるので、
+「serve」に書かれたVite開発サーバーが起動します。
 
-5. ブラウザでアクセス
+4. ブラウザでアクセス
 コンソールにURLが表示されるので、それを開く
 
-6. コーディング
+5. コーディング
 
-7. ビルド
+6. ビルド
 ```
 $ npm run build
 ```
-8. Chromeを開き、`chrome://extensions`に移動します。
-9. チェックボックス（ページ上部）にチェックを入れて「Developer Mode」を有効にします。
-10. 「Load Unpacked Extension」 ボタンをクリックして、クローンしたリポジトリの `dist/`フォルダを選択します。
-11. これで拡張機能がロードされ、'New Tab' ページが Memopad New Tab になっているはずです。🎉
+7. Chromeを開き、`chrome://extensions`に移動します。
+8. チェックボックス（ページ上部）にチェックを入れて「Developer Mode」を有効にします。
+9. 「Load Unpacked Extension」 ボタンをクリックして、クローンしたリポジトリの `dist/`フォルダを選択します。
+10. これで拡張機能がロードされ、'New Tab' ページが Memopad New Tab になっているはずです。🎉
 
 
 ## License
