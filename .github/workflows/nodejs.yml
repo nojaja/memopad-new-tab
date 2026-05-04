@@ -3,8 +3,6 @@ name: Node.js CI
 on:
   push:
     branches: [ master ]
-    paths:
-      - 'package.json'
 
 env:
   TAG_PREFIX: 'v'
@@ -95,7 +93,7 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build
+      - run: npm run build-legacy
         env:
           CI: true
 
