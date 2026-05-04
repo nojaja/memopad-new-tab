@@ -45,4 +45,29 @@ describe('NoteList.vue メソッドテスト', () => {
     })
     expect(() => wrapper.vm.onNew()).not.toThrow()
   })
+
+  test('タイトル先頭の日時プレフィックスを除去して表示する', () => {
+    const wrapper = shallowMount(NoteList, {
+      global: { plugins: [store], stubs: { unicon: true } },
+      props: {
+        items: [{ uri: 'note_1', name: '2026/05/04 11:22 サンプルタイトル', isActive: false, lastUpdatedTime: 0 }]
+      }
+    })
+
+    expect(wrapper.find('.title').text()).toBe('サンプルタイトル')
+  })
+
+  test('lastUpdatedTime を yyyy/mm/dd hh24:mm 形式で2段目に表示する', () => {
+    const value = Date.UTC(2026, 4, 4, 1, 2)
+    const wrapper = shallowMount(NoteList, {
+      global: { plugins: [store], stubs: { unicon: true } },
+      props: {
+        items: [{ uri: 'note_2', name: 'タイトル', isActive: false, lastUpdatedTime: value }]
+      }
+    })
+
+    expect(wrapper.find('.lastUpdatedTime').exists()).toBe(true)
+    expect(wrapper.find('.lastUpdatedTime').text()).toBe(wrapper.vm.formatLastUpdatedTime(value))
+    expect(wrapper.find('.lastUpdatedTime').text()).toMatch(/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}$/)
+  })
 })
