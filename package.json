@@ -8,9 +8,7 @@
     "scripts": {
         "serve": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048\" vite",
         "build": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048\" vite build",
-        "build-legacy": "npm run build",
         "lint": "cross-env ESLINT_USE_FLAT_CONFIG=true eslint src/js",
-        "publish": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048 \" node ./deploy.js",
         "test:e2e": "cross-env NODE_OPTIONS=\"--openssl-legacy-provider\" playwright test",
         "type-check": "vue-tsc --noEmit",
         "test:unit": "jest",
