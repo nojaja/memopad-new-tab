@@ -65,18 +65,11 @@ export default {
     },
     /**
      * 処理名: タブ選択
-     * 処理概要: アクティブ状態を更新し、指定 URI を親に通知する
-     * 実装理由: クリック時に isActive を自コンポーネント内で更新するため
+     * 処理概要: 指定 URI を親に通知する
+     * 実装理由: props の直接更新を避けて状態管理責務を親へ委譲するため
      * @param {string} uri - 選択されたタブの URI
      */
     select(uri) {
-      for (const i in this.items) {
-        if (this.items[i].uri === uri) {
-          this.items[i].isActive = true
-        } else {
-          this.items[i].isActive = false
-        }
-      }
       this.onSelect(uri)
     }
   }

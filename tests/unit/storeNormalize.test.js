@@ -115,6 +115,43 @@ describe('store normalizeStoredProject のエッジケース', () => {
       storeModule.commit('importProject', data)
     }).not.toThrow()
   })
+
+  test('移行後の誤フォーマットを importProject で正しい保存形式へ正規化できる', () => {
+    const key = 'note_1585391420586'
+    const data = {
+      id: '',
+      files: {
+        'index.md': {
+          filename: 'index.md',
+          fileType: 'txt',
+          type: 'text/plain',
+          language: 'Markdown',
+          size: 0,
+          truncated: false,
+          content: 'content',
+          description: 'description'
+        }
+      },
+      public: true,
+      created_at: '2017-10-29T05:45:01Z',
+      updated_at: '2017-11-14T12:41:14Z',
+      description: '',
+      projectName: key
+    }
+
+    storeModule.commit('importProject', data)
+
+    const storedRaw = window.localStorage.getItem(key)
+    expect(typeof storedRaw).toBe('string')
+    const stored = JSON.parse(storedRaw)
+
+    expect(stored.v).toBe(0.1)
+    expect(stored.id).toBe(1585391420586)
+    expect(typeof stored.createdTime).toBe('number')
+    expect(typeof stored.lastUpdatedTime).toBe('number')
+    expect(stored).not.toHaveProperty('created_at')
+    expect(stored).not.toHaveProperty('updated_at')
+  })
 })
 
 describe('store getListItemFromRaw - filter 分岐', () => {

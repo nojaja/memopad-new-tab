@@ -505,19 +505,22 @@ export default {
       })
     },
     /**
-     * 処理名: バージョン 0.1.4 ノートインポート
-     * 処理概要: バージョン 0.1.4 形式のノートを適切な方法でストレージにインポートする
-     * 実装理由: バージョン固有のインポートロジックを分離して複雑度を下げるため
+     * 処理名: ノートエントリ正規化インポート
+     * 処理概要: ノートデータをパースしてストア経由で正規化保存する
+     * 実装理由: 取り込み時の保存フォーマットを常に正しい形式へ統一するため
      * @param {string} key - ノートのストレージキー
      * @param {object} importData - インポートデータオブジェクト
      */
-    importNote0_1_4(key, importData) {
-      if (this.isLikelyProjectContainer(importData[key])) {
-        localStorage.setItem(key, importData[key])
-      } else {
-        const parsed = this.parseJsonSafe(importData[key], null)
-        this.$store.dispatch('importProject', parsed || {})
+    importNoteEntry(key, importData) {
+      const parsed = this.parseJsonSafe(importData[key], null)
+      if (parsed && typeof parsed === 'object') {
+        if (typeof parsed.projectName !== 'string' || !parsed.projectName) {
+          parsed.projectName = key
+        }
+        this.$store.dispatch('importProject', parsed)
+        return
       }
+      localStorage.setItem(key, importData[key])
     },
     /**
      * 処理名: インポートキー処理
@@ -525,19 +528,14 @@ export default {
      * 実装理由: ループ本体を抽出して importLocalStorage の認知複雑度を下げるため
      * @param {string} key - 処理対象のキー
      * @param {object} importData - インポートデータオブジェクト
-     * @param {string} currentVersion - インポートデータのバージョン文字列
      * @param {Array} importedNoteKeys - インポート済みノートキーを収集する配列
      * @returns {void} なし
      */
-    processImportKey(key, importData, currentVersion, importedNoteKeys) {
+    processImportKey(key, importData, importedNoteKeys) {
       if (key === 'config') {
         this.$store.dispatch('setConfig', this.parseJsonSafe(importData[key], {}))
       } else if (key.indexOf('note_') !== -1) {
-        if (currentVersion === '0.1.4') {
-          this.importNote0_1_4(key, importData)
-        } else {
-          localStorage.setItem(key, importData[key])
-        }
+        this.importNoteEntry(key, importData)
         importedNoteKeys.push(key)
       }
     },
@@ -555,14 +553,13 @@ export default {
         const result = await this.readFile(selectedFile)
 
         const importData = cmp.parseJsonSafe(result, {})
-        const currentVersion = importData.currentVersion || '0.0.1'
         const existingNoteKeyList = cmp.parseJsonSafe(localStorage.getItem('noteKeyList'), [])
         const importedNoteKeyList = cmp.parseJsonSafe(importData.noteKeyList, [])
         const importedNoteKeys = []
         const allKeys = Object.keys(importData)
 
         for (let i = 0; i < allKeys.length; i++) {
-          cmp.processImportKey(allKeys[i], importData, currentVersion, importedNoteKeys)
+          cmp.processImportKey(allKeys[i], importData, importedNoteKeys)
           if (i < allKeys.length - 1) {
             await cmp.nextFrame()
           }

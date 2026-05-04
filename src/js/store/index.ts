@@ -273,6 +273,23 @@ function normalizeFilesMap(files: Record<string, any>): Record<string, any> | nu
 }
 
 /**
+ * 処理名: プロジェクトID復元
+ * 処理概要: id が空文字の場合のみ projectName の note_<数字> 形式から id を復元する
+ * 実装理由: 移行時に空文字へ崩れた id を元の値へ戻しつつ既存 id は維持するため
+ * @param {any} id - 入力 id
+ * @param {any} projectName - プロジェクト名
+ * @returns {any} 復元後の id
+ */
+function restoreProjectId(id: any, projectName: any): any {
+  if (id !== '') return id
+  if (typeof projectName !== 'string') return id
+  const match = projectName.match(/^note_(\d+)$/)
+  if (!match) return id
+  const restored = Number(match[1])
+  return Number.isFinite(restored) ? restored : id
+}
+
+/**
  * 処理名: プロジェクトメタデータ構築
  * 処理概要: パース済みプロジェクトオブジェクトからメタデータをデフォルト値付きで構築する
  * 実装理由: プロジェクトメタデータの正規化ロジックを分離するため
@@ -280,9 +297,10 @@ function normalizeFilesMap(files: Record<string, any>): Record<string, any> | nu
  * @returns {Record<string, any>} 正規化されたメタデータオブジェクト
  */
 function buildProjectMeta(parsed: Record<string, any>): Record<string, any> {
+  const restoredId = restoreProjectId(parsed.id, parsed.projectName)
   return {
     v: typeof parsed.v === 'number' ? parsed.v : 0.1,
-    id: parsed.id ?? null,
+    id: restoredId ?? null,
     gistid: parsed.gistid ?? '',
     public: typeof parsed.public === 'boolean' ? parsed.public : true,
     createdTime: typeof parsed.createdTime === 'number' ? parsed.createdTime : Date.now(),
@@ -911,7 +929,8 @@ function applySortOrder(items: any[], sort: string): void {
      */
     importProject(state, pjdata) {
       const noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random())
-      pjdata.id = pjdata.id || noteId
+      pjdata.id = restoreProjectId(pjdata.id, pjdata.projectName)
+      if (pjdata.id == null) pjdata.id = noteId
       pjdata.projectName = pjdata.projectName || 'note_' + pjdata.id
       const tmpfileContainer = new FileContainer()
       tmpfileContainer.setId(pjdata.id)
