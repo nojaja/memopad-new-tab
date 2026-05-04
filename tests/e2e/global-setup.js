@@ -54,7 +54,7 @@ async function checkDevServer(page) {
     console.error('以下の手順を試してください:');
     console.error('1. npm run serve が実行されていることを確認');
     console.error('2. ポート3001が利用可能であることを確認');
-    console.error('3. webpack-dev-serverが正常に動作していることを確認');
+    console.error('3. Vite開発サーバーが正常に動作していることを確認');
     throw error;
   }
 }
