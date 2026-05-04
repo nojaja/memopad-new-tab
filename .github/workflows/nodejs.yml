@@ -1,56 +1,146 @@
-# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
-
 name: Node.js CI
 
 on:
   push:
     branches: [ master ]
     paths:
-      - 'src/assets/*'
-  pull_request:
-    branches: 
-      - master
-    types: [closed]
+      - 'package.json'
+
+env:
+  TAG_PREFIX: 'v'
+  PACKAGE_PATH: 'package.json'
+  NODE_VERSION: '20.x'
+
+permissions:
+  contents: write
+
 jobs:
-  build:
-
+  check-version:
     runs-on: ubuntu-latest
+    outputs:
+      version_changed: ${{ steps.check.outputs.changed }}
+      tag_name: ${{ steps.check.outputs.tag_name }}
+      tag_exists: ${{ steps.check.outputs.tag_exists }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      - name: 現在のバージョンを取得
+        id: current
+        run: |
+          VERSION=$(node -p "require('./${PACKAGE_PATH}').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "現在のバージョン: $VERSION"
+
+      - name: 最新バージョンタグ側のバージョンを取得
+        id: previous
+        run: |
+          LATEST_TAG=$(git tag -l "${TAG_PREFIX}[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n 1)
+
+          if [ -n "$LATEST_TAG" ]; then
+            git show "$LATEST_TAG:${PACKAGE_PATH}" > /tmp/prev-package.json 2>/dev/null || true
+          fi
+
+          if [ -f /tmp/prev-package.json ]; then
+            PREV_VERSION=$(node -p "require('/tmp/prev-package.json').version")
+            echo "version=$PREV_VERSION" >> $GITHUB_OUTPUT
+            echo "最新タグ($LATEST_TAG)のバージョン: $PREV_VERSION"
+          else
+            echo "version=0.0.0" >> $GITHUB_OUTPUT
+            echo "比較対象タグが見つからないため初回リリース扱い"
+          fi
+
+      - name: バージョン差分とタグ存在を判定
+        id: check
+        run: |
+          CURRENT_VERSION="${{ steps.current.outputs.version }}"
+          PREVIOUS_VERSION="${{ steps.previous.outputs.version }}"
+          TAG_NAME="${TAG_PREFIX}${CURRENT_VERSION}"
+
+          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "✅ バージョンが変更されました: $PREVIOUS_VERSION → $CURRENT_VERSION"
+
+            if git ls-remote --exit-code --tags origin "$TAG_NAME" >/dev/null 2>&1; then
+              echo "tag_exists=true" >> $GITHUB_OUTPUT
+              echo "⚠️ タグ $TAG_NAME は既に存在します"
+            else
+              echo "tag_exists=false" >> $GITHUB_OUTPUT
+              echo "✨ 新規タグ $TAG_NAME を作成します"
+            fi
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ バージョン差分はありません"
+          fi
+
+  build:
+    needs: check-version
+    if: github.event_name == 'push' && needs.check-version.outputs.version_changed == 'true'
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [20.x]
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm run build
-      env:
-        CI: true
-    - name: Zip Release
-      uses: TheDoctor0/zip-release@v0.3.0
-      with:
-        # Filename for archive
-        filename: 'extension.zip'
-        # Base path for archive files
-        path: 'dist'
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        # Artifact name
-        name: extension
-        # Directory containing files to upload
-        path: extension.zip
-    - name: Upload to Chrome Web Store
-      uses: mobilefirstllc/cws-publish@latest
-      with:
-        action: 'publish' # 'upload', 'publish', 'testers'から選択
-        client_id: ${{secrets.CLIENT_ID}}
-        client_secret: ${{secrets.CLIENT_SECRET}}
-        refresh_token: ${{secrets.REFRESH_TOKEN}}
-        extension_id:  ${{secrets.EXTENSION_ID }}
-        zip_file: 'extension.zip'
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run build
+        env:
+          CI: true
+
+      - name: Zip Release
+        uses: TheDoctor0/zip-release@v0.3.0
+        with:
+          filename: 'extension.zip'
+          path: 'dist'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension
+          path: extension.zip
+
+      - name: Upload to Chrome Web Store
+        uses: mobilefirstllc/cws-publish@latest
+        with:
+          action: 'publish'
+          client_id: ${{ secrets.CLIENT_ID }}
+          client_secret: ${{ secrets.CLIENT_SECRET }}
+          refresh_token: ${{ secrets.REFRESH_TOKEN }}
+          extension_id: ${{ secrets.EXTENSION_ID }}
+          zip_file: 'extension.zip'
+
+  create-tag:
+    needs: [check-version, build]
+    if: github.event_name == 'push' && needs.check-version.outputs.version_changed == 'true' && needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: タグを作成して push
+        if: needs.check-version.outputs.tag_exists == 'false'
+        run: |
+          TAG_NAME="${{ needs.check-version.outputs.tag_name }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+          git push origin "$TAG_NAME"
+          echo "✅ タグ $TAG_NAME を作成しました"
+
+      - name: タグ作成スキップを記録
+        if: needs.check-version.outputs.tag_exists == 'true'
+        run: |
+          echo "ℹ️ タグ ${{ needs.check-version.outputs.tag_name }} は既存のため作成をスキップしました"
