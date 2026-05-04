@@ -8,8 +8,16 @@ module.exports = {
     'plugin:vue/essential',
     '@vue/standard'
   ],
+  parser: 'vue-eslint-parser',
   parserOptions: {
-    parser: 'babel-eslint'
+    parser: {
+      ts: '@typescript-eslint/parser',
+      tsx: '@typescript-eslint/parser',
+      js: 'babel-eslint',
+      jsx: 'babel-eslint'
+    },
+    ecmaVersion: 2020,
+    sourceType: 'module'
   },
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',

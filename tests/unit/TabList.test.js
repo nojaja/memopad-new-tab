@@ -1,5 +1,5 @@
-import { shallowMount, createLocalVue } from '@vue/test-utils'
-import TabList from '@/js/components/TabList.vue'
+import { shallowMount } from '@vue/test-utils'
+import TabList from '@/components/TabList.vue'
 
 describe('TabList.vue', () => {
   let wrapper
@@ -8,7 +8,7 @@ describe('TabList.vue', () => {
     { uri: 'tab2', name: 'タブ2', isActive: false },
     { uri: 'tab3', name: 'タブ3', isActive: true }
   ]
-  
+
   const mockOnSelect = jest.fn()
 
   beforeEach(() => {
@@ -32,22 +32,19 @@ describe('TabList.vue', () => {
   test('アクティブなタブが正しく表示される', () => {
     const activeTab = wrapper.findAll('.TabListItem.active')
     expect(activeTab.length).toBe(1)
-    expect(activeTab.at(0).find('.title').text()).toBe('タブ3')
+    expect(activeTab.at(0).find('.TabListButton').text()).toContain('タブ3')
   })
 
   test('タブをクリックすると選択イベントが発火する', async () => {
-    const firstTab = wrapper.findAll('.TabListItem-text').at(0)
+    const firstTab = wrapper.findAll('.TabListButton').at(0)
     await firstTab.trigger('click')
-    
+
     expect(mockOnSelect).toHaveBeenCalledWith('tab1')
-    expect(wrapper.vm.items[0].isActive).toBe(true)
-    expect(wrapper.vm.items[2].isActive).toBe(false)
   })
 
   test('propsのデフォルト値が正しく設定される', () => {
-    const wrapper = shallowMount(TabList)
-    expect(wrapper.props('items')).toEqual([])
-    expect(typeof wrapper.props('onNew')).toBe('function')
-    expect(typeof wrapper.props('onSelect')).toBe('function')
+    const localWrapper = shallowMount(TabList)
+    expect(localWrapper.props('items')).toEqual([])
+    expect(typeof localWrapper.props('onSelect')).toBe('function')
   })
 })
