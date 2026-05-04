@@ -96,6 +96,7 @@ jobs:
       - run: npm run build-legacy
         env:
           CI: true
+          NODE_OPTIONS: --openssl-legacy-provider
 
       - name: Zip Release
         uses: TheDoctor0/zip-release@v0.3.0
