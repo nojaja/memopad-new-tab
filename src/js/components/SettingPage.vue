@@ -33,7 +33,11 @@
       <div v-else-if="currentId === '2'">
         <h1 class="h1">Editor</h1>
         <h3 class="h3">FontSize</h3>
-        <input class="option" type="number" v-model="localConfig.editor.fontSize" number>
+        <div class="number-option">
+          <button class="number-option__spin" @click="stepEditorNumber('fontSize', -1)">-</button>
+          <input class="option option--number" type="number" v-model.number="localConfig.editor.fontSize">
+          <button class="number-option__spin" @click="stepEditorNumber('fontSize', 1)">+</button>
+        </div>
 
         <!--
         <h3 class="h3">FontFamily</h3>
@@ -44,7 +48,11 @@
         -->
 
         <h3 class="h3">Tab Size</h3>
-        <input class="option" type="number" v-model="localConfig.editor.tabSize" number>
+        <div class="number-option">
+          <button class="number-option__spin" @click="stepEditorNumber('tabSize', -1)">-</button>
+          <input class="option option--number" type="number" v-model.number="localConfig.editor.tabSize">
+          <button class="number-option__spin" @click="stepEditorNumber('tabSize', 1)">+</button>
+        </div>
 
         <!--
         <h3 class="h3">Font Color</h3>
@@ -432,6 +440,20 @@ export default {
       this.currentId = uri
     },
     /**
+     * 処理名: エディター数値設定ステップ変更
+     * 処理概要: fontSize / tabSize を指定ステップで増減し最小値 1 を維持する
+     * 実装理由: ブラウザ依存のネイティブスピンを使わず配色を統一した増減操作を提供するため
+     * @param {string} key - 変更対象キー（fontSize または tabSize）
+     * @param {number} step - 増減値（-1 または 1）
+     */
+    stepEditorNumber(key, step) {
+      if (key !== 'fontSize' && key !== 'tabSize') return
+      const current = Number(this.localConfig.editor[key])
+      const safeCurrent = Number.isFinite(current) ? current : 1
+      const next = Math.max(1, safeCurrent + step)
+      this.localConfig.editor[key] = next
+    },
+    /**
      * 処理名: データエクスポート
      * 処理概要: localStorage の全データを JSON 文字列としてファイルダウンロードする
      * 実装理由: ユーザーがメモデータをバックアップできるようにするため
@@ -650,6 +672,39 @@ export default {
 }
 .button-small-secondary:hover {
     background-color: rgb(71, 71, 71);
+}
+.number-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.option--number {
+  width: 120px;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.option--number::-webkit-inner-spin-button,
+.option--number::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.number-option__spin {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: rgb(255, 255, 255);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.number-option__spin:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 .ListItem {
     display: block;
