@@ -1,40 +1,41 @@
-Memopad New Tabを使うと、Google Chromeのデフォルトの「New Tab」ではなく、Markdownエディタになります。
+Memopad New Tabは、Google Chromeの新しいタブをMarkdownエディタに変えるChrome拡張機能です。
 
- 新しいタブを開いて、🗒️ メモを取ったり、⏰リマインダーを保存したり、🔗 リンクを貼り付けたり、表を作成したりすることができます。   
- デフォルトの「新規タブ」の代わりとして、素早く、きれいに、シンプルに使えることを重視しています。
+新しいタブを開くだけで、🗒️ メモの記録、⏰ リマインダーの保存、🔗 リンクの貼り付け、表の作成などがすぐに行えます。
+「新しいタブ」をシンプルかつスマートに活用したい方に向けて、素早く・すっきりと使えることを大切に設計しています。
 
-* 簡単にできること。 
-新しいタブを開いて、好きなことを書いてください。 
-次に新しいタブを開いても、前回入力した内容が残っています。
+* シンプルで使いやすい
+新しいタブを開いてそのまま書き始めるだけ。
+次にタブを開いても、前回の内容がそのまま残っています。
 
-* ノートリスト。 
-必要に応じて複数のノートを作成することができます。
+* ノートの一覧管理
+用途に合わせて複数のノートを作成し、切り替えながら使うことができます。
 
-* パワフル。 
-Markdown構文を使用することで、様々な方法で自分自身を表現することができます。 
-Markdown 構文については [この素晴らしいガイド] (https://github.github.com/gfm/) を参照してください。
+* Markdownで表現力アップ
+Markdown記法を使えば、見出し・リスト・表・コードブロックなど、豊富な書式で自由に書き残せます。
+Markdownの書き方は [こちらの公式ガイド](https://github.github.com/gfm/) をご参照ください。
 
-* オフラインでの記述  
-Memopad New Tabはサーバー上ではなく、ブラウザに保存されます。 
-オフラインでもノートの作成や編集が可能です。
+* オフラインでも使える
+Memopad New Tabのデータはサーバーではなくブラウザ内に保存されます。
+インターネット接続がなくても、ノートの作成・編集が可能です。
+
+* VS Codeと同じエディタを採用
+VS Codeでもおなじみの高機能エディタ「Monaco Editor」を搭載しています。
+Markdown記法のシンタックスハイライトや補完など、快適な編集体験をそのままブラウザで。
+
+* PlantUMLでダイアグラムを描ける
+テキストからシーケンス図・クラス図・フローチャートなどを作成できるPlantUMLに対応。
+コードを書くだけで、図を即座に表現できます。
+
+* プレビューをリアルタイムで確認
+入力した内容がプレビューエリアにすぐ反映されます。
+書きながら仕上がりをその場で確認できるので、ノート作成がスムーズです。
 
 ---------
-Memopad New Tab makes it a Markdown editor instead of the default "New Tab" in Google Chrome.
+【最新アップデート（2026/05/04）】
 
- Open a new tab to 🗒️ take notes, save ⏰ reminders, 🔗 paste links, or create a table.    
- The emphasis is on quick, clean, and simple to use as an alternative to the default "New Tab".
+* 内部ライブラリを更新し、安全性を向上
+使用している内部ライブラリを最新版に更新し、セキュリティ面での安全性を高めました。
 
-* Easy.  
-You can open a new tab and write whatever you like.  
-The next time you open a new tab, you'll still have what you entered last time.
-
-* Note list.  
-You can create multiple notes as needed.
-
-* Powerful.  
-By using Markdown syntax, you can express yourself in a variety of ways.  
-See [this great guide] (https://github.github.com/gfm/) for Markdown syntax.
-
-* Offline description  
-Memopad New Tab is stored in the browser, not on the server.  
-You can create and edit notes offline as well.
+* プライバシーモードを導入（Privacy Blur）
+ウィンドウが非アクティブになったときに画面をぼかして、周囲からの覗き見を防ぐ「Privacy Blur」機能を追加しました。
+設定からONにすることで、席を外したときなどにノートの内容を自動的に隠すことができます。
