@@ -1,5 +1,5 @@
 <template>
-  <div class="footer" v-bind:style="{ backgroundColor: this.backgroundColor }">
+  <div class="footer" :style="{ backgroundColor: backgroundColor }">
     <slot></slot>
   </div>
 </template>
@@ -9,6 +9,7 @@
 export default {
   components: {
   },
+  name: 'AppFooter',
   props: {
     backgroundColor: {
       type: String,
@@ -23,8 +24,9 @@ export default {
 .footer {
   min-height: 32px;
   height: auto;
-  position: fixed;
-  bottom: 0;
+  position: relative;
+  left: 0;
   width: 100%;
+  flex-shrink: 0;
 }
 </style>

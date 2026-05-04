@@ -1,58 +1,118 @@
 <template>
   <div>
-    <Slide :isOpen="this.isOpen" :burgerIcon="false" ref="slideMenu" style="width: 100%;" >
-      <slot></slot>
-    </Slide>
+    <div v-if="panelOpen" class="slide-overlay" @click="close"></div>
+    <div class="slide-panel" :class="{ 'slide-panel--open': panelOpen }">
+      <template v-if="panelOpen">
+        <button
+          type="button"
+          class="slide-close bm-cross-button"
+          aria-label="Close settings"
+          @click="close"
+        >
+          <span class="bm-cross bm-cross-a"></span>
+          <span class="bm-cross bm-cross-b"></span>
+        </button>
+        <div class="bm-item-list">
+          <slot></slot>
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
 <script>
-import { Slide } from 'vue-burger-menu'
-
 export default {
-  name: 'App',
-  components: {
-    Slide
-  },
+  name: 'SlideMenu',
+  /**
+   * 処理名: コンポーネントデータ初期化
+   * 処理概要: パネルの開閉状態初期値を設定する
+   * 実装理由: スライドパネルの表示状態をリアクティブに管理するため
+   * @returns {{ panelOpen: boolean }} 初期データ
+   */
   data() {
     return {
-      width: window.innerWidth
+      panelOpen: false
     }
-  },
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: false,
-      default: false
-    }
-  },
-  computed: {
   },
   methods: {
-    handleResize: function() {
-      console.log('resize')
-      this.width = window.innerWidth
-      // this.$refs.slideMenu.$children[0].width = this.width
-    },
+    /**
+     * 処理名: パネルを開く
+     * 処理概要: イベントの伝播を止めてスライドパネルを表示する
+     * 実装理由: 設定ボタンからのクリックで設定パネルを開くため
+     * @param {Event} e - クリックイベント（オプション）
+     */
     open(e) {
-      // console.log('Open')
-      if (e)e.preventDefault()
-      if (e)e.stopPropagation()
-      // this.$refs.slideMenu.openMenu()
-      // console.log(this.$refs.slideMenu)
-      this.$refs.slideMenu.$children[0].width = this.width
-      this.$refs.slideMenu.$children[0].openMenu()
+      if (e) { e.preventDefault(); e.stopPropagation() }
+      this.panelOpen = true
+    },
+    /**
+     * 処理名: パネルを閉じる
+     * 処理概要: スライドパネルを非表示にする
+     * 実装理由: オーバーレイや閉じるボタンのクリックでパネルを閉じるため
+     */
+    close() {
+      this.panelOpen = false
     }
-  },
-  mounted: function() {
-    window.addEventListener('resize', this.handleResize)
-  },
-  beforeDestroy: function() {
-    window.removeEventListener('resize', this.handleResize)
   }
 }
 </script>
 
+<style>
+.slide-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+}
+.slide-panel {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  background-color: rgb(63, 63, 65);
+  color: #ffffff;
+  overflow-x: hidden;
+  padding-top: 0px;
+  transition: 0.3s;
+  overflow-y: auto;
+}
+.slide-panel--open {
+  width: 100vw;
+  max-width: none;
+}
+
+.slide-close {
+  position: absolute;
+  top: 12px;
+  right: 2px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  z-index: 1001;
+  padding: 0;
+}
+
+.slide-close .bm-cross {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  width: 4px;
+  height: 24px;
+}
+
+.slide-close .bm-cross-a {
+  transform: rotate(45deg);
+}
+
+.slide-close .bm-cross-b {
+  transform: rotate(-45deg);
+}
+</style>
 <style>
 .bm-burger-button {
   position: fixed;

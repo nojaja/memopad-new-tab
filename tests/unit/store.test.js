@@ -1,11 +1,7 @@
-import { createLocalVue } from '@vue/test-utils'
-import Vuex from 'vuex'
+import { createStore } from 'vuex'
 import { FileContainer, FileData } from './mocks/filecontainer'
 
 const { mockLocalStorage } = global
-
-const localVue = createLocalVue()
-localVue.use(Vuex)
 
 describe('Store', () => {
   let store
@@ -91,7 +87,7 @@ describe('Store', () => {
       setConfig: jest.fn()
     }
 
-    store = new Vuex.Store({
+    store = createStore({
       state,
       getters,
       mutations,
@@ -156,6 +152,38 @@ describe('Store', () => {
     store.commit('saveNoteKeyList', 'note_3')
     expect(store.state.noteKeyList).toContain('note_3')
     expect(mockLocalStorage.setItem).toHaveBeenCalledWith('noteKeyList', JSON.stringify(['note_3']))
+  })
+
+  test('legacy形式のfilesオブジェクトを持つノートを読み込める', () => {
+    const legacyNote = {
+      v: 0.1,
+      id: 1777647196785,
+      gistid: '',
+      files: {
+        'index.md': {
+          filename: 'index.md',
+          fileType: 'txt',
+          type: 'text/plain',
+          language: 'Markdown',
+          size: 0,
+          truncated: false,
+          content: '2026/05/01 23:52\n',
+          description: '2026/05/01 23:52\n'
+        }
+      },
+      public: true,
+      createdTime: 1777647172336,
+      lastUpdatedTime: 1777647172337,
+      description: '',
+      projectName: 'note_1777647196785'
+    }
+
+    mockLocalStorage.setItem('noteKeyList', JSON.stringify(['note_1777647196785']))
+    mockLocalStorage.setItem('note_1777647196785', JSON.stringify(legacyNote))
+
+    const stored = JSON.parse(mockLocalStorage.getItem('note_1777647196785'))
+    expect(stored.files['index.md'].content).toBe('2026/05/01 23:52\n')
+    expect(stored.projectName).toBe('note_1777647196785')
   })
 
   test('ファイル一覧を更新できる', () => {

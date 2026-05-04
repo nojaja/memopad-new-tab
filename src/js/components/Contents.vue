@@ -1,43 +1,67 @@
 <template>
-  <div v-bind:style="{ height: this.height-20-50+'px' , width : '100%' }" >
+  <div class="contents-wrapper" >
     <div class="titleSection">
       <input placeholder="Title" :value="title" @input="updateTitle">
     </div>
-    <SplitpanesWrapper :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
-    <Footer>
-      <button @click="hideEditPane = false;hidePreviewPane=true"><unicon name="edit"></unicon></button>
-      <button @click="hideEditPane = false;hidePreviewPane=false"><unicon name="columns"></unicon></button>
-      <button @click="hideEditPane = true;hidePreviewPane=false"><unicon name="eye"></unicon></button>
-      <button @click="this.delete"><unicon name="trash-alt"></unicon></button>
-    </Footer>
+    <SplitpanesWrapper class="contents-main" :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
+    <AppFooter>
+      <button @click="hideEditPane = false;hidePreviewPane=true"><UniconIcon name="edit"></UniconIcon></button>
+      <button @click="hideEditPane = false;hidePreviewPane=false"><UniconIcon name="columns"></UniconIcon></button>
+      <button @click="hideEditPane = true;hidePreviewPane=false"><UniconIcon name="eye"></UniconIcon></button>
+      <button @click="onDelete"><UniconIcon name="trash-alt"></UniconIcon></button>
+    </AppFooter>
   </div>
 </template>
 
 <script>
 import SplitpanesWrapper from '@/components/SplitpanesWrapper.vue'
 import Footer from '@/components/Footer.vue'
-import DialogHelper from '@/DialogHelper.js'
-import store from '@/store'
-import i18n from '@/lang'
+import DialogHelper from '@/DialogHelper'
 
 export default {
+    name: 'NoteContents',
   components: {
     SplitpanesWrapper,
-    Footer
+    AppFooter: Footer
   },
-  store,
   computed: {
+    /**
+     * 処理名: ソース取得
+     * 処理概要: ストアから現在のエディタソース文字列を返す
+     * 実装理由: ストアの単一状態から子コンポーネントにデータを流すため
+     * @returns {string} 現在のエディタソース
+     */
     source() {
       return this.$store.getters.source
     },
+    /**
+     * 処理名: 設定取得
+     * 処理概要: ストアから現在のエディタ設定を返す
+     * 実装理由: ストアの設定を子コンポーネントに伝搬するため
+     * @returns {object} エディタ設定オブジェクト
+     */
     config() {
       return this.$store.getters.config
     },
+    /**
+     * 処理名: タイトル取得
+     * 処理概要: ストアの現在ファイルからタイトル（description）を返す
+     * 実装理由: ファイルの説明をタイトル入力欄に表示するため
+     * @returns {string} ファイルタイトル
+     */
     title() {
       const file = (this.$store.getters.currentFile) ? this.$store.getters.currentFile.file : null
-      return (file ? file.description : '')
+      if (!file) return ''
+      if (typeof file.getDescription === 'function') return file.getDescription() || ''
+      return file.description || ''
     }
   },
+  /**
+   * 処理名: コンポーネントデータ初期化
+   * 処理概要: ペイン表示状態とウィンドウサイズの初期値を設定する
+   * 実装理由: スプリットペインの表示制御に必要な状態を管理するため
+   * @returns {{ hideEditPane: boolean, hidePreviewPane: boolean, width: number, height: number }} 初期データ
+   */
   data() {
     return {
       hideEditPane: false,
@@ -47,34 +71,83 @@ export default {
     }
   },
   methods: {
+    /**
+     * 処理名: リサイズハンドラ
+     * 処理概要: ウィンドウリサイズ時に現在のサイズをステートに反映する
+     * 実装理由: レイアウト計算に最新のウィンドウサイズを提供するため
+     */
     handleResize: function() {
       this.width = window.innerWidth
       this.height = window.innerHeight
     },
+    /**
+     * 処理名: タイトル更新
+     * 処理概要: 入力イベントからタイトル値を取得してストアにコミットする
+     * 実装理由: ユーザーのタイトル編集をリアルタイムにストアへ反映するため
+     * @param {InputEvent} e - input イベント
+     */
     updateTitle(e) {
       this.$store.commit('updateTitle', e.target.value)
     },
-    delete() {
+    /**
+     * 処理名: 削除ハンドラ
+     * 処理概要: 確認ダイアログを表示して OK の場合にプロジェクトを削除する
+     * 実装理由: 誤削除を防ぐために確認ステップを挟むため
+     */
+    onDelete() {
       DialogHelper.showDialog(this, {
         subject: 'Delete',
-        message: i18n.tc('message.Delete'),
-        ok: () => {
+        message: this.$t('message.Delete'),
+        ok: /**
+         * 処理名: 削除確認後コールバック
+         * 処理概要: ダイアログ確認後にストアの deleteProject ミューテーションを実行する
+         * 実装理由: 確認後にのみ削除を実行するため
+         */
+        () => {
           this.$store.commit('deleteProject')
         },
-        cancel: () => {}
+        cancel: /**
+         * 処理名: 削除キャンセルコールバック
+         * 処理概要: 削除をキャンセルする（何もしない）
+         * 実装理由: ダイアログの cancel prop として空のハンドラを提供するため
+         */
+        () => {}
       })
     }
   },
+  /**
+   * 処理名: マウント後初期化
+   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
+   * 実装理由: ウィンドウサイズ変更に追従するため
+   */
   mounted: function() {
     window.addEventListener('resize', this.handleResize)
   },
-  beforeDestroy: function() {
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
+   * 実装理由: メモリリークを防ぐため
+   */
+  beforeUnmount: function() {
     window.removeEventListener('resize', this.handleResize)
   }
 }
 </script>
 
 <style>
+.contents-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.contents-main {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .titleSection {
     display: flex;
     height: 50px;

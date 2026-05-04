@@ -14,11 +14,11 @@
               v-if="onSecondary"
               type="button"
               class="button button--base button--base-secondary"
-              @click.prevent="onSecondary">キャンセル</button>
+              @click.prevent="handleSecondary">キャンセル</button>
             <button
               type="submit"
               class="button button--base button--base-primary"
-              @click.prevent="onPrimary">OK</button>
+              @click.prevent="handlePrimary">OK</button>
           </div>
         </div>
       </div>
@@ -28,6 +28,7 @@
 
 <script>
 export default {
+    name: 'AppDialog',
   props: {
     subject: String,
     message: String,
@@ -37,39 +38,46 @@ export default {
       default: null
     }
   },
+  /**
+   * 処理名: 初期データ生成
+   * 処理概要: ダイアログ表示状態と保留コールバックを初期化する
+   * 実装理由: 表示制御とトランジション後実行コールバックを state で管理するため
+   * @returns {{ isShow: boolean, pendingCallback: Function|null }} 初期データ
+   */
   data() {
     return {
-      isShow: false
+      isShow: true,
+      pendingCallback: null
     }
   },
   methods: {
-    attach() {
-      if (!this.$parent) {
-        this.$mount()
-        document.body.appendChild(this.$el)
-      } else {
-        this.$mount()
-        this.$parent.$el.appendChild(this.$el)
-      }
-    },
-    remove() {
-      if (!this.$parent) {
-        document.body.removeChild(this.$el)
-        this.$destroy()
-      } else {
-        this.$parent.$el.removeChild(this.$el)
-        this.$destroy()
-      }
-    },
-    close() {
+    /**
+     * 処理名: 確認ボタン処理
+     * 処理概要: 確認ボタン押下時にコールバックを保存しダイアログを非表示にする
+     * 実装理由: トランジション終了後にコールバックを呼ぶため afterLeave で実行する
+     */
+    handlePrimary() {
+      this.pendingCallback = this.onPrimary
       this.isShow = false
     },
-    show() {
-      this.attach()
-      this.isShow = true
+    /**
+     * 処理名: キャンセルボタン処理
+     * 処理概要: キャンセルボタン押下時にコールバックを保存しダイアログを非表示にする
+     * 実装理由: トランジション終了後にコールバックを呼ぶため afterLeave で実行する
+     */
+    handleSecondary() {
+      this.pendingCallback = this.onSecondary
+      this.isShow = false
     },
+    /**
+     * 処理名: トランジション完了後処理
+     * 処理概要: フェードアウト完了後に保留中のコールバックを実行する
+     * 実装理由: アニメーション中にコールバックが呼ばれると UI が乱れるため
+     */
     afterLeave() {
-      this.remove()
+      if (this.pendingCallback) {
+        this.pendingCallback()
+      }
     }
   }
 }
@@ -86,6 +94,7 @@ export default {
   filter:alpha(opacity=50);
   -moz-opacity: 0.5;
   opacity: 0.5;
+  z-index: 100;
 }
 .dialog {
   position: fixed;
@@ -96,9 +105,10 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 101;
 }
 .dialog__inner {
-  z-index: 11;
+  z-index: 101;
   width: 70vw;
   padding: 20px;
   background-color: #fff;
