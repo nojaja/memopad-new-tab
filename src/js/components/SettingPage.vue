@@ -505,22 +505,26 @@ export default {
       })
     },
     /**
-     * 処理名: ノートエントリ正規化インポート
-     * 処理概要: ノートデータをパースしてストア経由で正規化保存する
-     * 実装理由: 取り込み時の保存フォーマットを常に正しい形式へ統一するため
+     * 処理名: ノートエントリインポート
+     * 処理概要: ノートデータを可能な限り生値のまま保存し必要時のみ正規化保存する
+     * 実装理由: インポート直後の再エクスポートで JSON 文字列のキー順を維持するため
      * @param {string} key - ノートのストレージキー
      * @param {object} importData - インポートデータオブジェクト
      */
     importNoteEntry(key, importData) {
-      const parsed = this.parseJsonSafe(importData[key], null)
+      const raw = importData[key]
+      if (typeof raw === 'string') {
+        localStorage.setItem(key, raw)
+        return
+      }
+
+      const parsed = raw && typeof raw === 'object' ? raw : this.parseJsonSafe(raw, null)
       if (parsed && typeof parsed === 'object') {
         if (typeof parsed.projectName !== 'string' || !parsed.projectName) {
           parsed.projectName = key
         }
         this.$store.dispatch('importProject', parsed)
-        return
       }
-      localStorage.setItem(key, importData[key])
     },
     /**
      * 処理名: インポートキー処理
