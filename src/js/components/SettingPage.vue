@@ -437,7 +437,11 @@ export default {
      * @param {string} uri - 選択されたタブの URI
      */
     selectItem(uri) {
-      this.currentId = uri
+      this.currentId = String(uri)
+      this.items = this.items.map((item) => ({
+        ...item,
+        isActive: item.uri === this.currentId
+      }))
     },
     /**
      * 処理名: エディター数値設定ステップ変更

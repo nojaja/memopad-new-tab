@@ -107,6 +107,41 @@ describe('SettingPage.vue - General Sort', () => {
   })
 })
 
+describe('SettingPage.vue - TabList active state', () => {
+  test('General -> Editor -> Markdown の順で active な TabListItem が切り替わる', async () => {
+    const storeMock = createStoreMock()
+    const wrapper = mount(SettingPage, {
+      global: {
+        mocks: {
+          $store: storeMock
+        },
+        stubs: {
+          FileDownload: true,
+          DraggableList: true,
+          UniconIcon: true
+        }
+      }
+    })
+
+    await Promise.resolve()
+    await nextTick()
+
+    const activeItemText = () => wrapper.find('.TabListItem.active .TabListButton').text()
+    const clickTab = async (uri) => {
+      await wrapper.find(`.TabListButton[data-uri="${uri}"]`).trigger('click')
+      await nextTick()
+    }
+
+    expect(activeItemText()).toBe('General')
+
+    await clickTab('2')
+    expect(activeItemText()).toBe('Editor')
+
+    await clickTab('3')
+    expect(activeItemText()).toBe('Markdown')
+  })
+})
+
 describe('SettingPage.vue - Import Note Entry', () => {
   test('note_ の文字列値は再シリアライズせずそのまま保存する', async () => {
     const storeMock = createStoreMock()
