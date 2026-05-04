@@ -7,7 +7,7 @@ import md from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import ruby from 'markdown-it-ruby'
 import multimdTable from 'markdown-it-multimd-table'
-import checkbox from 'markdown-it-checkbox'
+import checkbox from 'markdown-it-task-checkbox'
 import uml from 'markdown-it-plantuml'
 
 export default {
