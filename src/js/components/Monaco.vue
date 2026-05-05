@@ -130,13 +130,6 @@ export default {
       }
     }
   },
-  watch: {
-    source(newVal, oldVal) {
-      if (newVal !== oldVal && this.editor) {
-        this.editor.setScrollTop(0)
-      }
-    }
-  },
   /**
    * 処理名: アンマウント前クリーンアップ
    * 処理概要: Monaco エディタインスタンスへの参照を解放する
