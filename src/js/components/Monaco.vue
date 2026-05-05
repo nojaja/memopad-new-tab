@@ -123,6 +123,18 @@ export default {
       if (this.editor) {
         this.editor.layout()
       }
+    },
+    scrollToTop() {
+      if (this.editor) {
+        this.editor.setScrollTop(0)
+      }
+    }
+  },
+  watch: {
+    source(newVal, oldVal) {
+      if (newVal !== oldVal && this.editor) {
+        this.editor.setScrollTop(0)
+      }
     }
   },
   /**

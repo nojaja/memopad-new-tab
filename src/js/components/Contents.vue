@@ -3,7 +3,7 @@
     <div class="titleSection">
       <input placeholder="Title" :value="title" @input="updateTitle">
     </div>
-    <SplitpanesWrapper class="contents-main" :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
+    <SplitpanesWrapper ref="splitpanesWrapper" class="contents-main" :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
     <AppFooter>
       <button @click="hideEditPane = false;hidePreviewPane=true"><UniconIcon name="edit"></UniconIcon></button>
       <button @click="hideEditPane = false;hidePreviewPane=false"><UniconIcon name="columns"></UniconIcon></button>
@@ -54,6 +54,16 @@ export default {
       if (!file) return ''
       if (typeof file.getDescription === 'function') return file.getDescription() || ''
       return file.description || ''
+    },
+    currentFileKey() {
+      return this.$store.getters.currentFile?.filename || ''
+    }
+  },
+  watch: {
+    currentFileKey(newKey, oldKey) {
+      if (newKey !== oldKey && this.$refs.splitpanesWrapper) {
+        this.$refs.splitpanesWrapper.scrollToTop()
+      }
     }
   },
   /**
@@ -154,6 +164,9 @@ export default {
     width: 100%;
     border-width: 0px 0px 1px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.26);
+    box-shadow: 0 4px 6px -2px rgba(0, 0, 0, .08);
+    position: relative;
+    z-index: 10;
 }
 .titleSection input {
     font-size: 24px;

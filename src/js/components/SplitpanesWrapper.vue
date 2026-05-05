@@ -238,6 +238,11 @@ export default {
      * 処理概要: ペインリサイズ時に Monaco エディタのレイアウトを再計算する
      * 実装理由: ペインサイズ変更後にエディタが正しく描画されるようにするため
      */
+    scrollToTop() {
+      if (this.$refs.monaco && typeof this.$refs.monaco.scrollToTop === 'function') {
+        this.$refs.monaco.scrollToTop()
+      }
+    },
     handleResize() {
       // Monaco automaticLayout is enabled by default and already uses ResizeObserver.
       if (this.config?.editor?.automaticLayout) return

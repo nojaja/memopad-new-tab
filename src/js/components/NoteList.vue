@@ -198,6 +198,7 @@ export default {
   background: white;
   z-index: 10;
   box-sizing: border-box;
+  box-shadow: 0 4px 6px -2px rgba(0, 0, 0, .08);
 }
 
 .newNote,
@@ -222,7 +223,7 @@ export default {
 .newNote:hover,
 .noteListItem:hover {
   opacity: 1;
-  background-color: rgba(0, 0, 0, .01);
+  background-color: #FCFCFC;
 }
 
 .noteListItem.active {
