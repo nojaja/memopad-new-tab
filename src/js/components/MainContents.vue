@@ -5,12 +5,23 @@
     </SlideMenu>
     <div class="wrapper">
       <div class="sidebar" :style="sidebarStyle">
-        <NoteList :items="fileList" :onNew="newProject" :onSelect="loadProject"></NoteList>
+        <NoteList
+          v-show="isSidebarVisible"
+          :items="fileList"
+          :onNew="newProject"
+          :onSelect="loadProject"
+        ></NoteList>
         <AppFooter backgroundColor="#fff" >
-          <div  @click="settingOpen"><UniconIcon name="setting" @click="settingOpen"></UniconIcon></div>
+          <button class="footer-button" type="button" @click="toggleSidebar" :aria-label="sidebarToggleLabel">
+            <UniconIcon name="gg:sidebar-open"></UniconIcon>
+          </button>
+          <button v-show="isSidebarVisible" class="footer-button" type="button" @click="settingOpen" aria-label="open settings">
+            <UniconIcon name="setting"></UniconIcon>
+          </button>
         </AppFooter>
       </div>
       <div
+        v-show="isSidebarVisible"
         class="splitpanes__splitter layout-splitter"
         @mousedown="startSidebarResize"
         @touchstart="startSidebarResize"
@@ -45,6 +56,7 @@ export default {
     return {
       width: window.innerWidth,
       height: window.innerHeight,
+      isSidebarVisible: true,
       sidebarWidth: 200,
       isSidebarResizing: false,
       items: [
@@ -75,6 +87,9 @@ export default {
      * @param {MouseEvent|TouchEvent} event - 開始イベント
      */
     startSidebarResize(event) {
+      if (!this.isSidebarVisible) {
+        return
+      }
       event.preventDefault()
       this.isSidebarResizing = true
 
@@ -151,6 +166,14 @@ export default {
      */
     settingOpen(e) {
       this.$refs.slideMenu.open(e)
+    },
+    /**
+     * 処理名: サイドバー表示切替
+     * 処理概要: サイドバー本体と splitter の表示状態をトグルする
+     * 実装理由: フッターボタンから左ペインの表示/非表示を切り替えるため
+     */
+    toggleSidebar() {
+      this.isSidebarVisible = !this.isSidebarVisible
     }
   },
   /**
@@ -178,8 +201,23 @@ export default {
      * @returns {{ width: string, flex: string }} style オブジェクト
      */
     sidebarStyle() {
+      if (!this.isSidebarVisible) {
+        return {
+          width: '44px',
+          flex: '0 0 44px'
+        }
+      }
       const px = `${this.sidebarWidth}px`
       return { width: px, flex: `0 0 ${px}` }
+    },
+    /**
+     * 処理名: サイドバー切替ラベル取得
+     * 処理概要: サイドバー表示状態に応じた aria-label を返す
+     * 実装理由: フッタートグルボタンのアクセシビリティを確保するため
+     * @returns {string} 切替ボタンの aria-label
+     */
+    sidebarToggleLabel() {
+      return this.isSidebarVisible ? 'hide sidebar' : 'show sidebar'
     },
     /**
      * 処理名: ファイルリスト取得
@@ -209,6 +247,10 @@ export default {
   min-height: 0;
 }
 
+.sidebar > .footer {
+  margin-top: auto;
+}
+
 .layout-splitter {
   flex: none;
   width: 5px;
@@ -218,6 +260,25 @@ export default {
 
 .layout-splitter:hover {
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+.footer-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.footer-button:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.footer-button:focus-visible {
+  outline: 2px solid #4f9bff;
+  outline-offset: 2px;
 }
 .blurIn {
     -webkit-animation: blurIn .3s ease both;
