@@ -867,6 +867,57 @@ function applySortOrder(items: any[], sort: string): void {
       localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(state.noteKeyList))
     },
     /**
+     * 処理名: プロジェクト複製ミューテーション
+     * 処理概要: 現在のプロジェクトを新しい note_ キーで複製して localStorage に保存し noteKeyList を更新する
+     * 実装理由: 他タブによる更新競合時にコピーを作成して編集中の内容を維持するため
+     * @param {any} state - Vuex ストア状態
+     */
+    duplicateCurrentProject(state) {
+      const currentProjectName = state.currentFile?.projectName
+      if (typeof currentProjectName !== 'string' || currentProjectName === '') return
+      const rawJson = state.fileContainer.getContainerJson()
+      if (!rawJson) return
+
+      const duplicatedContainer = new FileContainer()
+      duplicatedContainer.setContainerJson(rawJson)
+
+      const noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random())
+      const noteName = NOTE_PREFIX + noteId
+      duplicatedContainer.setId(noteId)
+      duplicatedContainer.setProjectName(noteName)
+
+      const files = duplicatedContainer.getFiles()
+      if (files && files.length > 0) {
+        const firstFilename = getFileName(files[0])
+        if (firstFilename) {
+          const file = duplicatedContainer.getFile(firstFilename)
+          if (file) {
+            const description = getFileDescription(file)
+            const newDescription = description ? `${description} copy` : 'copy'
+            if (typeof file.setDescription === 'function') {
+              file.setDescription(newDescription)
+            } else {
+              file.description = newDescription
+            }
+            duplicatedContainer.putFile(file)
+          }
+        }
+      }
+
+      if (typeof duplicatedContainer.setCreatedTime === 'function') {
+        duplicatedContainer.setCreatedTime(new Date().getTime())
+      }
+      if (typeof duplicatedContainer.setLastUpdatedTime === 'function') {
+        duplicatedContainer.setLastUpdatedTime(new Date().getTime())
+      }
+
+      localStorage.setItem(noteName, duplicatedContainer.getContainerJson())
+      if (state.noteKeyList.indexOf(noteName) === -1) {
+        state.noteKeyList.push(noteName)
+      }
+      localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(state.noteKeyList))
+    },
+    /**
      * 処理名: プロジェクト削除ミューテーション
      * 処理概要: 現在のプロジェクトをキーリストから除去してストレージを更新しアプリを初期化する
      * 実装理由: ノート削除後にリストと表示を整合させるため
@@ -1026,6 +1077,19 @@ function applySortOrder(items: any[], sort: string): void {
       Promise.resolve().then(() => {
         context.commit('loadProject', noteName)
       })
+    },
+    /**
+     * 処理名: プロジェクト複製アクション
+     * 処理概要: 現在のプロジェクトを複製し、新規 note_ キーで読み込み直す
+     * 実装理由: 他タブ更新競合時にコピーを作成して編集中の内容を保持するため
+     * @param {any} context - Vuex アクションコンテキスト
+     */
+    duplicateCurrentProject(context) {
+      context.commit('duplicateCurrentProject')
+      const latest = context.state.noteKeyList[context.state.noteKeyList.length - 1]
+      if (typeof latest === 'string') {
+        context.dispatch('loadProject', latest)
+      }
     },
     // プロジェクトの保存処理
     /**
