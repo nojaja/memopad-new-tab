@@ -56,7 +56,7 @@ export default {
       return file.description || ''
     },
     currentFileKey() {
-      return this.$store.getters.currentFile?.filename || ''
+      return this.$store.getters.currentFile?.projectName || ''
     }
   },
   watch: {
