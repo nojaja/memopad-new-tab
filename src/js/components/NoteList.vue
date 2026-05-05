@@ -1,5 +1,5 @@
 <template>
-  <div class="noteListMenu">
+  <div class="noteListMenu" @keydown="handleSidebarKeydown">
     <div class="newNote" @click="onNew">+New</div>
     <ul tabindex="0" class="noteList">
       <li class="noteListItem-search">
@@ -80,6 +80,54 @@ export default {
      */
     select: function (uri) {
       this.onSelect(uri)
+    },
+    /**
+     * 処理名: サイドバーキーダウン処理
+     * 処理概要: サイドバーで上下キー押下時に前後のノートへ選択を移動する
+     * 実装理由: キーボード操作でノート切り替えを可能にし操作性を向上させるため
+     * @param {KeyboardEvent} event - キーボードイベント
+     */
+    handleSidebarKeydown: function (event) {
+      if (!event || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return
+      if (this.shouldIgnoreKeyboardTarget(event.target)) return
+
+      const nextIndex = this.getNextSelectionIndex(event.key)
+      if (nextIndex < 0 || nextIndex >= this.items.length) return
+
+      event.preventDefault()
+      this.select(this.items[nextIndex].uri)
+    },
+    /**
+     * 処理名: キーボード対象除外判定
+     * 処理概要: 入力要素上のカーソル操作を邪魔しないよう対象要素を判定する
+     * 実装理由: 検索入力中の上下キーをノート切替に奪わないため
+     * @param {EventTarget|null} target - イベント発生要素
+     * @returns {boolean} 除外対象なら true
+     */
+    shouldIgnoreKeyboardTarget: function (target) {
+      if (!target || !(target instanceof HTMLElement)) return false
+      const tagName = target.tagName
+      if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') return true
+      return target.isContentEditable
+    },
+    /**
+     * 処理名: 次選択インデックス算出
+     * 処理概要: 現在のアクティブノートと押下キーから次に選択するインデックスを返す
+     * 実装理由: 上下キーでの選択移動ロジックを単純化して再利用可能にするため
+     * @param {string} key - 押下キー
+     * @returns {number} 次に選択するインデックス
+     */
+    getNextSelectionIndex: function (key) {
+      if (!Array.isArray(this.items) || this.items.length === 0) return -1
+
+      const activeIndex = this.items.findIndex((item) => item && item.isActive)
+      if (activeIndex === -1) {
+        return key === 'ArrowDown' ? 0 : this.items.length - 1
+      }
+      if (key === 'ArrowDown') {
+        return Math.min(this.items.length - 1, activeIndex + 1)
+      }
+      return Math.max(0, activeIndex - 1)
     },
     /**
      * 処理名: タイトル整形
