@@ -1,7 +1,11 @@
-import { defineConfig } from 'vite'
+﻿import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import path from 'node:path'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const pkg = require('./package.json')
 
 export default defineConfig({
   plugins: [
@@ -10,7 +14,12 @@ export default defineConfig({
       targets: [
         {
           src: 'src/assets/manifest.json',
-          dest: '.'
+          dest: '.',
+          transform: (content: string) => {
+            const manifest = JSON.parse(content)
+            manifest.version = pkg.version
+            return JSON.stringify(manifest, null, 2)
+          }
         },
         {
           src: 'src/assets/_locales/en/messages.json',
