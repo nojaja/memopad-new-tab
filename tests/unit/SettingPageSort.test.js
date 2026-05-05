@@ -13,7 +13,9 @@ function createStoreMock(configOverride = {}) {
       fontSize: 16,
       tabSize: 4,
       theme: 'vs',
-      automaticLayout: true
+      automaticLayout: true,
+      unicodeHighlight: { ambiguousCharacters: false },
+      minimap: { enabled: true }
     },
     markdown: {
       basicOption: {

@@ -54,6 +54,18 @@
           <button class="number-option__spin" @click="stepEditorNumber('tabSize', 1)">+</button>
         </div>
 
+        <h3 class="h3">Unicode Highlight: Ambiguous Characters</h3>
+        <div>
+          <input type="checkbox" v-model="localConfig.editor.unicodeHighlight.ambiguousCharacters" @change="localConfig.editor.unicodeHighlight.invisibleCharacters = localConfig.editor.unicodeHighlight.ambiguousCharacters" class="toggle-checkbox">
+          <label class="label">Ambiguous Characters - Set ON to highlight ambiguous Unicode characters.</label>
+        </div>
+
+        <h3 class="h3">Minimap</h3>
+        <div>
+          <input type="checkbox" v-model="localConfig.editor.minimap.enabled" class="toggle-checkbox">
+          <label class="label">Minimap - Set ON to show the minimap on the right side of the editor.</label>
+        </div>
+
         <!--
         <h3 class="h3">Font Color</h3>
         <div>
@@ -168,7 +180,9 @@ export default {
         },
         editor: {
           fontSize: 16,
-          tabSize: 4
+          tabSize: 4,
+          unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
+          minimap: { enabled: true }
         },
         markdown: {
           basicOption: {
