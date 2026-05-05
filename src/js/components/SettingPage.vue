@@ -103,8 +103,12 @@
           <label class="label">Ruby - Set ON to enable ruby</label>
         </div>
         <div>
+          <input type="checkbox" v-model="localConfig.markdown.mermaid" class="toggle-checkbox">
+          <label class="label">Mermaid - Set ON to enable Mermaid</label>
+        </div>
+        <div>
           <input type="checkbox" v-model="localConfig.markdown.uml" class="toggle-checkbox">
-          <label class="label">UML - Set ON to enable UML</label>
+          <label class="label">PlantUML - Set ON to enable PlantUML</label>
         </div>
         <div>
           <input type="checkbox" v-model="localConfig.markdown.multimdTable" class="toggle-checkbox">
@@ -193,6 +197,7 @@ export default {
           },
           emoji: true,
           ruby: true,
+          mermaid: true,
           uml: true,
           multimdTable: true,
           multimdTableOption: {

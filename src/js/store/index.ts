@@ -47,6 +47,7 @@ const defaultConfig = {
     },
     emoji: true,
     ruby: true,
+    mermaid: true,
     uml: true,
     multimdTable: true,
     multimdTableOption: {

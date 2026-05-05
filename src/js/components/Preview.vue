@@ -1,5 +1,11 @@
 <template>
-  <div class="preview"><iframe id="child-frame" class="preview" :srcdoc="compiledMarkdown" ></iframe></div>
+  <div class="preview">
+    <iframe
+      id="child-frame"
+      class="preview"
+      :srcdoc="compiledMarkdown"
+    />
+  </div>
 </template>
 
 <script>
@@ -9,22 +15,11 @@ import ruby from 'markdown-it-ruby'
 import multimdTable from 'markdown-it-multimd-table'
 import checkbox from 'markdown-it-task-checkbox'
 import uml from 'markdown-it-plantuml'
+import mermaid from 'mermaid'
 
 export default {
     name: 'MarkdownPreview',
   components: {
-  },
-  /**
-   * 処理名: コンポーネントデータ初期化
-   * 処理概要: パーサーキャッシュとパーサーインスタンスの初期値を設定する
-   * 実装理由: Markdown パーサーのキャッシュを管理するため
-   * @returns {{ parserCacheKey: string, parser: object|null }} 初期データ
-   */
-  data() {
-    return {
-      parserCacheKey: '',
-      parser: null
-    }
   },
   props: {
     autoUpdate: {
@@ -55,6 +50,7 @@ export default {
         },
         emoji: true,
         ruby: true,
+        mermaid: true,
         uml: true,
         multimdTable: true,
         multimdTableOption: {
@@ -65,32 +61,33 @@ export default {
       })
     }
   },
-  computed: {
-    /**
-     * 処理名: コンパイル済み Markdown
-     * 処理概要: Markdown ソースを HTML に変換して iframe 用の完全な HTML ドキュメントを返す
-     * 実装理由: プレビュー iframe に安全な HTML を srcdoc として渡すため
-     * @returns {string} iframe の srcdoc 用 HTML 文字列
-     */
-    compiledMarkdown: function() {
-      const parseData = this.autoUpdate ? this.renderMarkdown() : ''
-      const htmlheader = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset='UTF-8'>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Tab</title>
-  <link href="./css/github-markdown-css.css" rel="stylesheet"></link>
-</head>
-<body>
-`
-      const htmlfooter = `
-</body>
-</html>
-`
-      return (htmlheader + parseData + htmlfooter)
+  /**
+   * 処理名: コンポーネントデータ初期化
+   * 処理概要: パーサーキャッシュとパーサーインスタンスの初期値を設定する
+   * 実装理由: Markdown パーサーのキャッシュを管理するため
+   * @returns {{ parserCacheKey: string, parser: object|null, compiledMarkdown: string }} 初期データ
+   */
+  data() {
+    return {
+      parserCacheKey: '',
+      parser: null,
+      compiledMarkdown: ''
     }
+  },
+  watch: {
+    source: 'updateCompiledMarkdown',
+    config: {
+      handler: 'updateCompiledMarkdown',
+      deep: true
+    },
+    autoUpdate: 'updateCompiledMarkdown'
+  },
+  /**
+   * 処理名: 生成済み Markdown の初期更新
+   * 処理概要: マウント時に preview 用 HTML を生成する
+   */
+  mounted() {
+    this.updateCompiledMarkdown()
   },
   methods: {
     /**
@@ -117,14 +114,113 @@ export default {
       return mdInstance
     },
     /**
-     * 処理名: Markdown レンダリング
-     * 処理概要: ソースを Markdown パーサーで HTML に変換して返す
-     * 実装理由: ソースを HTML に変換してプレビューに表示するため
-     * @returns {string} レンダリング済み HTML 文字列
+     * 処理名: HTML ドキュメントの構築
+     * 処理概要: iframe の srcdoc に渡す完全な HTML を組み立てる
+     * @param {string} bodyContent HTML 本体の文字列
+     * @returns {string} 完成した HTML 文字列
      */
-    renderMarkdown() {
+    buildHtmlDocument(bodyContent) {
+      return `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset='UTF-8'>\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>New Tab</title>\n  <link href="./css/github-markdown-css.css" rel="stylesheet"></link>\n</head>\n<body>\n${bodyContent}\n</body>\n</html>\n`
+    },
+    /**
+     * 処理名: プレビュー HTML の更新
+     * 処理概要: Markdown をレンダリングし、srcdoc に渡す HTML を再生成する
+     */
+    async updateCompiledMarkdown() {
+      if (!this.autoUpdate) {
+        this.compiledMarkdown = this.buildHtmlDocument('')
+        return
+      }
+
+      try {
+        const body = await this.renderMarkdown()
+        this.compiledMarkdown = this.buildHtmlDocument(body)
+      } catch (e) {
+        const escaped = md().utils.escapeHtml(e && e.message ? e.message : String(e))
+        this.compiledMarkdown = this.buildHtmlDocument(`<pre>${escaped}</pre>`)
+      }
+    },
+    /**
+     * 処理名: Markdown レンダリング
+     * 処理概要: Markdown ソースを HTML に変換し、Mermaid ブロックを SVG に置換して返す
+     * @returns {Promise<string>} レンダリング済み HTML 文字列
+     */
+    async renderMarkdown() {
       const mdInstance = this.getMarkdownParser()
-      return mdInstance.render(this.source.trim())
+      const mermaidBlocks = []
+      if (this.config.mermaid) {
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'loose',
+          theme: 'default',
+          flowchart: {
+            htmlLabels: false,
+            useMaxWidth: true
+          }
+        })
+        const defaultFence = mdInstance.renderer.rules.fence.bind(mdInstance.renderer.rules)
+        /**
+         * Mermaid fenced code renderer
+         * @param {Array} tokens Markdown-it token list
+         * @param {number} idx 現在のトークンインデックス
+         * @param {object} options Markdown-it レンダラーオプション
+         * @param {object} env 環境オブジェクト
+         * @param {object} slf レンダラー自身
+         * @returns {string} HTML 文字列
+         */
+        mdInstance.renderer.rules.fence = (tokens, idx, options, env, slf) => {
+          const token = tokens[idx]
+          const info = token.info ? token.info.trim() : ''
+          if (info === 'mermaid') {
+            const code = token.content.trim()
+            const placeholder = `<div class="mermaid-placeholder" data-mermaid-id="mermaid-${idx}-${Math.random().toString(36).slice(2)}">${md().utils.escapeHtml(code)}</div>`
+            mermaidBlocks.push({ id: placeholder.match(/data-mermaid-id="([^"]+)"/)[1], code, placeholder })
+            return placeholder
+          }
+          return defaultFence(tokens, idx, options, env, slf)
+        }
+      }
+
+      const html = mdInstance.render(this.source.trim())
+      if (mermaidBlocks.length === 0) {
+        return html
+      }
+
+      return this.renderMermaidBlocks(html, mermaidBlocks)
+    },
+
+    /**
+     * 処理名: Mermaid ブロックの SVG 生成
+     * @param {string} html Markdown から生成された HTML
+     * @param {Array<{id:string,code:string,placeholder:string}>} mermaidBlocks Mermaid プレースホルダ情報
+     * @returns {Promise<string>} Mermaid SVG を差し替えた HTML
+     */
+    async renderMermaidBlocks(html, mermaidBlocks) {
+      const renderContainer = document.createElement('div')
+      renderContainer.style.position = 'absolute'
+      renderContainer.style.visibility = 'hidden'
+      renderContainer.style.pointerEvents = 'none'
+      if (document.body) {
+        document.body.appendChild(renderContainer)
+      }
+
+      try {
+        for (const block of mermaidBlocks) {
+          try {
+            const result = await mermaid.render(block.id, block.code, renderContainer)
+            html = html.replace(block.placeholder, `<div class="mermaid">${result.svg}</div>`)
+          } catch (error) {
+            const escaped = md().utils.escapeHtml(error && error.message ? error.message : String(error))
+            html = html.replace(block.placeholder, `<pre>${escaped}</pre>`)
+          }
+        }
+      } finally {
+        if (renderContainer.parentNode) {
+          renderContainer.parentNode.removeChild(renderContainer)
+        }
+      }
+
+      return html
     }
   }
 }

@@ -11,7 +11,7 @@ export function registerCompletions(): void {
   registered = true
 
   monaco.languages.registerCompletionItemProvider('markdown', {
-    triggerCharacters: ['#', '*', '`', '[', '!', '-', '>', '|', '@', ':'],
+    triggerCharacters: ['#', '*', '`', '[', '!', '-', '>', '|', '@', ':', 'm'],
     /**
      * 処理名: 補完候補提供
      * 処理概要: カーソル位置に応じた補完候補リストを返す
@@ -32,6 +32,9 @@ export function registerCompletions(): void {
         endColumn: position.column
       }
 
+      if (isInsideMermaidBlock(model, position)) {
+        return { suggestions: getMermaidSuggestions(range) }
+      }
       if (isInsidePlantUMLBlock(model, position)) {
         return { suggestions: getPlantUMLSuggestions(range) }
       } else {
@@ -67,6 +70,244 @@ function isInsidePlantUMLBlock(
   if (lastOpen === -1) return false
   const afterOpen = textBeforeCursor.substring(lastOpen + '```plantuml'.length)
   return !afterOpen.includes('```')
+}
+
+function isInsideMermaidBlock(
+  model: monaco.editor.ITextModel,
+  position: monaco.Position
+): boolean {
+  const textBeforeCursor = model.getValueInRange({
+    startLineNumber: 1,
+    startColumn: 1,
+    endLineNumber: position.lineNumber,
+    endColumn: position.column
+  })
+  const lastOpen = textBeforeCursor.lastIndexOf('```mermaid')
+  if (lastOpen === -1) return false
+  const afterOpen = textBeforeCursor.substring(lastOpen + '```mermaid'.length)
+  return !afterOpen.includes('```')
+}
+
+const mermaidDiagramTemplates = [
+  {
+    label: 'graph TD',
+    detail: 'フローチャート',
+    insertText: [
+      'graph TD',
+      '  A[Start] --> B[Process]',
+      '  B --> C{Decision}',
+      '  C -->|Yes| D[End]',
+      '  C -->|No| E[Back]'
+    ].join('\n')
+  },
+  {
+    label: 'sequenceDiagram',
+    detail: 'シーケンス図',
+    insertText: [
+      'sequenceDiagram',
+      '  participant Alice',
+      '  participant Bob',
+      '  Alice->>Bob: Hello',
+      '  Bob-->>Alice: Hi'
+    ].join('\n')
+  },
+  {
+    label: 'stateDiagram-v2',
+    detail: '状態図',
+    insertText: [
+      'stateDiagram-v2',
+      '  [*] --> State1',
+      '  State1 --> [*]'
+    ].join('\n')
+  },
+  {
+    label: 'gantt',
+    detail: 'ガントチャート',
+    insertText: [
+      'gantt',
+      'dateFormat  YYYY-MM-DD',
+      'title Project schedule',
+      'section Sprint 1',
+      '  Design           :done,    des1, 2024-01-01,2024-01-05',
+      '  Development      :active,  des2, 2024-01-06, 5d',
+      'section Sprint 2',
+      '  Testing          :         des3, after des2, 3d'
+    ].join('\n')
+  },
+  {
+    label: 'classDiagram',
+    detail: 'クラス図',
+    insertText: [
+      'classDiagram',
+      '  Class01 <|-- Class02 : Inheritance',
+      '  Class01 : +int id',
+      '  Class01 : +String name()',
+      '  Class02 : +String description'
+    ].join('\n')
+  },
+  {
+    label: 'gitGraph',
+    detail: 'Git グラフ',
+    insertText: [
+      'gitGraph',
+      '  commit',
+      '  branch develop',
+      '  commit',
+      '  checkout main',
+      '  commit'
+    ].join('\n')
+  },
+  {
+    label: 'erDiagram',
+    detail: 'ER 図',
+    insertText: [
+      'erDiagram',
+      '  CUSTOMER ||--o{ ORDER : places',
+      '  ORDER ||--|{ LINE-ITEM : contains',
+      '  CUSTOMER }|..|{ DELIVERY-ADDRESS : uses'
+    ].join('\n')
+  },
+  {
+    label: 'journey',
+    detail: 'ユーザージャーニー図',
+    insertText: [
+      'journey',
+      '  title My working day',
+      '  section Go to work',
+      '    Make tea: 5: Me',
+      '    Go upstairs: 3: Me',
+      '    Do work: 1: Me, Cat',
+      '  section Go home',
+      '    Go downstairs: 5: Me',
+      '    Sit down: 5: Me'
+    ].join('\n')
+  },
+  {
+    label: 'quadrantChart',
+    detail: 'クアドラントチャート',
+    insertText: [
+      'quadrantChart',
+      '  title Reach and engagement of campaigns',
+      '  x-axis Low Reach --> High Reach',
+      '  y-axis Low Engagement --> High Engagement',
+      '  quadrant-1 We should expand',
+      '  quadrant-2 Need to promote',
+      '  quadrant-3 Re-evaluate',
+      '  quadrant-4 May be improved',
+      '  Campaign A: [0.3, 0.6]',
+      '  Campaign B: [0.45, 0.23]'
+    ].join('\n')
+  },
+  {
+    label: 'xychart-beta',
+    detail: 'XY チャート',
+    insertText: [
+      'xychart-beta',
+      '  title "Sales Revenue"',
+      '  x-axis [jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec]',
+      '  y-axis "Revenue (in $)" 4000 --> 11000',
+      '  bar [5000, 6000, 7500, 8200, 9500, 10500, 11000, 10200, 9200, 8500, 7000, 6000]',
+      '  line [5000, 6000, 7500, 8200, 9500, 10500, 11000, 10200, 9200, 8500, 7000, 6000]'
+    ].join('\n')
+  },
+  {
+    label: 'pie',
+    detail: '円グラフ',
+    insertText: [
+      'pie',
+      '  title Pets adopted by volunteers',
+      '  "Dogs" : 20',
+      '  "Cats" : 15',
+      '  "Rabbits" : 10'
+    ].join('\n')
+  },
+  {
+    label: 'requirementDiagram',
+    detail: '要求図',
+    insertText: [
+      'requirementDiagram',
+      '  requirement R1 {',
+      '    id: 1',
+      '    text: "User can log in"',
+      '  }',
+      '  functionalRequirement FR1 {',
+      '    id: 2',
+      '    text: "System validates credentials"',
+      '  }',
+      '  R1 --> FR1'
+    ].join('\n')
+  },
+  {
+    label: 'mindmap',
+    detail: 'マインドマップ',
+    insertText: [
+      'mindmap',
+      '  root((Mindmap))',
+      '    Origins',
+      '      Long history',
+      '      Another branch',
+      '    Research',
+      '      ML',
+      '      UX'
+    ].join('\n')
+  },
+  {
+    label: 'timeline',
+    detail: 'タイムライン',
+    insertText: [
+      'timeline',
+      '  title Project roadmap',
+      '  2024-01-01 : Kickoff',
+      '  2024-03-01 : First milestone',
+      '  2024-06-01 : Release'
+    ].join('\n')
+  },
+  {
+    label: 'sankey',
+    detail: 'サンキーチャート',
+    insertText: [
+      'sankey',
+      '  A [A] 5 B [B]',
+      '  B [B] 3 C [C]',
+      '  A [A] 2 C [C]'
+    ].join('\n')
+  },
+  {
+    label: 'C4Context',
+    detail: 'C4 コンテキスト図',
+    insertText: [
+      'C4Context',
+      '  title System Context diagram for Internet Banking',
+      '  Enterprise_Boundary(b1, "Bank") {',
+      '    Person(customer, "Customer")',
+      '    System(internet_banking, "Internet Banking System")',
+      '  }'
+    ].join('\n')
+  }
+]
+
+function formatMermaidCodeBlock(text: string): string {
+  return ['```mermaid', text, '```'].join('\n')
+}
+
+function getMarkdownMermaidTemplates(
+  range: monaco.IRange
+): monaco.languages.CompletionItem[] {
+  const S = monaco.languages.CompletionItemKind.Snippet
+  const InsertAsSnippet =
+    monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+
+  return mermaidDiagramTemplates.map((template) => ({
+    label: `mermaid: ${template.label}`,
+    kind: S,
+    detail: `Mermaid コードブロック (${template.detail})`,
+    documentation: {
+      value: formatMermaidCodeBlock(template.insertText)
+    },
+    insertText: formatMermaidCodeBlock(template.insertText),
+    insertTextRules: InsertAsSnippet,
+    range
+  }))
 }
 
 // ---------------------------------------------------------------------------
@@ -251,6 +492,7 @@ function getMarkdownSuggestions(
       insertTextRules: InsertAsSnippet,
       range
     },
+    ...getMarkdownMermaidTemplates(range),
 
     // --- 水平線 ---
     {
@@ -423,6 +665,23 @@ function getMarkdownSuggestions(
       range
     }
   ]
+}
+
+function getMermaidSuggestions(
+  range: monaco.IRange
+): monaco.languages.CompletionItem[] {
+  const S = monaco.languages.CompletionItemKind.Snippet
+  const InsertAsSnippet =
+    monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+
+  return mermaidDiagramTemplates.map((template) => ({
+    label: template.label,
+    kind: S,
+    detail: `Mermaid ${template.detail}`,
+    insertText: template.insertText,
+    insertTextRules: InsertAsSnippet,
+    range
+  }))
 }
 
 // ---------------------------------------------------------------------------

@@ -10,6 +10,22 @@ jest.mock('monaco-editor-vue3', () => ({
   CodeEditor: { template: '<div/>' }
 }), { virtual: true })
 
+// mermaid モジュールを Jest 環境用にモック
+jest.mock('mermaid', () => ({
+  __esModule: true,
+  default: {
+    initialize: jest.fn(),
+    render: jest.fn((id, code, container) => {
+      return Promise.resolve({ svg: '<svg><text>mermaid</text></svg>' })
+    }),
+    mermaidAPI: {
+      render: jest.fn((id, code, container) => {
+        return Promise.resolve({ svg: '<svg><text>mermaid</text></svg>' })
+      })
+    }
+  }
+}), { virtual: true })
+
 // editorCompletions モック
 jest.mock('@/editorCompletions', () => ({
   registerCompletions: jest.fn()
@@ -118,17 +134,19 @@ describe('Preview.vue メソッドテスト', () => {
     expect(wrapper.exists()).toBe(true)
   })
 
-  test('compiledMarkdown が HTML を返す', () => {
+  test('compiledMarkdown が HTML を返す', async () => {
     wrapper = shallowMount(Preview, { props: { source: '# テスト', config: defaultConfig } })
+    await wrapper.vm.updateCompiledMarkdown()
     const compiled = wrapper.vm.compiledMarkdown
     expect(typeof compiled).toBe('string')
     expect(compiled).toContain('DOCTYPE html')
   })
 
-  test('autoUpdate false のとき renderMarkdown が呼ばれない', () => {
+  test('autoUpdate false のとき renderMarkdown が呼ばれない', async () => {
     wrapper = shallowMount(Preview, {
       props: { source: '# テスト', autoUpdate: false, config: defaultConfig }
     })
+    await wrapper.vm.updateCompiledMarkdown()
     const compiled = wrapper.vm.compiledMarkdown
     expect(compiled).not.toContain('<h1')
   })
@@ -144,5 +162,20 @@ describe('Preview.vue メソッドテスト', () => {
     const cfg = { ...defaultConfig, emoji: false, ruby: false, multimdTable: false }
     wrapper = shallowMount(Preview, { props: { source: '# テスト', config: cfg } })
     expect(() => wrapper.vm.renderMarkdown()).not.toThrow()
+  })
+
+  test('config.mermaid true のとき Mermaid 記法をレンダリングできる', async () => {
+    const cfg = { ...defaultConfig, mermaid: true }
+    wrapper = shallowMount(Preview, {
+      props: {
+        source: '```mermaid\ngraph TD\n  A --> B\n```',
+        config: cfg
+      }
+    })
+    await expect(wrapper.vm.renderMarkdown()).resolves.not.toThrow()
+    await wrapper.vm.updateCompiledMarkdown()
+    const compiled = wrapper.vm.compiledMarkdown
+    expect(typeof compiled).toBe('string')
+    expect(compiled).toContain('mermaid')
   })
 })
