@@ -3,6 +3,7 @@
     <div
       v-if="isBlurred"
       class="privacy-blur-overlay"
+      @click="handleOverlayClick"
     />
     <MainContents />
   </div>
@@ -30,7 +31,8 @@ export default {
    */
   data() {
     return {
-      windowActive: true
+      windowActive: false,
+      idleTimer: null
     }
   },
   computed: {
@@ -63,6 +65,9 @@ export default {
     window.addEventListener('blur', this.handleWindowBlur)
     window.addEventListener('focus', this.handleWindowFocus)
     window.addEventListener('storage', this.handleStorageEvent)
+    window.addEventListener('mousemove', this.resetIdleTimer)
+    window.addEventListener('click', this.resetIdleTimer)
+    window.addEventListener('touchstart', this.resetIdleTimer)
   },
   /**
    * 処理名: アンマウント前クリーンアップ
@@ -74,6 +79,10 @@ export default {
     window.removeEventListener('blur', this.handleWindowBlur)
     window.removeEventListener('focus', this.handleWindowFocus)
     window.removeEventListener('storage', this.handleStorageEvent)
+    window.removeEventListener('mousemove', this.resetIdleTimer)
+    window.removeEventListener('click', this.resetIdleTimer)
+    window.removeEventListener('touchstart', this.resetIdleTimer)
+    clearTimeout(this.idleTimer)
   },
   methods: {
     /**
@@ -83,14 +92,37 @@ export default {
      */
     handleWindowBlur() {
       this.windowActive = false
+      clearTimeout(this.idleTimer)
+      this.idleTimer = null
     },
     /**
      * 処理名: ウィンドウフォーカスハンドラ
-     * 処理概要: ウィンドウがアクティブになったときに windowActive を true にする
-     * 実装理由: プライバシーブラーを解除するため
+     * 処理概要: ウィンドウがアクティブになったときに windowActive を true にしてアイドルタイマーをリセットする
+     * 実装理由: プライバシーブラーを解除し、フォーカス後の無操作タイマーを開始するため
      */
     handleWindowFocus() {
       this.windowActive = true
+      this.resetIdleTimer()
+    },
+    /**
+     * 処理名: アイドルタイマーリセット
+     * 処理概要: 5分間操作がない場合に windowActive を false にするタイマーをリセットする
+     * 実装理由: フォーカス中でも長時間無操作の場合にブラーを発動するため
+     */
+    resetIdleTimer() {
+      clearTimeout(this.idleTimer)
+      this.idleTimer = setTimeout(() => {
+        this.windowActive = false
+      }, 5 * 60 * 1000)
+    },
+    /**
+     * 処理名: ブラーオーバーレイクリックハンドラ
+     * 処理概要: ブラー中にクリックされたとき windowActive を true にしてブラーを解除する
+     * 実装理由: クリック一発でブラーを解除できるようにするため
+     */
+    handleOverlayClick() {
+      this.windowActive = true
+      this.resetIdleTimer()
     },
     /**
      * 処理名: キーダウンハンドラ
@@ -99,6 +131,7 @@ export default {
      * @param {KeyboardEvent} e - キーボードイベント
      */
     handleKeydown(e) {
+      this.resetIdleTimer()
       if (e.ctrlKey && e.key === 's') {
         this.saveProject(e)
         return
@@ -196,6 +229,6 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 99999;
-  pointer-events: none;
+  cursor: pointer;
 }
 </style>
