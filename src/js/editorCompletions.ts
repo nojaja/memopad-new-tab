@@ -72,6 +72,14 @@ function isInsidePlantUMLBlock(
   return !afterOpen.includes('```')
 }
 
+/**
+ * 処理名: Mermaidブロック内判定
+ * 処理概要: カーソル位置がMermaidコードブロック内かどうかを判定する
+ * 実装理由: Mermaid専用補完候補を提供する範囲を正確に特定するため
+ * @param {monaco.editor.ITextModel} model - エディタのテキストモデル
+ * @param {monaco.Position} position - 現在のカーソル位置
+ * @returns {boolean} Mermaidブロック内であればtrue
+ */
 function isInsideMermaidBlock(
   model: monaco.editor.ITextModel,
   position: monaco.Position
@@ -286,10 +294,24 @@ const mermaidDiagramTemplates = [
   }
 ]
 
+/**
+ * 処理名: Mermaidコードブロック整形
+ * 処理概要: テキストをMermaidコードブロック形式のMarkdown文字列に変換する
+ * 実装理由: 補完挿入時に正しいfenced code block形式を生成するため
+ * @param {string} text - Mermaid図定義テキスト
+ * @returns {string} Mermaidコードブロック形式のMarkdown文字列
+ */
 function formatMermaidCodeBlock(text: string): string {
   return ['```mermaid', text, '```'].join('\n')
 }
 
+/**
+ * 処理名: MarkdownMermaidテンプレート補完候補取得
+ * 処理概要: Markdownブロック用のMermaid図テンプレート補完候補一覧を返す
+ * 実装理由: Markdownコンテキストでのコードブロック補完候補をMonacoに提供するため
+ * @param {monaco.IRange} range - 補完を挿入する範囲
+ * @returns {monaco.languages.CompletionItem[]} Mermaidテンプレート補完候補配列
+ */
 function getMarkdownMermaidTemplates(
   range: monaco.IRange
 ): monaco.languages.CompletionItem[] {
@@ -667,6 +689,13 @@ function getMarkdownSuggestions(
   ]
 }
 
+/**
+ * 処理名: Mermaid補完候補取得
+ * 処理概要: Mermaidブロック内向けの図テンプレート補完候補一覧を返す
+ * 実装理由: Mermaidブロック内でのスニペット補完をMonacoエディタに提供するため
+ * @param {monaco.IRange} range - 補完を挿入する範囲
+ * @returns {monaco.languages.CompletionItem[]} Mermaid補完候補配列
+ */
 function getMermaidSuggestions(
   range: monaco.IRange
 ): monaco.languages.CompletionItem[] {

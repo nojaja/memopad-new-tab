@@ -75,6 +75,7 @@ const defaultConfig = {
     },
     emoji: true,
     ruby: true,
+    mermaid: true,
     uml: true,
     multimdTable: true,
     multimdTableOption: {
@@ -268,10 +269,11 @@ function setFileContent(file: unknown, content: string): void {
   target.content = content
 }
 
+
 /**
  * 処理名: 複製ファイル先頭説明更新
- * 処理概要: コンテナ内の先頭ファイル説明へ copy 接尾辞を付与して保存する
- * 実装理由: 複製ノートであることを先頭ファイル説明から判別しやすくするため
+ * 処理概要: コンテナ内の先頭ファイル説明へ copy 接尾辞を追加して保存する
+ * 実装理由: 複製ノートであることを先頭ファイル説明から識別しやすくするため
  * @param {FileContainer} container - 複製対象のコンテナ
  * @returns {void} なし
  */
@@ -294,7 +296,7 @@ function updateFirstFileDescriptionForCopy(container: FileContainer): void {
 /**
  * 処理名: 複製コンテナ時刻更新
  * 処理概要: 作成日時と更新日時を指定時刻で上書きする
- * 実装理由: 複製ノートを新規作成扱いで並べ替えや履歴表示に反映するため
+ * 実装理由: 複製ノートを新規作成扱いで並べ替えや表示に貢献するため
  * @param {FileContainer} container - 更新対象コンテナ
  * @param {number} now - Unix ミリ秒
  * @returns {void} なし
@@ -307,7 +309,6 @@ function updateContainerTimes(container: FileContainer, now: number): void {
     container.setLastUpdatedTime(now)
   }
 }
-
 /**
  * 処理名: 安全な JSON パース
  * 処理概要: JSON 文字列を安全にパースし失敗時はフォールバック値を返す
@@ -987,7 +988,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
     /**
      * 処理名: プロジェクト複製ミューテーション
      * 処理概要: 現在のプロジェクトを新しい note_ キーで複製して localStorage に保存し noteKeyList を更新する
-     * 実装理由: 他タブによる更新競合時にコピーを作成して編集中の内容を維持するため
+     * 実装理由: 他タブによる更新競合時にコピーを作成して編集中の内容を保護するため
      * @param {any} state - Vuex ストア状態
      */
     duplicateCurrentProject(state) {
@@ -1175,7 +1176,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
     },
     /**
      * 処理名: プロジェクト複製アクション
-     * 処理概要: 現在のプロジェクトを複製し、新規 note_ キーで読み込み直す
+     * 処理概要: 現在のプロジェクトを複製して新しい note_ キーで読み込み直す
      * 実装理由: 他タブ更新競合時にコピーを作成して編集中の内容を保持するため
      * @param {any} context - Vuex アクションコンテキスト
      */
