@@ -1,42 +1,105 @@
 <template>
   <div class="setting-wrapper">
     <div style="width: 200px">
-      <h1 class="h1">Settings</h1>
+      <h1 class="h1">
+        Settings
+      </h1>
       <div style="width: 200px">
-        <TabList :items="items" :onSelect="selectItem"></TabList>
+        <TabList
+          :items="items"
+          :on-select="selectItem"
+        />
       </div>
     </div>
     <div style="width: 100%">
       <div v-if="currentId === '1'">
-        <h1 class="h1">General</h1>
-        <h3 class="h3">Sort</h3>
-        <FilterSelect :items="sortSelectItems" :selected="localConfig.general.sort" :onSelect="(newValue) => {localConfig.general.sort = newValue}"></FilterSelect>
+        <h1 class="h1">
+          General
+        </h1>
+        <h3 class="h3">
+          Sort
+        </h3>
+        <FilterSelect
+          :items="sortSelectItems"
+          :selected="localConfig.general.sort"
+          :on-select="(newValue) => {localConfig.general.sort = newValue}"
+        />
         <!--
         <h3 class="h3">カバー</h3>
         <Select :items="coverSelectItems" :selected="config.general.cover"></Select>
         -->
-        <h3 class="h3">Language</h3>
-        <FilterSelect :items="selectItems" :selected="localConfig.general.i18n_locale" :onSelect="(newValue) => {localConfig.general.i18n_locale = newValue}"></FilterSelect>
+        <h3 class="h3">
+          Language
+        </h3>
+        <FilterSelect
+          :items="selectItems"
+          :selected="localConfig.general.i18n_locale"
+          :on-select="(newValue) => {localConfig.general.i18n_locale = newValue}"
+        />
 
-        <h3 class="h3">Privacy Blur</h3>
+        <h3 class="h3">
+          Privacy Blur
+        </h3>
         <div>
-          <input type="checkbox" v-model="localConfig.general.privacyBlur" class="toggle-checkbox">
+          <input
+            v-model="localConfig.general.privacyBlur"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Privacy Blur - Set ON to blur the screen when the window is inactive.</label>
         </div>
 
-        <h3 class="h3">Import Data</h3>
-        <button class="button" @click="importLocalStorage"><UniconIcon name="import" fill="white"></UniconIcon>Import Data</button>
-        <h3 class="h3">Export Data</h3>
-        <button class="button" @click="exportLocalStorage"><UniconIcon name="export" fill="white"></UniconIcon>Export Data</button>
-        <FileDownload ref="export"></FileDownload>
+        <h3 class="h3">
+          Import Data
+        </h3>
+        <button
+          class="button"
+          @click="importLocalStorage"
+        >
+          <UniconIcon
+            name="import"
+            fill="white"
+          />Import Data
+        </button>
+        <h3 class="h3">
+          Export Data
+        </h3>
+        <button
+          class="button"
+          @click="exportLocalStorage"
+        >
+          <UniconIcon
+            name="export"
+            fill="white"
+          />Export Data
+        </button>
+        <FileDownload ref="export" />
       </div>
       <div v-else-if="currentId === '2'">
-        <h1 class="h1">Editor</h1>
-        <h3 class="h3">FontSize</h3>
+        <h1 class="h1">
+          Editor
+        </h1>
+        <h3 class="h3">
+          FontSize
+        </h3>
         <div class="number-option">
-          <button class="number-option__spin" @click="stepEditorNumber('fontSize', -1)">-</button>
-          <input class="option option--number" type="number" v-model.number="localConfig.editor.fontSize">
-          <button class="number-option__spin" @click="stepEditorNumber('fontSize', 1)">+</button>
+          <button
+            class="number-option__spin"
+            @click="stepEditorNumber('fontSize', -1)"
+          >
+            -
+          </button>
+          <input
+            v-model.number="localConfig.editor.fontSize"
+            class="option option--number"
+            type="number"
+          >
+          <button
+            class="number-option__spin"
+            @click="stepEditorNumber('fontSize', 1)"
+          >
+            +
+          </button>
         </div>
 
         <!--
@@ -47,28 +110,63 @@
         </select>
         -->
 
-        <h3 class="h3">Tab Size</h3>
+        <h3 class="h3">
+          Tab Size
+        </h3>
         <div class="number-option">
-          <button class="number-option__spin" @click="stepEditorNumber('tabSize', -1)">-</button>
-          <input class="option option--number" type="number" v-model.number="localConfig.editor.tabSize">
-          <button class="number-option__spin" @click="stepEditorNumber('tabSize', 1)">+</button>
+          <button
+            class="number-option__spin"
+            @click="stepEditorNumber('tabSize', -1)"
+          >
+            -
+          </button>
+          <input
+            v-model.number="localConfig.editor.tabSize"
+            class="option option--number"
+            type="number"
+          >
+          <button
+            class="number-option__spin"
+            @click="stepEditorNumber('tabSize', 1)"
+          >
+            +
+          </button>
         </div>
 
-        <h3 class="h3">Unicode Highlight: Ambiguous Characters</h3>
+        <h3 class="h3">
+          Unicode Highlight: Ambiguous Characters
+        </h3>
         <div>
-          <input type="checkbox" v-model="localConfig.editor.unicodeHighlight.ambiguousCharacters" @change="localConfig.editor.unicodeHighlight.invisibleCharacters = localConfig.editor.unicodeHighlight.ambiguousCharacters" class="toggle-checkbox">
+          <input
+            v-model="localConfig.editor.unicodeHighlight.ambiguousCharacters"
+            type="checkbox"
+            class="toggle-checkbox"
+            @change="localConfig.editor.unicodeHighlight.invisibleCharacters = localConfig.editor.unicodeHighlight.ambiguousCharacters"
+          >
           <label class="label">Ambiguous Characters - Set ON to highlight ambiguous Unicode characters.</label>
         </div>
 
-        <h3 class="h3">Minimap</h3>
+        <h3 class="h3">
+          Minimap
+        </h3>
         <div>
-          <input type="checkbox" v-model="localConfig.editor.minimap.enabled" class="toggle-checkbox">
+          <input
+            v-model="localConfig.editor.minimap.enabled"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Minimap - Set ON to show the minimap on the right side of the editor.</label>
         </div>
 
-        <h3 class="h3">Editor to Preview Scroll Sync</h3>
+        <h3 class="h3">
+          Editor to Preview Scroll Sync
+        </h3>
         <div>
-          <input type="checkbox" v-model="localConfig.editor.syncEditorToPreview" class="toggle-checkbox">
+          <input
+            v-model="localConfig.editor.syncEditorToPreview"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Editor to Preview Scroll Sync - Set ON to sync preview when editor scrolls.</label>
         </div>
 
@@ -78,79 +176,168 @@
           <color-picker :colors.sync="colors" scheme="dark"></color-picker>
         </div>
         -->
-
       </div>
       <div v-else-if="currentId === '3'">
-        <h3 class="h3">markdown Settings</h3>
+        <h3 class="h3">
+          markdown Settings
+        </h3>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.basicOption.html" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.basicOption.html"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">html - Set ON to enable HTML tags in memo. </label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.basicOption.breaks" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.basicOption.breaks"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">breaks - Set ON to convert \n in paragraphs into &lt;br&gt;.</label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.basicOption.linkify" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.basicOption.linkify"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">linkify - Set ON to autoconvert URL-like text to links.</label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.basicOption.typography" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.basicOption.typography"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">typography - Set ON to enable some language-neutral replacement + quotes beautification (smartquotes).</label>
         </div>
 
-        <h3 class="h3">Extensions</h3>
+        <h3 class="h3">
+          Extensions
+        </h3>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.emoji" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.emoji"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Emoji - Set ON to enable Emoji syntax </label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.ruby" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.ruby"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Ruby - Set ON to enable ruby</label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.mermaid" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.mermaid"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Mermaid - Set ON to enable Mermaid</label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.uml" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.uml"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">PlantUML - Set ON to enable PlantUML</label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.multimdTable" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.multimdTable"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Enable multimdTable</label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.multimdTableOption.multiline" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.multimdTableOption.multiline"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Enable multimdTable.multiline</label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.multimdTableOption.rowspan" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.multimdTableOption.rowspan"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Enable multimdTable.rowspan</label>
         </div>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.multimdTableOption.headerless" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.multimdTableOption.headerless"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Enable multimdTable.headerless</label>
         </div>
 
-        <h3 class="h3">multibyte</h3>
+        <h3 class="h3">
+          multibyte
+        </h3>
         <div>
-          <input type="checkbox" v-model="localConfig.markdown.multibyteconvert" class="toggle-checkbox">
+          <input
+            v-model="localConfig.markdown.multibyteconvert"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
           <label class="label">Enable convert</label>
         </div>
-        <DraggableList tag="ul" v-model="multibyteconvertList" item-key="id" class="list-group" handle=".handle">
+        <DraggableList
+          v-model="multibyteconvertList"
+          tag="ul"
+          item-key="id"
+          class="list-group"
+          handle=".handle"
+        >
           <template #item="{element, index}">
             <li class="ListItem">
               <div>
-                <UniconIcon class="handle" name="bars" fill="white"></UniconIcon>
-                <input type="text" class="form-control text" v-model="element.reg" />
-                <input type="text" class="form-control text" v-model="element.val" />
-                <button class="button-small del" @click="removeMultibyteconvertList(index)"><UniconIcon name="times" fill="white" width="16px"></UniconIcon></button>
+                <UniconIcon
+                  class="handle"
+                  name="bars"
+                  fill="white"
+                />
+                <input
+                  v-model="element.reg"
+                  type="text"
+                  class="form-control text"
+                >
+                <input
+                  v-model="element.val"
+                  type="text"
+                  class="form-control text"
+                >
+                <button
+                  class="button-small del"
+                  @click="removeMultibyteconvertList(index)"
+                >
+                  <UniconIcon
+                    name="times"
+                    fill="white"
+                    width="16px"
+                  />
+                </button>
               </div>
             </li>
           </template>
         </DraggableList>
-        <button class="button-small-secondary" @click="addMultibyteconvertList">+ Add Record</button>
+        <button
+          class="button-small-secondary"
+          @click="addMultibyteconvertList"
+        >
+          + Add Record
+        </button>
       </div>
     </div>
   </div>
@@ -315,15 +502,6 @@ export default {
       }
     }
   },
-  /**
-   * 処理名: 作成時初期化
-   * 処理概要: ストア設定をローカル設定へ同期して初期表示状態を整える
-   * 実装理由: 初回表示時にフォームとストア設定を一致させるため
-   * @returns {void} なし
-   */
-  created() {
-    this.syncLocalConfig(this.storeConfig)
-  },
   watch: {
     storeConfig: {
       handler: /**
@@ -350,6 +528,15 @@ export default {
       },
       deep: true
     }
+  },
+  /**
+   * 処理名: 作成時初期化
+   * 処理概要: ストア設定をローカル設定へ同期して初期表示状態を整える
+   * 実装理由: 初回表示時にフォームとストア設定を一致させるため
+   * @returns {void} なし
+   */
+  created() {
+    this.syncLocalConfig(this.storeConfig)
   },
   methods: {
     /**

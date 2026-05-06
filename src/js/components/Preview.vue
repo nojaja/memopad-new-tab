@@ -1,6 +1,10 @@
 <template>
   <div class="preview">
-    <iframe ref="childFrame" id="child-frame" class="preview" />
+    <iframe
+      id="child-frame"
+      ref="childFrame"
+      class="preview"
+    />
   </div>
 </template>
 
@@ -143,7 +147,6 @@ function handleIframeScrollEvent() {
 
 export default {
   name: 'MarkdownPreview',
-  emits: ['previewScroll', 'previewFocus', 'previewBlur'],
   props: {
     autoUpdate: {
       type: Boolean,
@@ -184,6 +187,7 @@ export default {
       })
     }
   },
+  emits: ['previewScroll', 'previewFocus', 'previewBlur'],
   /**
    * 処理名: コンポーネントデータ初期化
    * 処理概要: parser キャッシュ、iframe 状態、描画済みHTMLを初期化する
