@@ -34,6 +34,7 @@ const defaultConfig = {
     automaticLayout: true,
     fontSize: 16,
     tabSize: 4,
+    syncEditorToPreview: false,
     theme: 'vs',
     unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
     minimap: { enabled: true }
