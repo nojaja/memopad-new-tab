@@ -75,6 +75,7 @@ const defaultConfig = {
     },
     emoji: true,
     ruby: true,
+    mermaid: true,
     uml: true,
     multimdTable: true,
     multimdTableOption: {
@@ -268,6 +269,46 @@ function setFileContent(file: unknown, content: string): void {
   target.content = content
 }
 
+
+/**
+ * 処理名: 複製ファイル先頭説明更新
+ * 処理概要: コンテナ内の先頭ファイル説明へ copy 接尾辞を追加して保存する
+ * 実装理由: 複製ノートであることを先頭ファイル説明から識別しやすくするため
+ * @param {FileContainer} container - 複製対象のコンテナ
+ * @returns {void} なし
+ */
+function updateFirstFileDescriptionForCopy(container: FileContainer): void {
+  const files = container.getFiles()
+  if (!Array.isArray(files) || files.length === 0) return
+
+  const firstFilename = getFileName(files[0])
+  if (!firstFilename) return
+
+  const file = container.getFile(firstFilename)
+  if (!file) return
+
+  const description = getFileDescription(file)
+  const newDescription = description ? `${description} copy` : 'copy'
+  setFileDescription(file, newDescription)
+  container.putFile(file)
+}
+
+/**
+ * 処理名: 複製コンテナ時刻更新
+ * 処理概要: 作成日時と更新日時を指定時刻で上書きする
+ * 実装理由: 複製ノートを新規作成扱いで並べ替えや表示に貢献するため
+ * @param {FileContainer} container - 更新対象コンテナ
+ * @param {number} now - Unix ミリ秒
+ * @returns {void} なし
+ */
+function updateContainerTimes(container: FileContainer, now: number): void {
+  if (typeof container.setCreatedTime === 'function') {
+    container.setCreatedTime(now)
+  }
+  if (typeof container.setLastUpdatedTime === 'function') {
+    container.setLastUpdatedTime(now)
+  }
+}
 /**
  * 処理名: 安全な JSON パース
  * 処理概要: JSON 文字列を安全にパースし失敗時はフォールバック値を返す
@@ -945,6 +986,34 @@ function applySortOrder(items: ListItem[], sort: string): void {
       localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(state.noteKeyList))
     },
     /**
+     * 処理名: プロジェクト複製ミューテーション
+     * 処理概要: 現在のプロジェクトを新しい note_ キーで複製して localStorage に保存し noteKeyList を更新する
+     * 実装理由: 他タブによる更新競合時にコピーを作成して編集中の内容を保護するため
+     * @param {any} state - Vuex ストア状態
+     */
+    duplicateCurrentProject(state) {
+      const currentProjectName = state.currentFile?.projectName
+      if (typeof currentProjectName !== 'string' || currentProjectName === '') return
+      const rawJson = state.fileContainer.getContainerJson()
+      if (!rawJson) return
+
+      const duplicatedContainer = new FileContainer()
+      duplicatedContainer.setContainerJson(rawJson)
+
+      const noteId = Date.now() + Math.floor(1e4 + 9e4 * Math.random())
+      const noteName = NOTE_PREFIX + noteId
+      duplicatedContainer.setId(noteId)
+      duplicatedContainer.setProjectName(noteName)
+      updateFirstFileDescriptionForCopy(duplicatedContainer)
+      updateContainerTimes(duplicatedContainer, Date.now())
+
+      localStorage.setItem(noteName, duplicatedContainer.getContainerJson())
+      if (state.noteKeyList.indexOf(noteName) === -1) {
+        state.noteKeyList.push(noteName)
+      }
+      localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(state.noteKeyList))
+    },
+    /**
      * 処理名: プロジェクト削除ミューテーション
      * 処理概要: 現在のプロジェクトをキーリストから除去してストレージを更新しアプリを初期化する
      * 実装理由: ノート削除後にリストと表示を整合させるため
@@ -1104,6 +1173,19 @@ function applySortOrder(items: ListItem[], sort: string): void {
       Promise.resolve().then(() => {
         context.commit('loadProject', noteName)
       })
+    },
+    /**
+     * 処理名: プロジェクト複製アクション
+     * 処理概要: 現在のプロジェクトを複製して新しい note_ キーで読み込み直す
+     * 実装理由: 他タブ更新競合時にコピーを作成して編集中の内容を保持するため
+     * @param {any} context - Vuex アクションコンテキスト
+     */
+    duplicateCurrentProject(context) {
+      context.commit('duplicateCurrentProject')
+      const latest = context.state.noteKeyList[context.state.noteKeyList.length - 1]
+      if (typeof latest === 'string') {
+        context.dispatch('loadProject', latest)
+      }
     },
     // プロジェクトの保存処理
     /**

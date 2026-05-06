@@ -33,7 +33,8 @@ describe('Preview.vue フリーズ再現テスト', () => {
       $refs: fakeRefs,
       isSyncingScroll: false,
       $emit: emitSpy,
-      getVisibleSourceLine: heavyGetVisibleSourceLine
+      getVisibleSourceLine: heavyGetVisibleSourceLine,
+      removeListener: jest.fn()
     })
     const onIframeScroll = fakeRefs.childFrame.contentWindow.addEventListener.mock.calls.find(
       (args) => args[0] === 'scroll'

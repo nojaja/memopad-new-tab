@@ -18,6 +18,20 @@ import uml from 'markdown-it-plantuml'
 
 const SOURCE_LINE_ATTRIBUTE = 'data-source-line'
 const CONTENT_WRAPPER_ID = 'content'
+let mermaidModulePromise = null
+
+/**
+ * 処理名: Mermaidモジュール取得
+ * 処理概要: Mermaid を遅延 import し、同一インスタンスを再利用する
+ * 実装理由: Jest の CommonJS 実行でトップレベル import に失敗しないようにするため
+ * @returns {Promise<object>} Mermaid モジュールの default エクスポート
+ */
+async function loadMermaidModule() {
+  if (!mermaidModulePromise) {
+    mermaidModulePromise = import('mermaid').then((module) => module.default || module)
+  }
+  return mermaidModulePromise
+}
 
 /**
  * 処理名: iframeコンテキスト解決
@@ -162,6 +176,7 @@ export default {
         },
         emoji: true,
         ruby: true,
+        mermaid: true,
         uml: true,
         multimdTable: true,
         multimdTableOption: {
@@ -175,66 +190,64 @@ export default {
   emits: ['previewScroll', 'previewFocus', 'previewBlur'],
   /**
    * 処理名: コンポーネントデータ初期化
-   * 処理概要: preview 同期と iframe イベント管理に必要な状態を初期化する
-   * 実装理由: 描画・スクロール同期・イベント解除を一元管理するため
+   * 処理概要: parser キャッシュ、iframe 状態、描画済みHTMLを初期化する
+   * 実装理由: 非同期描画とスクロール同期を同じ状態管理で扱うため
    * @returns {object} 初期データ
    */
   data() {
     return {
       parserCacheKey: '',
       parser: null,
+      compiledMarkdown: '',
       hasIframeLoaded: false,
       isSyncingScroll: false,
       scrollEventPending: false,
       cachedLineElements: [],
       cachedLinePositions: [],
       onIframeLoad: null,
-      onIframeScroll: null
-    }
-  },
-  computed: {
-    /**
-     * 処理名: コンパイル済みMarkdown取得
-     * 処理概要: source を HTML に変換し iframe 全体ドキュメントとして返す
-     * 実装理由: iframe の srcdoc 更新を単一経路に集約するため
-     * @returns {string} iframe へ設定する HTML 文字列
-     */
-    compiledMarkdown() {
-      const content = this.autoUpdate ? this.renderMarkdown() : ''
-      return this.buildIframeDocument(content)
+      onIframeScroll: null,
+      onIframeFocus: null,
+      onIframeBlur: null,
+      onIframeHover: null,
+      onIframeActivate: null
     }
   },
   watch: {
     /**
      * 処理名: ソース変更ウォッチャー
-     * 処理概要: source 変更時に表示内容を再描画し同位置へ復元する
-     * 実装理由: 編集中の視点を維持したまま preview を更新するため
+     * 処理概要: source 変更時に描画内容を更新する
+     * 実装理由: 編集中の Markdown を即座に preview へ反映するため
      * @returns {void} なし
      */
     source() {
-      if (!this.hasIframeLoaded) return
-      const currentLine = this.getVisibleSourceLine()
-      this.updateIframeContent(currentLine)
+      this.refreshPreview()
     },
     config: {
       deep: true,
       /**
        * 処理名: 設定変更ウォッチャー
-       * 処理概要: markdown 設定変更時に再描画し同位置へ復元する
-       * 実装理由: 設定変更を即時 preview に反映するため
+       * 処理概要: markdown 設定変更時に描画内容を更新する
+       * 実装理由: 表示設定変更を即時反映するため
        * @returns {void} なし
        */
       handler() {
-        if (!this.hasIframeLoaded) return
-        const currentLine = this.getVisibleSourceLine()
-        this.updateIframeContent(currentLine)
+        this.refreshPreview()
       }
+    },
+    /**
+     * 処理名: 自動更新設定ウォッチャー
+     * 処理概要: autoUpdate 切替時に preview 内容を再評価する
+     * 実装理由: 自動更新の有効/無効を即座に表示へ反映するため
+     * @returns {void} なし
+     */
+    autoUpdate() {
+      this.refreshPreview()
     }
   },
   /**
    * 処理名: マウント後初期化
-   * 処理概要: iframe のフォーカス・ロード・スクロール関連イベントを登録する
-   * 実装理由: preview の操作状態とスクロール同期を有効化するため
+   * 処理概要: iframe のイベントを登録し、初回描画を開始する
+   * 実装理由: preview の操作状態通知と初期描画を有効化するため
    * @returns {void} なし
    */
   mounted() {
@@ -245,16 +258,17 @@ export default {
     this.onIframeBlur = this.handleIframeBlur.bind(this)
     this.onIframeHover = this.handleIframeHover.bind(this)
     this.onIframeActivate = this.handleIframeActivate.bind(this)
+    this.onIframeLoad = this.handleIframeLoad.bind(this)
+
     iframe.setAttribute('tabindex', '0')
     iframe.addEventListener('focus', this.onIframeFocus)
     iframe.addEventListener('blur', this.onIframeBlur)
     iframe.addEventListener('mouseenter', this.onIframeHover)
     iframe.addEventListener('mouseleave', this.onIframeBlur)
     iframe.addEventListener('pointerdown', this.onIframeActivate)
-
-    this.onIframeLoad = this.handleIframeLoad.bind(this)
     iframe.addEventListener('load', this.onIframeLoad)
-    iframe.srcdoc = this.buildIframeDocument(this.renderMarkdown())
+
+    void this.updateCompiledMarkdown()
   },
   /**
    * 処理名: アンマウント前クリーンアップ
@@ -270,11 +284,26 @@ export default {
     this.removeListener(iframe, 'focus', this.onIframeFocus)
     this.removeListener(iframe, 'blur', this.onIframeBlur)
     this.removeListener(iframe, 'mouseenter', this.onIframeHover)
+    this.removeListener(iframe, 'mouseleave', this.onIframeBlur)
     this.removeListener(iframe, 'pointerdown', this.onIframeActivate)
     this.removeListener(iframe.contentDocument, 'pointerdown', this.onIframeActivate)
     this.removeListener(iframe.contentWindow, 'scroll', this.onIframeScroll)
   },
   methods: {
+    /**
+     * 処理名: preview更新ルーティング
+     * 処理概要: iframe のロード状態に応じて srcdoc 更新か本文差し替えを実行する
+     * 実装理由: 初回描画とスクロール維持付き更新を同一入口にまとめるため
+     * @returns {void} なし
+     */
+    refreshPreview() {
+      if (this.hasIframeLoaded) {
+        const currentLine = this.getVisibleSourceLine()
+        void this.updateIframeContent(currentLine)
+        return
+      }
+      void this.updateCompiledMarkdown()
+    },
     /**
      * 処理名: iframe コンテキスト取得
      * 処理概要: iframe/window/document をまとめて取得する
@@ -282,13 +311,7 @@ export default {
      * @returns {{ iframe: HTMLIFrameElement, win: Window, doc: Document }|null} iframe コンテキスト
      */
     getIframeContext() {
-      const iframe = this.$refs.childFrame
-      if (!iframe || !iframe.contentWindow || !iframe.contentDocument) return null
-      return {
-        iframe,
-        win: iframe.contentWindow,
-        doc: iframe.contentDocument
-      }
+      return resolveIframeContext(this)
     },
     /**
      * 処理名: iframe ロード後処理
@@ -353,7 +376,7 @@ export default {
     /**
      * 処理名: iframeドキュメント構築
      * 処理概要: プレビュー本文を iframe 用の完全HTMLに包んで返す
-     * 実装理由: srcdoc 更新時に必須ヘッダー/スタイルを常に含めるため
+     * 実装理由: srcdoc 更新時に必須ヘッダーとスタイルを常に含めるため
      * @param {string} content - body 内へ挿入するHTML
      * @returns {string} iframeへ設定するHTML文書
      */
@@ -412,23 +435,158 @@ export default {
       return mdInstance
     },
     /**
-     * 処理名: Markdownレンダリング
-     * 処理概要: source を HTML に変換し行番号属性を埋め込む
-     * 実装理由: editor と preview の行単位同期に必要な属性を付与するため
-     * @returns {string} 変換後 HTML
+     * 処理名: トークン行属性付与
+     * 処理概要: ブロックトークンへ data-source-line 属性を付与する
+     * 実装理由: editor と preview の行単位同期に必要な属性を埋め込むため
+     * @param {Array<object>} tokens - markdown-it のトークン列
+     * @returns {void} なし
      */
-    renderMarkdown() {
+    addSourceLineAttributes(tokens) {
+      for (const token of tokens) {
+        if (token.nesting !== 1 || !Array.isArray(token.map) || token.map.length === 0) continue
+        if (typeof token.attrIndex === 'function' && token.attrIndex(SOURCE_LINE_ATTRIBUTE) !== -1) continue
+        token.attrPush([SOURCE_LINE_ATTRIBUTE, String(token.map[0] + 1)])
+      }
+    },
+    /**
+     * 処理名: Mermaid設定初期化
+     * 処理概要: preview 用の Mermaid レンダラー設定を行う
+     * 実装理由: SVG 変換を安定動作させるため
+     * @returns {Promise<object>} 初期化済み Mermaid インスタンス
+     */
+    async initializeMermaid() {
+      const mermaidInstance = await loadMermaidModule()
+      mermaidInstance.initialize({
+        startOnLoad: false,
+        securityLevel: 'loose',
+        theme: 'default',
+        flowchart: {
+          htmlLabels: false,
+          useMaxWidth: true
+        }
+      })
+      return mermaidInstance
+    },
+    /**
+     * 処理名: Mermaidフェンス描画差し替え
+     * 処理概要: mermaid コードブロックを一時プレースホルダへ変換する
+     * 実装理由: markdown-it 描画後に SVG へ非同期置換するため
+     * @param {object} mdInstance - markdown-it インスタンス
+     * @param {Array<{id:string,code:string,placeholder:string}>} mermaidBlocks - 収集先配列
+     * @returns {Function|undefined} 元の fence renderer
+     */
+    overrideMermaidFence(mdInstance, mermaidBlocks) {
+      const defaultFence = mdInstance.renderer.rules.fence
+      /**
+       * 処理名: Mermaidフェンス描画関数
+       * 処理概要: mermaid フェンスだけをプレースホルダへ置換し、それ以外は既定描画へ委譲する
+       * 実装理由: lint の JSDoc 要件を満たしつつ分岐責務を明確にするため
+       * @param {Array<object>} tokens - markdown-it のトークン列
+       * @param {number} idx - 現在のトークンインデックス
+       * @param {object} options - markdown-it の描画オプション
+       * @param {object} env - 描画環境オブジェクト
+       * @param {object} slf - markdown-it renderer インスタンス
+       * @returns {string} フェンス描画結果
+       */
+      function renderMermaidFence(tokens, idx, options, env, slf) {
+        const token = tokens[idx]
+        const info = token.info ? token.info.trim() : ''
+        if (info !== 'mermaid') {
+          return defaultFence ? defaultFence(tokens, idx, options, env, slf) : slf.renderToken(tokens, idx, options)
+        }
+        const id = `mermaid-${idx}-${Math.random().toString(36).slice(2)}`
+        const code = token.content.trim()
+        const placeholder = `<div class="mermaid-placeholder" data-mermaid-id="${id}">${md().utils.escapeHtml(code)}</div>`
+        mermaidBlocks.push({ id, code, placeholder })
+        return placeholder
+      }
+      mdInstance.renderer.rules.fence = renderMermaidFence
+      return defaultFence
+    },
+    /**
+     * 処理名: Markdownレンダリング
+     * 処理概要: source を HTML に変換し行番号属性と Mermaid SVG を埋め込む
+     * 実装理由: editor と preview の同期表示を一度の描画で満たすため
+     * @returns {Promise<string>} 変換後 HTML
+     */
+    async renderMarkdown() {
       const mdInstance = this.getMarkdownParser()
       const env = {}
-      const tokens = mdInstance.parse(this.source.trim(), env)
-      for (const token of tokens) {
-        if (token.nesting === 1 && Array.isArray(token.map) && token.map.length > 0) {
-          if (!token.attrIndex || token.attrIndex('data-source-line') === -1) {
-            token.attrPush([SOURCE_LINE_ATTRIBUTE, String(token.map[0] + 1)])
-          }
+      const mermaidBlocks = []
+      let defaultFence
+      let hasOverriddenFence = false
+      let mermaidInstance = null
+
+      if (this.config.mermaid) {
+        mermaidInstance = await this.initializeMermaid()
+        defaultFence = this.overrideMermaidFence(mdInstance, mermaidBlocks)
+        hasOverriddenFence = true
+      }
+
+      try {
+        const tokens = mdInstance.parse(this.source.trim(), env)
+        this.addSourceLineAttributes(tokens)
+        let html = mdInstance.renderer.render(tokens, mdInstance.options, env)
+        if (mermaidBlocks.length === 0) {
+          return html
+        }
+        html = await this.renderMermaidBlocks(html, mermaidBlocks, mermaidInstance)
+        return html
+      } finally {
+        if (hasOverriddenFence) {
+          mdInstance.renderer.rules.fence = defaultFence
         }
       }
-      return mdInstance.renderer.render(tokens, mdInstance.options, env)
+    },
+    /**
+     * 処理名: Mermaid ブロックの SVG 生成
+     * 処理概要: プレースホルダを Mermaid の SVG 出力へ置換する
+     * 実装理由: 非同期描画結果を preview HTML に埋め込むため
+     * @param {string} html - Markdown から生成された HTML
+     * @param {Array<{id:string,code:string,placeholder:string}>} mermaidBlocks - Mermaid プレースホルダ情報
+     * @param {object} mermaidInstance - 初期化済み Mermaid インスタンス
+     * @returns {Promise<string>} Mermaid SVG を差し替えた HTML
+     */
+    async renderMermaidBlocks(html, mermaidBlocks, mermaidInstance) {
+      const renderContainer = document.createElement('div')
+      renderContainer.style.position = 'absolute'
+      renderContainer.style.visibility = 'hidden'
+      renderContainer.style.pointerEvents = 'none'
+      if (document.body) {
+        document.body.appendChild(renderContainer)
+      }
+
+      try {
+        for (const block of mermaidBlocks) {
+          try {
+            const result = await mermaidInstance.render(block.id, block.code, renderContainer)
+            html = html.replace(block.placeholder, `<div class="mermaid">${result.svg}</div>`)
+          } catch (error) {
+            const escaped = md().utils.escapeHtml(error && error.message ? error.message : String(error))
+            html = html.replace(block.placeholder, `<pre>${escaped}</pre>`)
+          }
+        }
+      } finally {
+        if (renderContainer.parentNode) {
+          renderContainer.parentNode.removeChild(renderContainer)
+        }
+      }
+
+      return html
+    },
+    /**
+     * 処理名: プレビュー HTML の更新
+     * 処理概要: Markdown をレンダリングし、srcdoc に渡す HTML を再生成する
+     * 実装理由: 初回描画や未ロード時の preview 内容を確定するため
+     * @returns {Promise<void>} なし
+     */
+    async updateCompiledMarkdown() {
+      const iframe = this.$refs.childFrame
+      const content = this.autoUpdate ? await this.renderMarkdown() : ''
+      this.compiledMarkdown = this.buildIframeDocument(content)
+      if (iframe && !this.hasIframeLoaded) {
+        iframe.srcdoc = this.compiledMarkdown
+      }
     },
     /**
      * 処理名: iframeスクロール監視登録
@@ -437,46 +595,16 @@ export default {
      * @returns {void} なし
      */
     attachIframeScroll() {
-      let context = null
-      if (typeof this.getIframeContext === 'function') {
-        context = this.getIframeContext()
-      } else {
-        const iframe = this.$refs?.childFrame
-        if (iframe && iframe.contentWindow && iframe.contentDocument) {
-          context = { iframe, win: iframe.contentWindow, doc: iframe.contentDocument }
-        }
-      }
+      const context = this.getIframeContext ? this.getIframeContext() : resolveIframeContext(this)
       if (!context) return
 
+      this.removeListener(context.win, 'scroll', this.onIframeScroll)
       this.onIframeScroll = handleIframeScrollEvent.bind(this)
       context.win.addEventListener('scroll', this.onIframeScroll, { passive: true })
 
       if (this.onIframeActivate) {
         context.doc.addEventListener('pointerdown', this.onIframeActivate)
       }
-    },
-    /**
-     * 処理名: iframeスクロール処理
-     * 処理概要: プログラムスクロール中でなければ行番号通知を予約する
-     * 実装理由: 高頻度 scroll を間引いて UI ブロックを防ぐため
-     * @returns {void} なし
-     */
-    handleIframeScroll() {
-      if (this.isSyncingScroll || this.scrollEventPending) return
-      this.scrollEventPending = true
-      if (typeof this.emitPreviewScroll === 'function') {
-        setTimeout(this.emitPreviewScroll.bind(this), 0)
-        return
-      }
-      setTimeout(/**
-       * 処理名: previewスクロール通知フォールバック
-       * 処理概要: helperが無いコンテキストでもscroll通知とpending解除を実行する
-       * 実装理由: メソッド単体テストで最小コンテキストでも互換動作させるため
-       */
-      function() {
-        this.$emit('previewScroll', this.getVisibleSourceLine())
-        this.scrollEventPending = false
-      }.bind(this), 0)
     },
     /**
      * 処理名: previewスクロール通知
@@ -496,17 +624,7 @@ export default {
      * @returns {Array<{line:number,top:number,height:number}>} 行位置配列
      */
     getLinePositionsFromDocument(doc) {
-      const elements = Array.from(doc.querySelectorAll(`[${SOURCE_LINE_ATTRIBUTE}]`))
-      const positions = []
-      for (const element of elements) {
-        const line = Number(element.getAttribute(SOURCE_LINE_ATTRIBUTE)) || 1
-        positions.push({
-          line,
-          top: element.offsetTop || 0,
-          height: element.offsetHeight || 0
-        })
-      }
-      return positions
+      return resolveLinePositions({}, doc)
     },
     /**
      * 処理名: 可視行取得
@@ -515,9 +633,7 @@ export default {
      * @returns {number} 可視先頭行
      */
     getVisibleSourceLine() {
-      const context = typeof this.getIframeContext === 'function'
-        ? this.getIframeContext()
-        : resolveIframeContext(this)
+      const context = this.getIframeContext ? this.getIframeContext() : resolveIframeContext(this)
       if (!context) return 1
       const scrollTop = Number(context.win.scrollY || context.doc.documentElement.scrollTop || context.doc.body.scrollTop || 0)
       const positions = resolveLinePositions(this, context.doc)
@@ -532,15 +648,7 @@ export default {
      * @returns {Array<{line:number,top:number,height:number}>} 行位置配列
      */
     cacheSourceLineElements() {
-      let context = null
-      if (typeof this.getIframeContext === 'function') {
-        context = this.getIframeContext()
-      } else {
-        const iframe = this.$refs?.childFrame
-        if (iframe && iframe.contentWindow && iframe.contentDocument) {
-          context = { iframe, win: iframe.contentWindow, doc: iframe.contentDocument }
-        }
-      }
+      const context = this.getIframeContext ? this.getIframeContext() : resolveIframeContext(this)
       if (!context) return []
       const elements = Array.from(context.doc.querySelectorAll(`[${SOURCE_LINE_ATTRIBUTE}]`))
       const positions = []
@@ -563,15 +671,7 @@ export default {
      * @returns {number} スクロール比率
      */
     getIframeScrollRatio() {
-      let context = null
-      if (typeof this.getIframeContext === 'function') {
-        context = this.getIframeContext()
-      } else {
-        const iframe = this.$refs?.childFrame
-        if (iframe && iframe.contentWindow && iframe.contentDocument) {
-          context = { iframe, win: iframe.contentWindow, doc: iframe.contentDocument }
-        }
-      }
+      const context = this.getIframeContext ? this.getIframeContext() : resolveIframeContext(this)
       if (!context) return 0
       const scrollTop = Number(context.win.scrollY || context.doc.documentElement.scrollTop || context.doc.body.scrollTop || 0)
       const scrollHeight = Number(context.doc.documentElement.scrollHeight || context.doc.body.scrollHeight || 0)
@@ -595,9 +695,7 @@ export default {
      * @returns {void} なし
      */
     scrollToSourceLine(line) {
-      const context = typeof this.getIframeContext === 'function'
-        ? this.getIframeContext()
-        : resolveIframeContext(this)
+      const context = this.getIframeContext ? this.getIframeContext() : resolveIframeContext(this)
       if (!context) return
       const lineNumber = Number(line) || 1
       const positions = resolveLinePositions(this, context.doc)
@@ -606,9 +704,6 @@ export default {
       const top = positions[candidateIndex].top || 0
       this.isSyncingScroll = true
       context.win.scrollTo(0, top)
-      // scroll イベント発火を待ってから isSyncingScroll をリセット
-      // requestAnimationFrame で次のリペイント前にリセットし、
-      // スクロール同期イベントの相互参照を正しく処理する
       const clearSyncing = typeof this.clearSyncingScroll === 'function'
         ? this.clearSyncingScroll.bind(this)
         : function() {
@@ -624,15 +719,7 @@ export default {
      * @returns {void} なし
      */
     scrollToRatio(ratio) {
-      let context = null
-      if (typeof this.getIframeContext === 'function') {
-        context = this.getIframeContext()
-      } else {
-        const iframe = this.$refs?.childFrame
-        if (iframe && iframe.contentWindow && iframe.contentDocument) {
-          context = { iframe, win: iframe.contentWindow, doc: iframe.contentDocument }
-        }
-      }
+      const context = this.getIframeContext ? this.getIframeContext() : resolveIframeContext(this)
       if (!context) return
       const scrollHeight = Number(context.doc.documentElement.scrollHeight || context.doc.body.scrollHeight || 0)
       const clientHeight = Number(context.doc.documentElement.clientHeight || context.doc.body.clientHeight || 1)
@@ -640,7 +727,6 @@ export default {
       const top = ratioNumber * Math.max(0, scrollHeight - clientHeight)
       this.isSyncingScroll = true
       context.win.scrollTo(0, top)
-      // scroll イベント発火を待ってから isSyncingScroll をリセット
       const clearSyncing = typeof this.clearSyncingScroll === 'function'
         ? this.clearSyncingScroll.bind(this)
         : function() {
@@ -653,26 +739,26 @@ export default {
      * 処理概要: 現在表示行を維持したまま preview の本文を再描画する
      * 実装理由: source/config 変更時の視点ジャンプを防ぐため
      * @param {number} sourceLine - 復元先の行番号
-     * @returns {void} なし
+     * @returns {Promise<void>} なし
      */
-    updateIframeContent(sourceLine) {
-      let context = null
-      if (typeof this.getIframeContext === 'function') {
-        context = this.getIframeContext()
-      } else {
-        const iframe = this.$refs?.childFrame
-        if (iframe && iframe.contentWindow && iframe.contentDocument) {
-          context = { iframe, win: iframe.contentWindow, doc: iframe.contentDocument }
-        }
+    async updateIframeContent(sourceLine) {
+      const context = this.getIframeContext ? this.getIframeContext() : resolveIframeContext(this)
+      if (!context) {
+        await this.updateCompiledMarkdown()
+        return
       }
-      if (!context) return
+
       const currentLine = sourceLine || this.getVisibleSourceLine()
+      const content = this.autoUpdate ? await this.renderMarkdown() : ''
+      this.compiledMarkdown = this.buildIframeDocument(content)
+
       const contentWrapper = context.doc.getElementById(CONTENT_WRAPPER_ID)
-      if (contentWrapper) {
-        contentWrapper.innerHTML = this.renderMarkdown()
-      } else {
-        context.doc.body.innerHTML = this.renderMarkdown()
+      if (!contentWrapper) {
+        context.iframe.srcdoc = this.compiledMarkdown
+        return
       }
+
+      contentWrapper.innerHTML = content
       this.cacheSourceLineElements()
       this.scrollToSourceLine(currentLine)
     }

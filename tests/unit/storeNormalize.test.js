@@ -10,6 +10,33 @@ describe('store normalizeStoredProject のエッジケース', () => {
     storeModule.commit('replaceNoteKeyList', [])
   })
 
+  test('setConfig で mermaid を指定しない場合でも normalizeConfig は true を補完する', () => {
+    storeModule.commit('setConfig', {
+      general: { sort: '0' },
+      editor: {},
+      markdown: {
+        emoji: true,
+        ruby: true
+      }
+    })
+
+    expect(storeModule.state.config.markdown.mermaid).toBe(true)
+  })
+
+  test('setConfig で mermaid false を渡すと上書きされない', () => {
+    storeModule.commit('setConfig', {
+      general: { sort: '0' },
+      editor: {},
+      markdown: {
+        emoji: true,
+        ruby: true,
+        mermaid: false
+      }
+    })
+
+    expect(storeModule.state.config.markdown.mermaid).toBe(false)
+  })
+
   test('files のフィールドに型不一致がある場合も読み込める（v が数値でない）', () => {
     const raw = JSON.stringify({
       v: '不正なバージョン', // 数値でない

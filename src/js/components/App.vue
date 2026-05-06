@@ -56,6 +56,7 @@ export default {
     window.addEventListener('keydown', this.handleKeydown)
     window.addEventListener('blur', this.handleWindowBlur)
     window.addEventListener('focus', this.handleWindowFocus)
+    window.addEventListener('storage', this.handleStorageEvent)
   },
   /**
    * 処理名: アンマウント前クリーンアップ
@@ -66,6 +67,7 @@ export default {
     window.removeEventListener('keydown', this.handleKeydown)
     window.removeEventListener('blur', this.handleWindowBlur)
     window.removeEventListener('focus', this.handleWindowFocus)
+    window.removeEventListener('storage', this.handleStorageEvent)
   },
   methods: {
     /**
@@ -93,6 +95,28 @@ export default {
     handleKeydown(e) {
       if (e.ctrlKey && e.key === 's') {
         this.saveProject(e)
+      }
+    },
+    /**
+     * 処理名: ストレージイベントハンドラ
+     * 処理概要: 他タブで localStorage が更新された場合に対応するストアアクションを呼び出す
+     * 実装理由: 他タブ編集の競合を検知し、自動リロードまたはコピー作成を行うため
+     * @param {StorageEvent} e - storage イベント
+     */
+    handleStorageEvent(e) {
+      if (!e || typeof e.key !== 'string') return
+      if (e.key === 'noteKeyList') {
+        this.$store.dispatch('loadNoteKeyList')
+        return
+      }
+
+      const currentProjectName = this.$store.getters.currentFile?.projectName
+      if (!currentProjectName || e.key !== currentProjectName) return
+
+      if (document.hasFocus && document.hasFocus()) {
+        this.$store.dispatch('duplicateCurrentProject')
+      } else {
+        this.$store.dispatch('loadProject', currentProjectName)
       }
     },
     /**

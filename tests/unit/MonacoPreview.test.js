@@ -10,6 +10,18 @@ jest.mock('monaco-editor-vue3', () => ({
   CodeEditor: { template: '<div/>' }
 }), { virtual: true })
 
+// mermaid モジュールを Jest 環境用にモック
+jest.mock('mermaid', () => ({
+  __esModule: true,
+  default: {
+    initialize: jest.fn(),
+    render: jest.fn(() => Promise.resolve({ svg: '<svg><text>mermaid</text></svg>' })),
+    mermaidAPI: {
+      render: jest.fn(() => Promise.resolve({ svg: '<svg><text>mermaid</text></svg>' }))
+    }
+  }
+}), { virtual: true })
+
 // editorCompletions モック
 jest.mock('@/editorCompletions', () => ({
   registerCompletions: jest.fn()
@@ -156,8 +168,6 @@ describe('Monaco.vue メソッドテスト', () => {
   test('beforeUnmount でエディターが null になる', () => {
     wrapper.vm.editor = { layout: jest.fn() }
     wrapper.unmount()
-    // unmount 後は editor が null になる（beforeUnmount フック）
-    // wrapper.vm は unmount 後も参照できる
     expect(wrapper.vm.editor).toBeNull()
   })
 })
@@ -177,7 +187,8 @@ describe('Preview.vue メソッドテスト', () => {
     uml: false,
     multimdTable: true,
     multimdTableOption: { multiline: true, rowspan: true, headerless: true },
-    checkbox: false
+    checkbox: false,
+    mermaid: false
   }
 
   test('コンポーネントがマウントされる', () => {
@@ -185,8 +196,9 @@ describe('Preview.vue メソッドテスト', () => {
     expect(wrapper.exists()).toBe(true)
   })
 
-  test('compiledMarkdown が HTML を返す', () => {
+  test('compiledMarkdown が HTML を返す', async () => {
     wrapper = shallowMount(Preview, { props: { source: '# テスト', config: defaultConfig } })
+    await wrapper.vm.updateCompiledMarkdown()
     const compiled = wrapper.vm.compiledMarkdown
     expect(typeof compiled).toBe('string')
     expect(compiled).toContain('DOCTYPE html')
@@ -204,15 +216,17 @@ describe('Preview.vue メソッドテスト', () => {
     Preview.watch.source.call({
       hasIframeLoaded: true,
       getVisibleSourceLine: jest.fn().mockReturnValue(12),
-      updateIframeContent: updateSpy
+      updateIframeContent: updateSpy,
+      refreshPreview: Preview.methods.refreshPreview
     })
     expect(updateSpy).toHaveBeenCalledWith(12)
   })
 
-  test('autoUpdate false のとき renderMarkdown が呼ばれない', () => {
+  test('autoUpdate false のとき renderMarkdown が呼ばれない', async () => {
     wrapper = shallowMount(Preview, {
       props: { source: '# テスト', autoUpdate: false, config: defaultConfig }
     })
+    await wrapper.vm.updateCompiledMarkdown()
     const compiled = wrapper.vm.compiledMarkdown
     expect(compiled).not.toContain('<h1')
   })
@@ -224,15 +238,46 @@ describe('Preview.vue メソッドテスト', () => {
     expect(parser1).toStrictEqual(parser2)
   })
 
-  test('config.emoji false のとき例外が発生しない', () => {
+  test('config.emoji false のとき例外が発生しない', async () => {
     const cfg = { ...defaultConfig, emoji: false, ruby: false, multimdTable: false }
     wrapper = shallowMount(Preview, { props: { source: '# テスト', config: cfg } })
-    expect(() => wrapper.vm.renderMarkdown()).not.toThrow()
+    await expect(wrapper.vm.renderMarkdown()).resolves.toContain('テスト')
   })
 
-  test('renderMarkdown に data-source-line 属性が埋め込まれる', () => {
+  test('config.mermaid true のとき Mermaid 記法をレンダリングできる', async () => {
+    const cfg = { ...defaultConfig, mermaid: true }
+    wrapper = shallowMount(Preview, {
+      props: {
+        source: '```mermaid\ngraph TD\n  A --> B\n```',
+        config: cfg
+      }
+    })
+    await expect(wrapper.vm.renderMarkdown()).resolves.toContain('<svg>')
+    await wrapper.vm.updateCompiledMarkdown()
+    const compiled = wrapper.vm.compiledMarkdown
+    expect(typeof compiled).toBe('string')
+    expect(compiled).toContain('mermaid')
+  })
+
+  test('config.mermaid false のとき連続レンダリングでもコードブロックが壊れない', async () => {
+    wrapper = shallowMount(Preview, {
+      props: {
+        source: '```mermaid\ngraph TD\n  A --> B\n```',
+        config: defaultConfig
+      }
+    })
+
+    const firstHtml = await wrapper.vm.renderMarkdown()
+    const secondHtml = await wrapper.vm.renderMarkdown()
+
+    expect(firstHtml).toContain('<pre><code class="language-mermaid">')
+    expect(secondHtml).toContain('<pre><code class="language-mermaid">')
+    expect(secondHtml).toContain('</code></pre>')
+  })
+
+  test('renderMarkdown に data-source-line 属性が埋め込まれる', async () => {
     wrapper = shallowMount(Preview, { props: { source: '# 見出し\n\n本文', config: defaultConfig } })
-    const html = wrapper.vm.renderMarkdown()
+    const html = await wrapper.vm.renderMarkdown()
     expect(html).toContain('data-source-line="1"')
     expect(html).toContain('data-source-line="3"')
   })
@@ -281,10 +326,12 @@ describe('Preview.vue メソッドテスト', () => {
       childFrame: {
         contentWindow: {
           addEventListener: jest.fn(),
+          removeEventListener: jest.fn(),
           scrollY: 0
         },
         contentDocument: {
-          addEventListener: jest.fn()
+          addEventListener: jest.fn(),
+          removeEventListener: jest.fn()
         }
       }
     }
@@ -294,7 +341,10 @@ describe('Preview.vue メソッドテスト', () => {
       onIframeActivate,
       isSyncingScroll: false,
       $emit: emitSpy,
-      getVisibleSourceLine: jest.fn().mockReturnValue(1)
+      getVisibleSourceLine: jest.fn().mockReturnValue(1),
+      removeListener: Preview.methods.removeListener,
+      getIframeContext: Preview.methods.getIframeContext,
+      emitPreviewScroll: Preview.methods.emitPreviewScroll
     })
 
     const onIframeScroll = fakeRefs.childFrame.contentWindow.addEventListener.mock.calls.find(
@@ -357,50 +407,12 @@ describe('Preview.vue メソッドテスト', () => {
       childFrame: {
         contentWindow: {
           addEventListener: jest.fn(),
+          removeEventListener: jest.fn(),
           scrollY: 0
         },
         contentDocument: {
-          addEventListener: jest.fn()
-        }
-      }
-    }
-
-    Preview.methods.attachIframeScroll.call({
-      $refs: fakeRefs,
-      onIframeActivate,
-      isSyncingScroll: false,
-      $emit: emitSpy,
-      getVisibleSourceLine: jest.fn().mockReturnValue(1)
-    })
-
-    expect(fakeRefs.childFrame.contentWindow.addEventListener).toHaveBeenCalledWith(
-      'scroll', expect.any(Function),
-      { passive: true }
-    )
-    expect(fakeRefs.childFrame.contentDocument.addEventListener).toHaveBeenCalledWith(
-      'pointerdown', onIframeActivate
-    )
-
-    const onIframeScroll = fakeRefs.childFrame.contentWindow.addEventListener.mock.calls.find(
-      (args) => args[0] === 'scroll'
-    )[1]
-    onIframeScroll()
-    await new Promise((resolve) => setTimeout(resolve, 0))
-    expect(emitSpy).not.toHaveBeenCalledWith('previewFocus')
-    expect(emitSpy).toHaveBeenCalledWith('previewScroll', 1)
-  })
-
-  test('attachIframeScroll で iframe 内スクロールは previewScroll のみを発火する（emitは非同期）', async () => {
-    const emitSpy = jest.fn()
-    const onIframeActivate = jest.fn()
-    const fakeRefs = {
-      childFrame: {
-        contentWindow: {
           addEventListener: jest.fn(),
-          scrollY: 0
-        },
-        contentDocument: {
-          addEventListener: jest.fn()
+          removeEventListener: jest.fn()
         }
       }
     }
@@ -410,7 +422,10 @@ describe('Preview.vue メソッドテスト', () => {
       onIframeActivate,
       isSyncingScroll: false,
       $emit: emitSpy,
-      getVisibleSourceLine: jest.fn().mockReturnValue(1)
+      getVisibleSourceLine: jest.fn().mockReturnValue(1),
+      removeListener: Preview.methods.removeListener,
+      getIframeContext: Preview.methods.getIframeContext,
+      emitPreviewScroll: Preview.methods.emitPreviewScroll
     })
 
     expect(fakeRefs.childFrame.contentWindow.addEventListener).toHaveBeenCalledWith(

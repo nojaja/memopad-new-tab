@@ -235,11 +235,19 @@
         </div>
         <div>
           <input
+            v-model="localConfig.markdown.mermaid"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
+          <label class="label">Mermaid - Set ON to enable Mermaid</label>
+        </div>
+        <div>
+          <input
             v-model="localConfig.markdown.uml"
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">UML - Set ON to enable UML</label>
+          <label class="label">PlantUML - Set ON to enable PlantUML</label>
         </div>
         <div>
           <input
@@ -383,6 +391,7 @@ export default {
           },
           emoji: true,
           ruby: true,
+          mermaid: true,
           uml: true,
           multimdTable: true,
           multimdTableOption: {
