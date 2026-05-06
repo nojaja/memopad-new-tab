@@ -55,11 +55,25 @@ export default {
       if (typeof file.getDescription === 'function') return file.getDescription() || ''
       return file.description || ''
     },
+    /**
+     * 処理名: 現在ファイルキー取得
+     * 処理概要: 現在表示中ファイルの projectName を返す
+     * 実装理由: ノート切り替えを監視してスクロール位置をリセットするため
+     * @returns {string} 現在ファイルのキー
+     */
     currentFileKey() {
       return this.$store.getters.currentFile?.projectName || ''
     }
   },
   watch: {
+    /**
+     * 処理名: ファイル切替ウォッチャー
+     * 処理概要: ファイルキーが変わったときに先頭へスクロールする
+     * 実装理由: ノート切替時に前ノートのスクロール位置を引き継がないため
+     * @param {string} newKey - 変更後のファイルキー
+     * @param {string} oldKey - 変更前のファイルキー
+     * @returns {void} なし
+     */
     currentFileKey(newKey, oldKey) {
       if (newKey !== oldKey && this.$refs.splitpanesWrapper) {
         this.$refs.splitpanesWrapper.scrollToTop()

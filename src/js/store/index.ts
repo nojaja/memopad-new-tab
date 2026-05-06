@@ -34,6 +34,7 @@ const defaultConfig = {
     automaticLayout: true,
     fontSize: 16,
     tabSize: 4,
+    syncEditorToPreview: false,
     theme: 'vs',
     unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
     minimap: { enabled: true }
@@ -897,10 +898,8 @@ function applySortOrder(items: any[], sort: string): void {
             const newDescription = description ? `${description} copy` : 'copy'
             if (typeof file.setDescription === 'function') {
               file.setDescription(newDescription)
-            } else {
-              file.description = newDescription
+              duplicatedContainer.putFile(file)
             }
-            duplicatedContainer.putFile(file)
           }
         }
       }
