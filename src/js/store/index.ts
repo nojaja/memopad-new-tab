@@ -269,6 +269,46 @@ function setFileContent(file: unknown, content: string): void {
 }
 
 /**
+ * 処理名: 複製ファイル先頭説明更新
+ * 処理概要: コンテナ内の先頭ファイル説明へ copy 接尾辞を付与して保存する
+ * 実装理由: 複製ノートであることを先頭ファイル説明から判別しやすくするため
+ * @param {FileContainer} container - 複製対象のコンテナ
+ * @returns {void} なし
+ */
+function updateFirstFileDescriptionForCopy(container: FileContainer): void {
+  const files = container.getFiles()
+  if (!Array.isArray(files) || files.length === 0) return
+
+  const firstFilename = getFileName(files[0])
+  if (!firstFilename) return
+
+  const file = container.getFile(firstFilename)
+  if (!file) return
+
+  const description = getFileDescription(file)
+  const newDescription = description ? `${description} copy` : 'copy'
+  setFileDescription(file, newDescription)
+  container.putFile(file)
+}
+
+/**
+ * 処理名: 複製コンテナ時刻更新
+ * 処理概要: 作成日時と更新日時を指定時刻で上書きする
+ * 実装理由: 複製ノートを新規作成扱いで並べ替えや履歴表示に反映するため
+ * @param {FileContainer} container - 更新対象コンテナ
+ * @param {number} now - Unix ミリ秒
+ * @returns {void} なし
+ */
+function updateContainerTimes(container: FileContainer, now: number): void {
+  if (typeof container.setCreatedTime === 'function') {
+    container.setCreatedTime(now)
+  }
+  if (typeof container.setLastUpdatedTime === 'function') {
+    container.setLastUpdatedTime(now)
+  }
+}
+
+/**
  * 処理名: 安全な JSON パース
  * 処理概要: JSON 文字列を安全にパースし失敗時はフォールバック値を返す
  * 実装理由: 不正な JSON による例外を防いでフォールバック値で継続するため
@@ -963,31 +1003,8 @@ function applySortOrder(items: ListItem[], sort: string): void {
       const noteName = NOTE_PREFIX + noteId
       duplicatedContainer.setId(noteId)
       duplicatedContainer.setProjectName(noteName)
-
-      const files = duplicatedContainer.getFiles()
-      if (files && files.length > 0) {
-        const firstFilename = getFileName(files[0])
-        if (firstFilename) {
-          const file = duplicatedContainer.getFile(firstFilename)
-          if (file) {
-            const description = getFileDescription(file)
-            const newDescription = description ? `${description} copy` : 'copy'
-            if (typeof file.setDescription === 'function') {
-              file.setDescription(newDescription)
-            } else {
-              file.description = newDescription
-            }
-            duplicatedContainer.putFile(file)
-          }
-        }
-      }
-
-      if (typeof duplicatedContainer.setCreatedTime === 'function') {
-        duplicatedContainer.setCreatedTime(new Date().getTime())
-      }
-      if (typeof duplicatedContainer.setLastUpdatedTime === 'function') {
-        duplicatedContainer.setLastUpdatedTime(new Date().getTime())
-      }
+      updateFirstFileDescriptionForCopy(duplicatedContainer)
+      updateContainerTimes(duplicatedContainer, Date.now())
 
       localStorage.setItem(noteName, duplicatedContainer.getContainerJson())
       if (state.noteKeyList.indexOf(noteName) === -1) {
