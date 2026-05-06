@@ -23,7 +23,7 @@ declare module '@nojaja/filecontainer' {
     /** コンテナ JSON 設定 */
     setContainerJson(json: string | null): void
     /** コンテナ設定 */
-    setContainer(container: any): void
+    setContainer(container: Record<string, unknown>): void
     /** ファイル一覧取得 */
     getFiles(): Array<{ name: string }>
     /** ファイル取得 */

@@ -1,22 +1,36 @@
 <template>
   <div>
     <SlideMenu ref="slideMenu">
-      <SettingPage></SettingPage>
+      <SettingPage />
     </SlideMenu>
     <div class="wrapper">
-      <div class="sidebar" :style="sidebarStyle">
+      <div
+        class="sidebar"
+        :style="sidebarStyle"
+      >
         <NoteList
           v-show="isSidebarVisible"
           :items="fileList"
-          :onNew="newProject"
-          :onSelect="loadProject"
-        ></NoteList>
-        <AppFooter backgroundColor="#fff" >
-          <button class="footer-button" type="button" @click="toggleSidebar" :aria-label="sidebarToggleLabel">
-            <UniconIcon name="gg:sidebar-open"></UniconIcon>
+          :on-new="newProject"
+          :on-select="loadProject"
+        />
+        <AppFooter background-color="#fff">
+          <button
+            class="footer-button"
+            type="button"
+            :aria-label="sidebarToggleLabel"
+            @click="toggleSidebar"
+          >
+            <UniconIcon name="gg:sidebar-open" />
           </button>
-          <button v-show="isSidebarVisible" class="footer-button" type="button" @click="settingOpen" aria-label="open settings">
-            <UniconIcon name="setting"></UniconIcon>
+          <button
+            v-show="isSidebarVisible"
+            class="footer-button"
+            type="button"
+            aria-label="open settings"
+            @click="settingOpen"
+          >
+            <UniconIcon name="setting" />
           </button>
         </AppFooter>
       </div>
@@ -25,8 +39,8 @@
         class="splitpanes__splitter layout-splitter"
         @mousedown="startSidebarResize"
         @touchstart="startSidebarResize"
-      ></div>
-      <NoteContents></NoteContents>
+      />
+      <NoteContents />
     </div>
   </div>
 </template>
@@ -66,6 +80,59 @@ export default {
         { name: 'Template - Weekly Planner', uri: 'note_1583338656495', isActive: false }
       ]
     }
+  },
+  computed: {
+    /**
+     * 処理名: サイドバースタイル取得
+     * 処理概要: テンプレートへバインドするサイドバー幅 style を返す
+     * 実装理由: 幅変更をリアクティブに DOM へ反映するため
+     * @returns {{ width: string, flex: string }} style オブジェクト
+     */
+    sidebarStyle() {
+      if (!this.isSidebarVisible) {
+        return {
+          width: '44px',
+          flex: '0 0 44px'
+        }
+      }
+      const px = `${this.sidebarWidth}px`
+      return { width: px, flex: `0 0 ${px}` }
+    },
+    /**
+     * 処理名: サイドバー切替ラベル取得
+     * 処理概要: サイドバー表示状態に応じた aria-label を返す
+     * 実装理由: フッタートグルボタンのアクセシビリティを確保するため
+     * @returns {string} 切替ボタンの aria-label
+     */
+    sidebarToggleLabel() {
+      return this.isSidebarVisible ? 'hide sidebar' : 'show sidebar'
+    },
+    /**
+     * 処理名: ファイルリスト取得
+     * 処理概要: ストアから最新のノートリストを返す
+     * 実装理由: ストアの状態をサイドバーリストに反映するため
+     * @returns {Array} ノートリスト
+     */
+    fileList() {
+      return this.$store.getters.refreshFileList
+    }
+  },
+  /**
+   * 処理名: マウント後初期化
+   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
+   * 実装理由: ウィンドウサイズ変更に追従するため
+   */
+  mounted: function() {
+    window.addEventListener('resize', this.handleResize)
+  },
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
+   * 実装理由: メモリリークを防ぐため
+   */
+  beforeUnmount: function() {
+    window.removeEventListener('resize', this.handleResize)
+    this.isSidebarResizing = false
   },
   methods: {
     /**
@@ -174,59 +241,6 @@ export default {
      */
     toggleSidebar() {
       this.isSidebarVisible = !this.isSidebarVisible
-    }
-  },
-  /**
-   * 処理名: マウント後初期化
-   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
-   * 実装理由: ウィンドウサイズ変更に追従するため
-   */
-  mounted: function() {
-    window.addEventListener('resize', this.handleResize)
-  },
-  /**
-   * 処理名: アンマウント前クリーンアップ
-   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
-   * 実装理由: メモリリークを防ぐため
-   */
-  beforeUnmount: function() {
-    window.removeEventListener('resize', this.handleResize)
-    this.isSidebarResizing = false
-  },
-  computed: {
-    /**
-     * 処理名: サイドバースタイル取得
-     * 処理概要: テンプレートへバインドするサイドバー幅 style を返す
-     * 実装理由: 幅変更をリアクティブに DOM へ反映するため
-     * @returns {{ width: string, flex: string }} style オブジェクト
-     */
-    sidebarStyle() {
-      if (!this.isSidebarVisible) {
-        return {
-          width: '44px',
-          flex: '0 0 44px'
-        }
-      }
-      const px = `${this.sidebarWidth}px`
-      return { width: px, flex: `0 0 ${px}` }
-    },
-    /**
-     * 処理名: サイドバー切替ラベル取得
-     * 処理概要: サイドバー表示状態に応じた aria-label を返す
-     * 実装理由: フッタートグルボタンのアクセシビリティを確保するため
-     * @returns {string} 切替ボタンの aria-label
-     */
-    sidebarToggleLabel() {
-      return this.isSidebarVisible ? 'hide sidebar' : 'show sidebar'
-    },
-    /**
-     * 処理名: ファイルリスト取得
-     * 処理概要: ストアから最新のノートリストを返す
-     * 実装理由: ストアの状態をサイドバーリストに反映するため
-     * @returns {Array} ノートリスト
-     */
-    fileList() {
-      return this.$store.getters.refreshFileList
     }
   }
 }

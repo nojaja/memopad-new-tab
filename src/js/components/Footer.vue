@@ -1,15 +1,18 @@
 <template>
-  <div class="footer" :style="{ backgroundColor: backgroundColor }">
-    <slot></slot>
+  <div
+    class="footer"
+    :style="{ backgroundColor: backgroundColor }"
+  >
+    <slot />
   </div>
 </template>
 
 <script>
 
 export default {
+  name: 'AppFooter',
   components: {
   },
-  name: 'AppFooter',
   props: {
     backgroundColor: {
       type: String,

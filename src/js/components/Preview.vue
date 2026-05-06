@@ -1,5 +1,11 @@
 <template>
-  <div class="preview"><iframe ref="childFrame" id="child-frame" class="preview"></iframe></div>
+  <div class="preview">
+    <iframe
+      id="child-frame"
+      ref="childFrame"
+      class="preview"
+    />
+  </div>
 </template>
 
 <script>
@@ -127,26 +133,6 @@ function handleIframeScrollEvent() {
 
 export default {
   name: 'MarkdownPreview',
-  emits: ['previewScroll', 'previewFocus', 'previewBlur'],
-  /**
-   * 処理名: コンポーネントデータ初期化
-   * 処理概要: preview 同期と iframe イベント管理に必要な状態を初期化する
-   * 実装理由: 描画・スクロール同期・イベント解除を一元管理するため
-   * @returns {object} 初期データ
-   */
-  data() {
-    return {
-      parserCacheKey: '',
-      parser: null,
-      hasIframeLoaded: false,
-      isSyncingScroll: false,
-      scrollEventPending: false,
-      cachedLineElements: [],
-      cachedLinePositions: [],
-      onIframeLoad: null,
-      onIframeScroll: null
-    }
-  },
   props: {
     autoUpdate: {
       type: Boolean,
@@ -186,6 +172,26 @@ export default {
       })
     }
   },
+  emits: ['previewScroll', 'previewFocus', 'previewBlur'],
+  /**
+   * 処理名: コンポーネントデータ初期化
+   * 処理概要: preview 同期と iframe イベント管理に必要な状態を初期化する
+   * 実装理由: 描画・スクロール同期・イベント解除を一元管理するため
+   * @returns {object} 初期データ
+   */
+  data() {
+    return {
+      parserCacheKey: '',
+      parser: null,
+      hasIframeLoaded: false,
+      isSyncingScroll: false,
+      scrollEventPending: false,
+      cachedLineElements: [],
+      cachedLinePositions: [],
+      onIframeLoad: null,
+      onIframeScroll: null
+    }
+  },
   computed: {
     /**
      * 処理名: コンパイル済みMarkdown取得
@@ -196,6 +202,33 @@ export default {
     compiledMarkdown() {
       const content = this.autoUpdate ? this.renderMarkdown() : ''
       return this.buildIframeDocument(content)
+    }
+  },
+  watch: {
+    /**
+     * 処理名: ソース変更ウォッチャー
+     * 処理概要: source 変更時に表示内容を再描画し同位置へ復元する
+     * 実装理由: 編集中の視点を維持したまま preview を更新するため
+     * @returns {void} なし
+     */
+    source() {
+      if (!this.hasIframeLoaded) return
+      const currentLine = this.getVisibleSourceLine()
+      this.updateIframeContent(currentLine)
+    },
+    config: {
+      deep: true,
+      /**
+       * 処理名: 設定変更ウォッチャー
+       * 処理概要: markdown 設定変更時に再描画し同位置へ復元する
+       * 実装理由: 設定変更を即時 preview に反映するため
+       * @returns {void} なし
+       */
+      handler() {
+        if (!this.hasIframeLoaded) return
+        const currentLine = this.getVisibleSourceLine()
+        this.updateIframeContent(currentLine)
+      }
     }
   },
   /**
@@ -240,33 +273,6 @@ export default {
     this.removeListener(iframe, 'pointerdown', this.onIframeActivate)
     this.removeListener(iframe.contentDocument, 'pointerdown', this.onIframeActivate)
     this.removeListener(iframe.contentWindow, 'scroll', this.onIframeScroll)
-  },
-  watch: {
-    /**
-     * 処理名: ソース変更ウォッチャー
-     * 処理概要: source 変更時に表示内容を再描画し同位置へ復元する
-     * 実装理由: 編集中の視点を維持したまま preview を更新するため
-     * @returns {void} なし
-     */
-    source() {
-      if (!this.hasIframeLoaded) return
-      const currentLine = this.getVisibleSourceLine()
-      this.updateIframeContent(currentLine)
-    },
-    config: {
-      deep: true,
-      /**
-       * 処理名: 設定変更ウォッチャー
-       * 処理概要: markdown 設定変更時に再描画し同位置へ復元する
-       * 実装理由: 設定変更を即時 preview に反映するため
-       * @returns {void} なし
-       */
-      handler() {
-        if (!this.hasIframeLoaded) return
-        const currentLine = this.getVisibleSourceLine()
-        this.updateIframeContent(currentLine)
-      }
-    }
   },
   methods: {
     /**
