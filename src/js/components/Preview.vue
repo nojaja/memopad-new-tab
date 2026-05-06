@@ -510,11 +510,13 @@ export default {
       const env = {}
       const mermaidBlocks = []
       let defaultFence
+      let hasOverriddenFence = false
       let mermaidInstance = null
 
       if (this.config.mermaid) {
         mermaidInstance = await this.initializeMermaid()
         defaultFence = this.overrideMermaidFence(mdInstance, mermaidBlocks)
+        hasOverriddenFence = true
       }
 
       try {
@@ -527,7 +529,9 @@ export default {
         html = await this.renderMermaidBlocks(html, mermaidBlocks, mermaidInstance)
         return html
       } finally {
-        mdInstance.renderer.rules.fence = defaultFence
+        if (hasOverriddenFence) {
+          mdInstance.renderer.rules.fence = defaultFence
+        }
       }
     },
     /**

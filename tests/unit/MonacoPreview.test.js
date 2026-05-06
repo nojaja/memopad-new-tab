@@ -259,6 +259,22 @@ describe('Preview.vue メソッドテスト', () => {
     expect(compiled).toContain('mermaid')
   })
 
+  test('config.mermaid false のとき連続レンダリングでもコードブロックが壊れない', async () => {
+    wrapper = shallowMount(Preview, {
+      props: {
+        source: '```mermaid\ngraph TD\n  A --> B\n```',
+        config: defaultConfig
+      }
+    })
+
+    const firstHtml = await wrapper.vm.renderMarkdown()
+    const secondHtml = await wrapper.vm.renderMarkdown()
+
+    expect(firstHtml).toContain('<pre><code class="language-mermaid">')
+    expect(secondHtml).toContain('<pre><code class="language-mermaid">')
+    expect(secondHtml).toContain('</code></pre>')
+  })
+
   test('renderMarkdown に data-source-line 属性が埋め込まれる', async () => {
     wrapper = shallowMount(Preview, { props: { source: '# 見出し\n\n本文', config: defaultConfig } })
     const html = await wrapper.vm.renderMarkdown()
