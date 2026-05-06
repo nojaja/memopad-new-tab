@@ -7,7 +7,10 @@
 ***/
 <template>
   <div>
-  <input type="file" id="filePicker">
+    <input
+      id="filePicker"
+      type="file"
+    >
   </div>
 </template>
 

@@ -1,5 +1,9 @@
 <template>
-  <div class="editor" @mouseenter="handleEditorMouseEnter" @mouseleave="handleEditorMouseLeave">
+  <div
+    class="editor"
+    @mouseenter="handleEditorMouseEnter"
+    @mouseleave="handleEditorMouseLeave"
+  >
     <CodeEditor
       ref="codeEditor"
       :value="source"
@@ -8,7 +12,7 @@
       :options="editorOptions"
       @change="handleChange"
       @update:value="handleChange"
-      @editorDidMount="handleEditorDidMount"
+      @editor-did-mount="handleEditorDidMount"
     />
   </div>
 </template>
@@ -91,6 +95,23 @@ export default {
       delete options.theme
       return options
     }
+  },
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: Monaco エディタインスタンスへの参照を解放する
+   * 実装理由: メモリリークを防ぐためエディタ参照をクリアするため
+   */
+  beforeUnmount() {
+    if (this.scrollDisposable && typeof this.scrollDisposable.dispose === 'function') {
+      this.scrollDisposable.dispose()
+    }
+    if (this.focusDisposable && typeof this.focusDisposable.dispose === 'function') {
+      this.focusDisposable.dispose()
+    }
+    if (this.blurDisposable && typeof this.blurDisposable.dispose === 'function') {
+      this.blurDisposable.dispose()
+    }
+    this.editor = null
   },
   methods: {
     /**
@@ -227,23 +248,6 @@ export default {
     handleEditorMouseLeave() {
       this.$emit('editorBlur')
     }
-  },
-  /**
-   * 処理名: アンマウント前クリーンアップ
-   * 処理概要: Monaco エディタインスタンスへの参照を解放する
-   * 実装理由: メモリリークを防ぐためエディタ参照をクリアするため
-   */
-  beforeUnmount() {
-    if (this.scrollDisposable && typeof this.scrollDisposable.dispose === 'function') {
-      this.scrollDisposable.dispose()
-    }
-    if (this.focusDisposable && typeof this.focusDisposable.dispose === 'function') {
-      this.focusDisposable.dispose()
-    }
-    if (this.blurDisposable && typeof this.blurDisposable.dispose === 'function') {
-      this.blurDisposable.dispose()
-    }
-    this.editor = null
   }
 }
 </script>
@@ -254,9 +258,9 @@ export default {
   height: 100%;
 }
 
-.editor :deep(.enable-motion),
-.editor :deep(.monaco-editor),
-.editor :deep(.overflow-guard) {
+.editor .enable-motion,
+.editor .monaco-editor,
+.editor .overflow-guard {
   height: 100% !important;
 }
 </style>

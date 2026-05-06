@@ -1,7 +1,16 @@
 <template>
   <div>
-    <select class="option" v-model="selectedInfo">
-      <option v-for="item in dataItems" :value="item.value" :key="item.key">{{item.name}}</option>
+    <select
+      v-model="selectedInfo"
+      class="option"
+    >
+      <option
+        v-for="item in dataItems"
+        :key="item.key"
+        :value="item.value"
+      >
+        {{ item.name }}
+      </option>
     </select>
   </div>
 </template>
@@ -10,29 +19,6 @@
 export default {
     name: 'FilterSelect',
   components: {
-  },
-  computed: {
-    selectedInfo: {
-      get: /**
-       * 処理名: 選択値ゲッター
-       * 処理概要: 現在の選択値を返す
-       * 実装理由: v-model の双方向バインディングのために算出プロパティを使用する
-       * @returns {string} 現在の選択値
-       */
-      function() {
-        return this.dataSelected
-      },
-      set: /**
-       * 処理名: 選択値セッター
-       * 処理概要: 新しい選択値を設定し onSelect コールバックを呼び出す
-       * 実装理由: 選択変更を親コンポーネントに通知するため
-       * @param {string} newValue - 新しい選択値
-       */
-      function(newValue) {
-        this.dataSelected = newValue
-        this.onSelect(newValue)
-      }
-    }
   },
   props: {
     selected: {
@@ -79,6 +65,29 @@ export default {
     return {
       dataSelected: this.selected,
       dataItems: [...(this.items || [])]
+    }
+  },
+  computed: {
+    selectedInfo: {
+      get: /**
+       * 処理名: 選択値ゲッター
+       * 処理概要: 現在の選択値を返す
+       * 実装理由: v-model の双方向バインディングのために算出プロパティを使用する
+       * @returns {string} 現在の選択値
+       */
+      function() {
+        return this.dataSelected
+      },
+      set: /**
+       * 処理名: 選択値セッター
+       * 処理概要: 新しい選択値を設定し onSelect コールバックを呼び出す
+       * 実装理由: 選択変更を親コンポーネントに通知するため
+       * @param {string} newValue - 新しい選択値
+       */
+      function(newValue) {
+        this.dataSelected = newValue
+        this.onSelect(newValue)
+      }
     }
   },
   methods: {

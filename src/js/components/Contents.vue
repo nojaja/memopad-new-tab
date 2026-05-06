@@ -1,14 +1,33 @@
 <template>
-  <div class="contents-wrapper" >
+  <div class="contents-wrapper">
     <div class="titleSection">
-      <input placeholder="Title" :value="title" @input="updateTitle">
+      <input
+        placeholder="Title"
+        :value="title"
+        @input="updateTitle"
+      >
     </div>
-    <SplitpanesWrapper ref="splitpanesWrapper" class="contents-main" :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
+    <SplitpanesWrapper
+      ref="splitpanesWrapper"
+      class="contents-main"
+      :hide-edit-pane="hideEditPane"
+      :hide-preview-pane="hidePreviewPane"
+      :source="source"
+      :config="config"
+    />
     <AppFooter>
-      <button @click="hideEditPane = false;hidePreviewPane=true"><UniconIcon name="edit"></UniconIcon></button>
-      <button @click="hideEditPane = false;hidePreviewPane=false"><UniconIcon name="columns"></UniconIcon></button>
-      <button @click="hideEditPane = true;hidePreviewPane=false"><UniconIcon name="eye"></UniconIcon></button>
-      <button @click="onDelete"><UniconIcon name="trash-alt"></UniconIcon></button>
+      <button @click="hideEditPane = false;hidePreviewPane=true">
+        <UniconIcon name="edit" />
+      </button>
+      <button @click="hideEditPane = false;hidePreviewPane=false">
+        <UniconIcon name="columns" />
+      </button>
+      <button @click="hideEditPane = true;hidePreviewPane=false">
+        <UniconIcon name="eye" />
+      </button>
+      <button @click="onDelete">
+        <UniconIcon name="trash-alt" />
+      </button>
     </AppFooter>
   </div>
 </template>
@@ -23,6 +42,20 @@ export default {
   components: {
     SplitpanesWrapper,
     AppFooter: Footer
+  },
+  /**
+   * 処理名: コンポーネントデータ初期化
+   * 処理概要: ペイン表示状態とウィンドウサイズの初期値を設定する
+   * 実装理由: スプリットペインの表示制御に必要な状態を管理するため
+   * @returns {{ hideEditPane: boolean, hidePreviewPane: boolean, width: number, height: number }} 初期データ
+   */
+  data() {
+    return {
+      hideEditPane: false,
+      hidePreviewPane: true,
+      width: window.innerWidth,
+      height: window.innerHeight
+    }
   },
   computed: {
     /**
@@ -81,18 +114,20 @@ export default {
     }
   },
   /**
-   * 処理名: コンポーネントデータ初期化
-   * 処理概要: ペイン表示状態とウィンドウサイズの初期値を設定する
-   * 実装理由: スプリットペインの表示制御に必要な状態を管理するため
-   * @returns {{ hideEditPane: boolean, hidePreviewPane: boolean, width: number, height: number }} 初期データ
+   * 処理名: マウント後初期化
+   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
+   * 実装理由: ウィンドウサイズ変更に追従するため
    */
-  data() {
-    return {
-      hideEditPane: false,
-      hidePreviewPane: true,
-      width: window.innerWidth,
-      height: window.innerHeight
-    }
+  mounted: function() {
+    window.addEventListener('resize', this.handleResize)
+  },
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
+   * 実装理由: メモリリークを防ぐため
+   */
+  beforeUnmount: function() {
+    window.removeEventListener('resize', this.handleResize)
   },
   methods: {
     /**
@@ -138,22 +173,6 @@ export default {
         () => {}
       })
     }
-  },
-  /**
-   * 処理名: マウント後初期化
-   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
-   * 実装理由: ウィンドウサイズ変更に追従するため
-   */
-  mounted: function() {
-    window.addEventListener('resize', this.handleResize)
-  },
-  /**
-   * 処理名: アンマウント前クリーンアップ
-   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
-   * 実装理由: メモリリークを防ぐため
-   */
-  beforeUnmount: function() {
-    window.removeEventListener('resize', this.handleResize)
   }
 }
 </script>

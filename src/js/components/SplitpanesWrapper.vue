@@ -1,13 +1,44 @@
 <template>
-  <SplitpanesLayout :class="{ 'splitter-dragging': isSplitterDragging, 'single-pane-mode': !isDualPaneMode }" @resize="handleResize">
-    <PaneSection min-size="0" :size="editPaneSize">
-      <div v-show="!hideEditPane" class="pane-body">
-          <MonacoEditor ref="monaco" :source="source" :onChange="onChange" @update:source="onChange" @editorScroll="handleEditorScroll" @editorFocus="handleEditorFocus" @editorBlur="handleEditorBlur" :config="config.editor"></MonacoEditor>
+  <SplitpanesLayout
+    :class="{ 'splitter-dragging': isSplitterDragging, 'single-pane-mode': !isDualPaneMode }"
+    @resize="handleResize"
+  >
+    <PaneSection
+      min-size="0"
+      :size="editPaneSize"
+    >
+      <div
+        v-show="!hideEditPane"
+        class="pane-body"
+      >
+        <MonacoEditor
+          ref="monaco"
+          :source="source"
+          :on-change="onChange"
+          :config="config.editor"
+          @update:source="onChange"
+          @editor-scroll="handleEditorScroll"
+          @editor-focus="handleEditorFocus"
+          @editor-blur="handleEditorBlur"
+        />
       </div>
     </PaneSection>
-    <PaneSection min-size="0" :size="previewPaneSize">
-      <div v-if="!hidePreviewPane" class="pane-body">
-        <MarkdownPreview ref="preview" :source="viewSource" :config="config.markdown" @previewScroll="handlePreviewScroll" @previewFocus="handlePreviewFocus" @previewBlur="handlePreviewBlur"></MarkdownPreview>
+    <PaneSection
+      min-size="0"
+      :size="previewPaneSize"
+    >
+      <div
+        v-if="!hidePreviewPane"
+        class="pane-body"
+      >
+        <MarkdownPreview
+          ref="preview"
+          :source="viewSource"
+          :config="config.markdown"
+          @preview-scroll="handlePreviewScroll"
+          @preview-focus="handlePreviewFocus"
+          @preview-blur="handlePreviewBlur"
+        />
       </div>
     </PaneSection>
   </SplitpanesLayout>
