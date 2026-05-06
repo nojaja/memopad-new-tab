@@ -1,14 +1,53 @@
 <template>
-  <div class="contents-wrapper" >
+  <div class="contents-wrapper">
     <div class="titleSection">
-      <input placeholder="Title" :value="title" @input="updateTitle">
+      <input
+        placeholder="Title"
+        :value="title"
+        @input="updateTitle"
+      >
     </div>
-    <SplitpanesWrapper class="contents-main" :hideEditPane="hideEditPane" :hidePreviewPane="hidePreviewPane" :source="source" :config="config"></SplitpanesWrapper>
+    <SplitpanesWrapper
+      ref="splitpanesWrapper"
+      class="contents-main"
+      :hide-edit-pane="hideEditPane"
+      :hide-preview-pane="hidePreviewPane"
+      :source="source"
+      :config="config"
+    />
     <AppFooter>
-      <button @click="hideEditPane = false;hidePreviewPane=true"><UniconIcon name="edit"></UniconIcon></button>
-      <button @click="hideEditPane = false;hidePreviewPane=false"><UniconIcon name="columns"></UniconIcon></button>
-      <button @click="hideEditPane = true;hidePreviewPane=false"><UniconIcon name="eye"></UniconIcon></button>
-      <button @click="onDelete"><UniconIcon name="trash-alt"></UniconIcon></button>
+      <button
+        type="button"
+        aria-label="show editor pane(F8)"
+        title="show editor pane(F8)"
+        @click="hideEditPane = false;hidePreviewPane=true"
+      >
+        <UniconIcon name="edit" />
+      </button>
+      <button
+        type="button"
+        aria-label="show editor and preview panes(F9)"
+        title="show editor and preview panes(F9)"
+        @click="hideEditPane = false;hidePreviewPane=false"
+      >
+        <UniconIcon name="columns" />
+      </button>
+      <button
+        type="button"
+        aria-label="show preview pane(F10)"
+        title="show preview pane(F10)"
+        @click="hideEditPane = true;hidePreviewPane=false"
+      >
+        <UniconIcon name="eye" />
+      </button>
+      <button
+        type="button"
+        aria-label="delete note"
+        title="delete note"
+        @click="onDelete"
+      >
+        <UniconIcon name="trash-alt" />
+      </button>
     </AppFooter>
   </div>
 </template>
@@ -23,6 +62,20 @@ export default {
   components: {
     SplitpanesWrapper,
     AppFooter: Footer
+  },
+  /**
+   * 処理名: コンポーネントデータ初期化
+   * 処理概要: ペイン表示状態とウィンドウサイズの初期値を設定する
+   * 実装理由: スプリットペインの表示制御に必要な状態を管理するため
+   * @returns {{ hideEditPane: boolean, hidePreviewPane: boolean, width: number, height: number }} 初期データ
+   */
+  data() {
+    return {
+      hideEditPane: false,
+      hidePreviewPane: true,
+      width: window.innerWidth,
+      height: window.innerHeight
+    }
   },
   computed: {
     /**
@@ -54,21 +107,47 @@ export default {
       if (!file) return ''
       if (typeof file.getDescription === 'function') return file.getDescription() || ''
       return file.description || ''
+    },
+    /**
+     * 処理名: 現在ファイルキー取得
+     * 処理概要: 現在表示中ファイルの projectName を返す
+     * 実装理由: ノート切り替えを監視してスクロール位置をリセットするため
+     * @returns {string} 現在ファイルのキー
+     */
+    currentFileKey() {
+      return this.$store.getters.currentFile?.projectName || ''
+    }
+  },
+  watch: {
+    /**
+     * 処理名: ファイル切替ウォッチャー
+     * 処理概要: ファイルキーが変わったときに先頭へスクロールする
+     * 実装理由: ノート切替時に前ノートのスクロール位置を引き継がないため
+     * @param {string} newKey - 変更後のファイルキー
+     * @param {string} oldKey - 変更前のファイルキー
+     * @returns {void} なし
+     */
+    currentFileKey(newKey, oldKey) {
+      if (newKey !== oldKey && this.$refs.splitpanesWrapper) {
+        this.$refs.splitpanesWrapper.scrollToTop()
+      }
     }
   },
   /**
-   * 処理名: コンポーネントデータ初期化
-   * 処理概要: ペイン表示状態とウィンドウサイズの初期値を設定する
-   * 実装理由: スプリットペインの表示制御に必要な状態を管理するため
-   * @returns {{ hideEditPane: boolean, hidePreviewPane: boolean, width: number, height: number }} 初期データ
+   * 処理名: マウント後初期化
+   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
+   * 実装理由: ウィンドウサイズ変更に追従するため
    */
-  data() {
-    return {
-      hideEditPane: false,
-      hidePreviewPane: true,
-      width: window.innerWidth,
-      height: window.innerHeight
-    }
+  mounted: function() {
+    window.addEventListener('resize', this.handleResize)
+  },
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
+   * 実装理由: メモリリークを防ぐため
+   */
+  beforeUnmount: function() {
+    window.removeEventListener('resize', this.handleResize)
   },
   methods: {
     /**
@@ -114,22 +193,6 @@ export default {
         () => {}
       })
     }
-  },
-  /**
-   * 処理名: マウント後初期化
-   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
-   * 実装理由: ウィンドウサイズ変更に追従するため
-   */
-  mounted: function() {
-    window.addEventListener('resize', this.handleResize)
-  },
-  /**
-   * 処理名: アンマウント前クリーンアップ
-   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
-   * 実装理由: メモリリークを防ぐため
-   */
-  beforeUnmount: function() {
-    window.removeEventListener('resize', this.handleResize)
   }
 }
 </script>
@@ -154,6 +217,9 @@ export default {
     width: 100%;
     border-width: 0px 0px 1px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.26);
+    box-shadow: 0 4px 6px -2px rgba(0, 0, 0, .08);
+    position: relative;
+    z-index: 10;
 }
 .titleSection input {
     font-size: 24px;

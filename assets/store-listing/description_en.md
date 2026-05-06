@@ -31,8 +31,33 @@ Your content is reflected in the preview pane as you type.
 See the final result right alongside your writing for a seamless note-taking experience.
 
 ---------
-[Latest Update (2026/05/04)]
+[Updates]
 
+v1.3.3 (2026/05/07)
+* Added idle timeout detection to Privacy Blur
+The screen will automatically blur after 5 minutes of inactivity, even while the window is focused. Click to instantly remove the blur.
+
+* Added hover tooltips and F8-F10 hotkey support for view toggle buttons
+Added descriptions to the edit/preview/column view toggle buttons and can now be controlled with F8, F9, and F10 keys.
+
+* Added export button to sidebar footer
+An export button is now permanently displayed at the bottom of the note list for easier backup.
+
+v1.3.0 (2026/05/07)
+* Mermaid diagram support
+You can now draw diagrams using Mermaid syntax — flowcharts, sequence diagrams, and more. Toggle it on or off in settings.
+
+v1.2.0 (2026/05/05)
+* Auto-reload when another tab updates your note
+When the same note is open in multiple tabs and updated elsewhere, it reloads automatically. If you are currently editing, a copy is created so you can continue without losing your work.
+
+* Improved sidebar usability
+Added a toggle button for the sidebar, and you can now switch between notes using the up/down arrow keys.
+
+* Added Unicode Highlight and Minimap editor settings
+New ON/OFF options for "Unicode Highlight (Ambiguous Characters)" and "Minimap" are now available in the editor settings.
+
+v1.1.5 (2026/05/04)
 * Updated internal libraries for improved security
 Internal libraries have been updated to their latest versions, enhancing overall security and stability.
 

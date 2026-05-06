@@ -1,6 +1,9 @@
 <template>
   <div class="TabListMenu">
-    <ul tabindex="0" class="TabList">
+    <ul
+      tabindex="0"
+      class="TabList"
+    >
       <li
         v-for="item in items"
         :key="item.uri"

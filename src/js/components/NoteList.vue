@@ -1,20 +1,51 @@
 <template>
-  <div class="noteListMenu">
-    <div class="newNote" @click="onNew">+New</div>
-    <ul tabindex="0" class="noteList">
+  <div
+    class="noteListMenu"
+    @keydown="handleSidebarKeydown"
+  >
+    <div
+      class="newNote"
+      @click="onNew"
+    >
+      +New
+    </div>
+    <ul
+      tabindex="0"
+      class="noteList"
+    >
       <li class="noteListItem-search">
         <div class="noteListItem-input">
-          <UniconIcon class="input-icon" name="search-alt"></UniconIcon>
+          <UniconIcon
+            class="input-icon"
+            name="search-alt"
+          />
           <div class="input-wrapper">
-            <input type="text" class="input" v-model="itemList.filter" />
+            <input
+              v-model="itemList.filter"
+              type="text"
+              class="input"
+            >
           </div>
         </div>
       </li>
-      <li class="noteListItem" v-for="item in items" :key="item.uri" v-bind:class="{ active: item.isActive }">
-        <div class="noteListItem-text" :data-uri="item.uri" @click="select(item.uri)">
+      <li
+        v-for="item in items"
+        :key="item.uri"
+        class="noteListItem"
+        :class="{ active: item.isActive }"
+      >
+        <div
+          class="noteListItem-text"
+          :data-uri="item.uri"
+          @click="select(item.uri)"
+        >
           <div class="container">
-            <div class="title">{{ displayTitle(item.name) }}</div>
-            <div class="lastUpdatedTime">{{ formatLastUpdatedTime(item.lastUpdatedTime) }}</div>
+            <div class="title">
+              {{ displayTitle(item.name) }}
+            </div>
+            <div class="lastUpdatedTime">
+              {{ formatLastUpdatedTime(item.lastUpdatedTime) }}
+            </div>
           </div>
         </div>
       </li>
@@ -26,17 +57,6 @@
 
 export default {
   components: {
-  },
-  computed: {
-    /**
-     * 処理名: アイテムリスト取得
-     * 処理概要: ストアから検索フィルター状態を含むアイテムリストを返す
-     * 実装理由: フィルター状態をストアで集中管理するため
-     * @returns {object} フィルター情報を含むアイテムリスト
-     */
-    itemList() {
-      return this.$store.getters.itemList
-    }
   },
   props: {
     items: {
@@ -71,6 +91,17 @@ export default {
         function () { }
     }
   },
+  computed: {
+    /**
+     * 処理名: アイテムリスト取得
+     * 処理概要: ストアから検索フィルター状態を含むアイテムリストを返す
+     * 実装理由: フィルター状態をストアで集中管理するため
+     * @returns {object} フィルター情報を含むアイテムリスト
+     */
+    itemList() {
+      return this.$store.getters.itemList
+    }
+  },
   methods: {
     /**
      * 処理名: アイテム選択
@@ -80,6 +111,54 @@ export default {
      */
     select: function (uri) {
       this.onSelect(uri)
+    },
+    /**
+     * 処理名: サイドバーキーダウン処理
+     * 処理概要: サイドバーで上下キー押下時に前後のノートへ選択を移動する
+     * 実装理由: キーボード操作でノート切り替えを可能にし操作性を向上させるため
+     * @param {KeyboardEvent} event - キーボードイベント
+     */
+    handleSidebarKeydown: function (event) {
+      if (!event || (event.key !== 'ArrowUp' && event.key !== 'ArrowDown')) return
+      if (this.shouldIgnoreKeyboardTarget(event.target)) return
+
+      const nextIndex = this.getNextSelectionIndex(event.key)
+      if (nextIndex < 0 || nextIndex >= this.items.length) return
+
+      event.preventDefault()
+      this.select(this.items[nextIndex].uri)
+    },
+    /**
+     * 処理名: キーボード対象除外判定
+     * 処理概要: 入力要素上のカーソル操作を邪魔しないよう対象要素を判定する
+     * 実装理由: 検索入力中の上下キーをノート切替に奪わないため
+     * @param {EventTarget|null} target - イベント発生要素
+     * @returns {boolean} 除外対象なら true
+     */
+    shouldIgnoreKeyboardTarget: function (target) {
+      if (!target || !(target instanceof HTMLElement)) return false
+      const tagName = target.tagName
+      if (tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') return true
+      return target.isContentEditable
+    },
+    /**
+     * 処理名: 次選択インデックス算出
+     * 処理概要: 現在のアクティブノートと押下キーから次に選択するインデックスを返す
+     * 実装理由: 上下キーでの選択移動ロジックを単純化して再利用可能にするため
+     * @param {string} key - 押下キー
+     * @returns {number} 次に選択するインデックス
+     */
+    getNextSelectionIndex: function (key) {
+      if (!Array.isArray(this.items) || this.items.length === 0) return -1
+
+      const activeIndex = this.items.findIndex((item) => item && item.isActive)
+      if (activeIndex === -1) {
+        return key === 'ArrowDown' ? 0 : this.items.length - 1
+      }
+      if (key === 'ArrowDown') {
+        return Math.min(this.items.length - 1, activeIndex + 1)
+      }
+      return Math.max(0, activeIndex - 1)
     },
     /**
      * 処理名: タイトル整形
@@ -150,6 +229,7 @@ export default {
   background: white;
   z-index: 10;
   box-sizing: border-box;
+  box-shadow: 0 4px 6px -2px rgba(0, 0, 0, .08);
 }
 
 .newNote,
@@ -174,7 +254,7 @@ export default {
 .newNote:hover,
 .noteListItem:hover {
   opacity: 1;
-  background-color: rgba(0, 0, 0, .01);
+  background-color: #FCFCFC;
 }
 
 .noteListItem.active {

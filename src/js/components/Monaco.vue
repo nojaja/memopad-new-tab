@@ -1,5 +1,9 @@
 <template>
-  <div class="editor">
+  <div
+    class="editor"
+    @mouseenter="handleEditorMouseEnter"
+    @mouseleave="handleEditorMouseLeave"
+  >
     <CodeEditor
       ref="codeEditor"
       :value="source"
@@ -8,7 +12,7 @@
       :options="editorOptions"
       @change="handleChange"
       @update:value="handleChange"
-      @editorDidMount="handleEditorDidMount"
+      @editor-did-mount="handleEditorDidMount"
     />
   </div>
 </template>
@@ -57,7 +61,7 @@ export default {
       function(value) { console.log(value) }
     }
   },
-  emits: ['update:source'],
+  emits: ['update:source', 'editorScroll', 'editorFocus', 'editorBlur'],
   /**
    * 処理名: コンポーネントデータ初期化
    * 処理概要: Monaco エディタインスタンスの初期値を設定する
@@ -66,7 +70,8 @@ export default {
    */
   data() {
     return {
-      editor: null
+      editor: null,
+      isProgrammaticScroll: false
     }
   },
   computed: {
@@ -91,6 +96,23 @@ export default {
       return options
     }
   },
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: Monaco エディタインスタンスへの参照を解放する
+   * 実装理由: メモリリークを防ぐためエディタ参照をクリアするため
+   */
+  beforeUnmount() {
+    if (this.scrollDisposable && typeof this.scrollDisposable.dispose === 'function') {
+      this.scrollDisposable.dispose()
+    }
+    if (this.focusDisposable && typeof this.focusDisposable.dispose === 'function') {
+      this.focusDisposable.dispose()
+    }
+    if (this.blurDisposable && typeof this.blurDisposable.dispose === 'function') {
+      this.blurDisposable.dispose()
+    }
+    this.editor = null
+  },
   methods: {
     /**
      * 処理名: エディタマウント後処理
@@ -101,6 +123,37 @@ export default {
     handleEditorDidMount(editor) {
       this.editor = editor
       registerCompletions()
+
+      if (typeof editor.onDidScrollChange === 'function') {
+        this.scrollDisposable = editor.onDidScrollChange(() => {
+          if (this.isProgrammaticScroll) return
+          let lineNumber = 1
+          if (typeof editor.getVisibleRanges === 'function') {
+            const ranges = editor.getVisibleRanges()
+            if (Array.isArray(ranges) && ranges.length > 0 && ranges[0]?.startLineNumber) {
+              lineNumber = ranges[0].startLineNumber
+            }
+          } else if (typeof editor.getPosition === 'function') {
+            const position = editor.getPosition()
+            if (position && position.lineNumber) {
+              lineNumber = position.lineNumber
+            }
+          }
+          this.$emit('editorScroll', lineNumber)
+        })
+      }
+
+      if (typeof editor.onDidFocusEditorText === 'function') {
+        this.focusDisposable = editor.onDidFocusEditorText(() => {
+          this.$emit('editorFocus')
+        })
+      }
+
+      if (typeof editor.onDidBlurEditorText === 'function') {
+        this.blurDisposable = editor.onDidBlurEditorText(() => {
+          this.$emit('editorBlur')
+        })
+      }
     },
     /**
      * 処理名: エディタ変更ハンドラ
@@ -123,15 +176,78 @@ export default {
       if (this.editor) {
         this.editor.layout()
       }
+    },
+    /**
+     * 処理名: 先頭スクロール
+     * 処理概要: Monaco エディタを先頭行へスクロールする
+     * 実装理由: ノート切替時に先頭表示へ戻すため
+     * @returns {void} なし
+     */
+    scrollToTop() {
+      if (this.editor) {
+        this.editor.setScrollTop(0)
+      }
+    },
+    /**
+     * 処理名: 行スクロール
+     * 処理概要: 指定行が表示されるよう Monaco エディタをスクロールする
+     * 実装理由: preview と editor のスクロール同期を実現するため
+     * @param {number|string} line - 表示対象の行番号
+     * @returns {void} なし
+     */
+    scrollToSourceLine(line) {
+      if (!this.editor) return
+      const lineNumber = Number(line) || 1
+      this.isProgrammaticScroll = true
+      if (typeof this.editor.revealLineInCenter === 'function') {
+        this.editor.revealLineInCenter(lineNumber)
+      } else if (typeof this.editor.revealLineNearTop === 'function') {
+        this.editor.revealLineNearTop(lineNumber)
+      } else if (typeof this.editor.getTopForLineNumber === 'function' && typeof this.editor.setScrollTop === 'function') {
+        const top = this.editor.getTopForLineNumber(lineNumber)
+        this.editor.setScrollTop(top)
+      }
+      // Monaco 側の scroll イベント処理が完了した次フレームで解除する
+      requestAnimationFrame(() => {
+        this.isProgrammaticScroll = false
+      })
+    },
+    /**
+     * 処理名: 比率スクロール
+     * 処理概要: スクロール比率から Monaco エディタの位置を設定する
+     * 実装理由: pane 間の比率同期を行うため
+     * @param {number} ratio - 0.0-1.0 のスクロール比率
+     * @returns {void} なし
+     */
+    scrollToRatio(ratio) {
+      if (!this.editor) return
+      const scrollHeight = this.editor.getScrollHeight()
+      const clientHeight = this.editor.getDomNode()?.clientHeight || 1
+      const top = ratio * Math.max(0, scrollHeight - clientHeight)
+      this.isProgrammaticScroll = true
+      this.editor.setScrollTop(top)
+      requestAnimationFrame(() => {
+        this.isProgrammaticScroll = false
+      })
+    },
+    /**
+     * 処理名: エディタホバー開始
+     * 処理概要: マウス進入時にフォーカスイベントを親へ通知する
+     * 実装理由: アクティブペイン判定を正しく更新するため
+     * @returns {void} なし
+     */
+    handleEditorMouseEnter() {
+      this.$emit('editorFocus')
+    },
+    /**
+     * 処理名: エディタホバー終了
+     * 処理概要: マウス離脱時にブラーイベントを親へ通知する
+     * 実装理由: アクティブペイン判定を正しく解除するため
+     * @returns {void} なし
+     */
+    handleEditorMouseLeave() {
+      this.$emit('editorBlur')
     }
-  },
-  /**
-   * 処理名: アンマウント前クリーンアップ
-   * 処理概要: Monaco エディタインスタンスへの参照を解放する
-   * 実装理由: メモリリークを防ぐためエディタ参照をクリアするため
-   */
-  beforeUnmount() {
-    this.editor = null
   }
 }
 </script>
@@ -142,9 +258,9 @@ export default {
   height: 100%;
 }
 
-.editor :deep(.enable-motion),
-.editor :deep(.monaco-editor),
-.editor :deep(.overflow-guard) {
+.editor .enable-motion,
+.editor .monaco-editor,
+.editor .overflow-guard {
   height: 100% !important;
 }
 </style>

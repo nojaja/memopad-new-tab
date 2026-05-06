@@ -1,12 +1,22 @@
 <template>
   <div id="app">
-    <div v-if="isBlurred" class="privacy-blur-overlay"></div>
-    <MainContents></MainContents>
+    <div
+      v-if="isBlurred"
+      class="privacy-blur-overlay"
+      @click="handleOverlayClick"
+    />
+    <MainContents />
   </div>
 </template>
 
 <script>
 import MainContents from '@/components/MainContents.vue'
+
+const VIEW_MODE_BUTTON_SELECTORS = {
+  F8: '#app > div > div.wrapper > div.contents-wrapper > div.footer > button:nth-child(1)',
+  F9: '#app > div > div.wrapper > div.contents-wrapper > div.footer > button:nth-child(2)',
+  F10: '#app > div > div.wrapper > div.contents-wrapper > div.footer > button:nth-child(3)'
+}
 
 export default {
   name: 'MemoApp',
@@ -21,7 +31,8 @@ export default {
    */
   data() {
     return {
-      windowActive: true
+      windowActive: false,
+      idleTimer: null
     }
   },
   computed: {
@@ -53,6 +64,10 @@ export default {
     window.addEventListener('keydown', this.handleKeydown)
     window.addEventListener('blur', this.handleWindowBlur)
     window.addEventListener('focus', this.handleWindowFocus)
+    window.addEventListener('storage', this.handleStorageEvent)
+    window.addEventListener('mousemove', this.resetIdleTimer)
+    window.addEventListener('click', this.resetIdleTimer)
+    window.addEventListener('touchstart', this.resetIdleTimer)
   },
   /**
    * 処理名: アンマウント前クリーンアップ
@@ -63,6 +78,11 @@ export default {
     window.removeEventListener('keydown', this.handleKeydown)
     window.removeEventListener('blur', this.handleWindowBlur)
     window.removeEventListener('focus', this.handleWindowFocus)
+    window.removeEventListener('storage', this.handleStorageEvent)
+    window.removeEventListener('mousemove', this.resetIdleTimer)
+    window.removeEventListener('click', this.resetIdleTimer)
+    window.removeEventListener('touchstart', this.resetIdleTimer)
+    clearTimeout(this.idleTimer)
   },
   methods: {
     /**
@@ -72,24 +92,88 @@ export default {
      */
     handleWindowBlur() {
       this.windowActive = false
+      clearTimeout(this.idleTimer)
+      this.idleTimer = null
     },
     /**
      * 処理名: ウィンドウフォーカスハンドラ
-     * 処理概要: ウィンドウがアクティブになったときに windowActive を true にする
-     * 実装理由: プライバシーブラーを解除するため
+     * 処理概要: ウィンドウがアクティブになったときに windowActive を true にしてアイドルタイマーをリセットする
+     * 実装理由: プライバシーブラーを解除し、フォーカス後の無操作タイマーを開始するため
      */
     handleWindowFocus() {
       this.windowActive = true
+      this.resetIdleTimer()
+    },
+    /**
+     * 処理名: アイドルタイマーリセット
+     * 処理概要: 5分間操作がない場合に windowActive を false にするタイマーをリセットする
+     * 実装理由: フォーカス中でも長時間無操作の場合にブラーを発動するため
+     */
+    resetIdleTimer() {
+      clearTimeout(this.idleTimer)
+      this.idleTimer = setTimeout(() => {
+        this.windowActive = false
+      }, 5 * 60 * 1000)
+    },
+    /**
+     * 処理名: ブラーオーバーレイクリックハンドラ
+     * 処理概要: ブラー中にクリックされたとき windowActive を true にしてブラーを解除する
+     * 実装理由: クリック一発でブラーを解除できるようにするため
+     */
+    handleOverlayClick() {
+      this.windowActive = true
+      this.resetIdleTimer()
     },
     /**
      * 処理名: キーダウンハンドラ
-     * 処理概要: Ctrl+S キー押下時にプロジェクト保存を実行する
-     * 実装理由: ユーザーの習慣的なショートカットキーによる保存を提供するため
+     * 処理概要: Ctrl+S またはファンクションキー押下時に対応する操作を実行する
+     * 実装理由: 保存と表示モード切替をキーボードから素早く実行できるようにするため
      * @param {KeyboardEvent} e - キーボードイベント
      */
     handleKeydown(e) {
+      this.resetIdleTimer()
       if (e.ctrlKey && e.key === 's') {
         this.saveProject(e)
+        return
+      }
+      this.handleViewModeHotkey(e)
+    },
+    /**
+     * 処理名: 表示モードショートカット処理
+     * 処理概要: F8/F9/F10 押下時に contents footer の対応ボタンをクリックする
+     * 実装理由: 既存 UI の表示切替ボタンを再利用して挙動の一貫性を保つため
+     * @param {KeyboardEvent} e - キーボードイベント
+     */
+    handleViewModeHotkey(e) {
+      const selector = VIEW_MODE_BUTTON_SELECTORS[e.key]
+      if (!selector) return
+
+      const button = document.querySelector(selector)
+      if (!(button instanceof HTMLButtonElement)) return
+
+      e.preventDefault()
+      button.click()
+    },
+    /**
+     * 処理名: ストレージイベントハンドラ
+     * 処理概要: 他タブで localStorage が更新された場合に対応するストアアクションを呼び出す
+     * 実装理由: 他タブ編集の競合を検知し、自動リロードまたはコピー作成を行うため
+     * @param {StorageEvent} e - storage イベント
+     */
+    handleStorageEvent(e) {
+      if (!e || typeof e.key !== 'string') return
+      if (e.key === 'noteKeyList') {
+        this.$store.dispatch('loadNoteKeyList')
+        return
+      }
+
+      const currentProjectName = this.$store.getters.currentFile?.projectName
+      if (!currentProjectName || e.key !== currentProjectName) return
+
+      if (document.hasFocus && document.hasFocus()) {
+        this.$store.dispatch('duplicateCurrentProject')
+      } else {
+        this.$store.dispatch('loadProject', currentProjectName)
       }
     },
     /**
@@ -145,6 +229,6 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 99999;
-  pointer-events: none;
+  cursor: pointer;
 }
 </style>

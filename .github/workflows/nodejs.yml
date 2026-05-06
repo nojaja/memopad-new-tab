@@ -75,9 +75,36 @@ jobs:
             echo "ℹ️ バージョン差分はありません"
           fi
 
-  build:
-    needs: check-version
-    if: github.event_name == 'push' && needs.check-version.outputs.version_changed == 'true'
+  quality-gates:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run build
+        env:
+          CI: true
+
+      - run: npm run type-check
+      - run: npm run depcruise
+      - run: npm run cpd
+      - run: npm run test:ci
+      - run: npm run lint
+      - run: npm run docs
+
+  release-build:
+    needs: [check-version, quality-gates]
+    if: github.event_name == 'push' && needs.check-version.outputs.version_changed == 'true' && needs.quality-gates.result == 'success'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -101,8 +128,9 @@ jobs:
       - name: Zip Release
         uses: TheDoctor0/zip-release@v0.3.0
         with:
-          filename: 'extension.zip'
-          path: 'dist'
+          filename: '../extension.zip'
+          directory: 'dist'
+          path: '.'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -121,8 +149,8 @@ jobs:
           zip_file: 'extension.zip'
 
   create-tag:
-    needs: [check-version, build]
-    if: github.event_name == 'push' && needs.check-version.outputs.version_changed == 'true' && needs.build.result == 'success'
+    needs: [check-version, release-build]
+    if: github.event_name == 'push' && needs.check-version.outputs.version_changed == 'true' && needs.release-build.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

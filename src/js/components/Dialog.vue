@@ -1,24 +1,34 @@
 <template>
-  <transition name="dialog" @after-leave="afterLeave">
+  <transition
+    name="dialog"
+    @after-leave="afterLeave"
+  >
     <div v-show="isShow">
-      <div class="overlay">
-      </div>
+      <div class="overlay" />
       <div class="dialog">
         <div class="dialog__inner">
-          <h2 class="dialog__header">{{subject}}</h2>
+          <h2 class="dialog__header">
+            {{ subject }}
+          </h2>
           <div class="dialog__body">
-            {{message}}
+            {{ message }}
           </div>
           <div class="dialog__footer button-set">
             <button
               v-if="onSecondary"
               type="button"
               class="button button--base button--base-secondary"
-              @click.prevent="handleSecondary">キャンセル</button>
+              @click.prevent="handleSecondary"
+            >
+              キャンセル
+            </button>
             <button
               type="submit"
               class="button button--base button--base-primary"
-              @click.prevent="handlePrimary">OK</button>
+              @click.prevent="handlePrimary"
+            >
+              OK
+            </button>
           </div>
         </div>
       </div>
@@ -30,9 +40,18 @@
 export default {
     name: 'AppDialog',
   props: {
-    subject: String,
-    message: String,
-    onPrimary: Function,
+    subject: {
+      type: String,
+      default: ''
+    },
+    message: {
+      type: String,
+      default: ''
+    },
+    onPrimary: {
+      type: Function,
+      default: null
+    },
     onSecondary: {
       type: Function,
       default: null

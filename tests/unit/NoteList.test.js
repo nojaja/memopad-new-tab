@@ -70,4 +70,45 @@ describe('NoteList.vue メソッドテスト', () => {
     expect(wrapper.find('.lastUpdatedTime').text()).toBe(wrapper.vm.formatLastUpdatedTime(value))
     expect(wrapper.find('.lastUpdatedTime').text()).toMatch(/^\d{4}\/\d{2}\/\d{2} \d{2}:\d{2}$/)
   })
+
+  test('サイドバーフォーカス中に ArrowDown で次ノートへ切り替える', () => {
+    const onSelectMock = jest.fn()
+    const wrapper = shallowMount(NoteList, {
+      global: { plugins: [store], stubs: { unicon: true } },
+      props: {
+        onSelect: onSelectMock,
+        items: [
+          { uri: 'note_1', name: '1', isActive: true },
+          { uri: 'note_2', name: '2', isActive: false }
+        ]
+      }
+    })
+
+    const preventDefault = jest.fn()
+    wrapper.vm.handleSidebarKeydown({ key: 'ArrowDown', target: null, preventDefault })
+
+    expect(preventDefault).toHaveBeenCalled()
+    expect(onSelectMock).toHaveBeenCalledWith('note_2')
+  })
+
+  test('検索入力中の ArrowDown ではノート切り替えしない', () => {
+    const onSelectMock = jest.fn()
+    const wrapper = shallowMount(NoteList, {
+      global: { plugins: [store], stubs: { unicon: true } },
+      props: {
+        onSelect: onSelectMock,
+        items: [
+          { uri: 'note_1', name: '1', isActive: true },
+          { uri: 'note_2', name: '2', isActive: false }
+        ]
+      }
+    })
+
+    const inputElement = document.createElement('input')
+    const preventDefault = jest.fn()
+    wrapper.vm.handleSidebarKeydown({ key: 'ArrowDown', target: inputElement, preventDefault })
+
+    expect(preventDefault).not.toHaveBeenCalled()
+    expect(onSelectMock).not.toHaveBeenCalled()
+  })
 })

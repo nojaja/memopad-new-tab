@@ -1,21 +1,59 @@
 <template>
   <div>
     <SlideMenu ref="slideMenu">
-      <SettingPage></SettingPage>
+      <SettingPage />
     </SlideMenu>
     <div class="wrapper">
-      <div class="sidebar" :style="sidebarStyle">
-        <NoteList :items="fileList" :onNew="newProject" :onSelect="loadProject"></NoteList>
-        <AppFooter backgroundColor="#fff" >
-          <div  @click="settingOpen"><UniconIcon name="setting" @click="settingOpen"></UniconIcon></div>
+      <div
+        class="sidebar"
+        :style="sidebarStyle"
+      >
+        <NoteList
+          v-show="isSidebarVisible"
+          :items="fileList"
+          :on-new="newProject"
+          :on-select="loadProject"
+        />
+        <AppFooter background-color="#fff">
+          <button
+            class="footer-button"
+            type="button"
+            :aria-label="sidebarToggleLabel"
+            :title="sidebarToggleLabel"
+            @click="toggleSidebar"
+          >
+            <UniconIcon name="gg:sidebar-open" />
+          </button>
+          <button
+            v-if="isSidebarVisible"
+            class="footer-button"
+            type="button"
+            aria-label="open settings"
+            title="open settings"
+            @click="settingOpen"
+          >
+            <UniconIcon name="setting" />
+          </button>
+          <button
+            v-if="isSidebarVisible"
+            class="footer-button"
+            :class="{ 'footer-button--export-attention': shouldBounceExportButton }"
+            type="button"
+            aria-label="export data"
+            title="export data"
+            @click="exportLocalStorageFromSidebar"
+          >
+            <UniconIcon name="tdesign:export" />
+          </button>
         </AppFooter>
       </div>
       <div
+        v-show="isSidebarVisible"
         class="splitpanes__splitter layout-splitter"
         @mousedown="startSidebarResize"
         @touchstart="startSidebarResize"
-      ></div>
-      <NoteContents></NoteContents>
+      />
+      <NoteContents />
     </div>
   </div>
 </template>
@@ -26,6 +64,9 @@ import Contents from '@/components/Contents.vue'
 import Footer from '@/components/Footer.vue'
 import SlideMenu from '@/components/SlideMenu.vue'
 import SettingPage from '@/components/SettingPage.vue'
+import { createExportData, saveAsLegacy } from '@/utils/exportData'
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
 export default {
   components: {
@@ -45,6 +86,7 @@ export default {
     return {
       width: window.innerWidth,
       height: window.innerHeight,
+      isSidebarVisible: true,
       sidebarWidth: 200,
       isSidebarResizing: false,
       items: [
@@ -54,6 +96,85 @@ export default {
         { name: 'Template - Weekly Planner', uri: 'note_1583338656495', isActive: false }
       ]
     }
+  },
+  computed: {
+    /**
+     * 処理名: サイドバースタイル取得
+     * 処理概要: テンプレートへバインドするサイドバー幅 style を返す
+     * 実装理由: 幅変更をリアクティブに DOM へ反映するため
+     * @returns {{ width: string, flex: string }} style オブジェクト
+     */
+    sidebarStyle() {
+      if (!this.isSidebarVisible) {
+        return {
+          width: '44px',
+          flex: '0 0 44px'
+        }
+      }
+      const px = `${this.sidebarWidth}px`
+      return { width: px, flex: `0 0 ${px}` }
+    },
+    /**
+     * 処理名: サイドバー切替ラベル取得
+     * 処理概要: サイドバー表示状態に応じた aria-label を返す
+     * 実装理由: フッタートグルボタンのアクセシビリティを確保するため
+     * @returns {string} 切替ボタンの aria-label
+     */
+    sidebarToggleLabel() {
+      return this.isSidebarVisible ? 'hide sidebar' : 'show sidebar'
+    },
+    /**
+     * 処理名: ファイルリスト取得
+     * 処理概要: ストアから最新のノートリストを返す
+     * 実装理由: ストアの状態をサイドバーリストに反映するため
+     * @returns {Array} ノートリスト
+     */
+    fileList() {
+      return this.$store.getters.refreshFileList
+    },
+    /**
+     * 処理名: 設定取得
+     * 処理概要: ストアから現在の設定を取得する
+     * 実装理由: Export 実行日時の更新とアニメーション条件判定に使用するため
+     * @returns {object} 設定オブジェクト
+     */
+    config() {
+      return this.$store.getters.config || {}
+    },
+    /**
+     * 処理名: Export ボタン強調判定
+     * 処理概要: 最終エクスポート日時が未設定または30日以上経過しているか判定する
+     * 実装理由: 定期バックアップを促すバウンド演出の表示条件を制御するため
+     * @returns {boolean} バウンド演出を表示する場合 true
+     */
+    shouldBounceExportButton() {
+      const last = this.config?.general?.lastExportDataAt
+      if (typeof last !== 'string' || !last) {
+        return true
+      }
+      const lastAtMs = Date.parse(last)
+      if (Number.isNaN(lastAtMs)) {
+        return true
+      }
+      return Date.now() - lastAtMs >= THIRTY_DAYS_MS
+    }
+  },
+  /**
+   * 処理名: マウント後初期化
+   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
+   * 実装理由: ウィンドウサイズ変更に追従するため
+   */
+  mounted: function() {
+    window.addEventListener('resize', this.handleResize)
+  },
+  /**
+   * 処理名: アンマウント前クリーンアップ
+   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
+   * 実装理由: メモリリークを防ぐため
+   */
+  beforeUnmount: function() {
+    window.removeEventListener('resize', this.handleResize)
+    this.isSidebarResizing = false
   },
   methods: {
     /**
@@ -75,6 +196,9 @@ export default {
      * @param {MouseEvent|TouchEvent} event - 開始イベント
      */
     startSidebarResize(event) {
+      if (!this.isSidebarVisible) {
+        return
+      }
       event.preventDefault()
       this.isSidebarResizing = true
 
@@ -151,44 +275,33 @@ export default {
      */
     settingOpen(e) {
       this.$refs.slideMenu.open(e)
-    }
-  },
-  /**
-   * 処理名: マウント後初期化
-   * 処理概要: ウィンドウリサイズイベントリスナーを登録する
-   * 実装理由: ウィンドウサイズ変更に追従するため
-   */
-  mounted: function() {
-    window.addEventListener('resize', this.handleResize)
-  },
-  /**
-   * 処理名: アンマウント前クリーンアップ
-   * 処理概要: マウント時に登録したリサイズイベントリスナーを解除する
-   * 実装理由: メモリリークを防ぐため
-   */
-  beforeUnmount: function() {
-    window.removeEventListener('resize', this.handleResize)
-    this.isSidebarResizing = false
-  },
-  computed: {
-    /**
-     * 処理名: サイドバースタイル取得
-     * 処理概要: テンプレートへバインドするサイドバー幅 style を返す
-     * 実装理由: 幅変更をリアクティブに DOM へ反映するため
-     * @returns {{ width: string, flex: string }} style オブジェクト
-     */
-    sidebarStyle() {
-      const px = `${this.sidebarWidth}px`
-      return { width: px, flex: `0 0 ${px}` }
     },
     /**
-     * 処理名: ファイルリスト取得
-     * 処理概要: ストアから最新のノートリストを返す
-     * 実装理由: ストアの状態をサイドバーリストに反映するため
-     * @returns {Array} ノートリスト
+     * 処理名: サイドバーからデータエクスポート
+     * 処理概要: sidebar footer ボタンから JSON ダウンロードを実行し最終実施日時を設定へ保存する
+     * 実装理由: Settings を開かずに即時バックアップできる導線を提供するため
      */
-    fileList() {
-      return this.$store.getters.refreshFileList
+    exportLocalStorageFromSidebar() {
+      localStorage.setItem('currentVersion', '0.0.1')
+      const { formattedJson, fileName, executedAt } = createExportData(localStorage, new Date())
+      saveAsLegacy(formattedJson, fileName, 'application/json')
+
+      const nextConfig = {
+        ...this.config,
+        general: {
+          ...(this.config.general || {}),
+          lastExportDataAt: executedAt
+        }
+      }
+      this.$store.dispatch('setConfig', nextConfig)
+    },
+    /**
+     * 処理名: サイドバー表示切替
+     * 処理概要: サイドバー本体と splitter の表示状態をトグルする
+     * 実装理由: フッターボタンから左ペインの表示/非表示を切り替えるため
+     */
+    toggleSidebar() {
+      this.isSidebarVisible = !this.isSidebarVisible
     }
   }
 }
@@ -209,6 +322,11 @@ export default {
   min-height: 0;
 }
 
+.sidebar > .footer {
+  margin-top: auto;
+  overflow: visible;
+}
+
 .layout-splitter {
   flex: none;
   width: 5px;
@@ -219,6 +337,77 @@ export default {
 .layout-splitter:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
+
+.footer-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.footer-button:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.footer-button:focus-visible {
+  outline: 2px solid #4f9bff;
+  outline-offset: 2px;
+}
+
+.footer-button--export-attention {
+  transform-origin: center bottom;
+  position: relative;
+  z-index: 2;
+  animation: dockBounce 2900ms cubic-bezier(0.2, 0.72, 0.25, 1) infinite;
+}
+
+.footer-button--export-attention:hover {
+  animation: none;
+  transform: translateY(0) scale(1, 1);
+}
+
+@keyframes dockBounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+
+  6% {
+    transform: translateY(8px) scale(0.92, 1.12);
+  }
+
+  12% {
+    transform: translateY(-60px) scale(1.14, 0.86);
+  }
+
+  18% {
+    transform: translateY(0) scale(0.9, 1.12);
+  }
+
+  23% {
+    transform: translateY(-30px) scale(1.08, 0.93);
+  }
+
+  28% {
+    transform: translateY(0) scale(0.95, 1.07);
+  }
+
+  32% {
+    transform: translateY(-14px) scale(1.04, 0.97);
+  }
+
+  36% {
+    transform: translateY(0) scale(1, 1);
+  }
+
+  64% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
 .blurIn {
     -webkit-animation: blurIn .3s ease both;
     animation: blurIn .3s ease both

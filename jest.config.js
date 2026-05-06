@@ -14,7 +14,7 @@ module.exports = {
     '^vue-i18n$': '<rootDir>/node_modules/vue-i18n/dist/vue-i18n.cjs.js'
   },
   setupFilesAfterEnv: ['<rootDir>/tests/unit/setup.js'],
-  testMatch: ['<rootDir>/tests/unit/**/*.test.(js|ts)'],
+  testMatch: ['<rootDir>/tests/unit/**/*.test.(js|ts)', '<rootDir>/tests/spec/**/*.test.(js|ts)'],
   testPathIgnorePatterns: ['/node_modules/'],
   transformIgnorePatterns: [
     '/node_modules/(?!(vue-i18n|@intlify|@vue)/)'

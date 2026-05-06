@@ -93,6 +93,7 @@ AI エージェント（GitHub Copilot / Claude / OpenAI Codex）に理解させ
 ## プロジェクト構成（期待形）
 
 ```
+
 プロジェクトフォルダ/
 ├─ docs/
 │  └─ typedoc-md/              # typedoc Markdown 出力
@@ -108,6 +109,7 @@ AI エージェント（GitHub Copilot / Claude / OpenAI Codex）に理解させ
 ├─ jest.coverage.config.js     # 任意: coverage 専用設定
 ├─ jest.e2e.config.js          # 任意: Jest を使う E2E 設定
 └─ typedoc.js                  # typedoc 設定
+
 ```
 
 ---
@@ -128,7 +130,7 @@ AI エージェント（GitHub Copilot / Claude / OpenAI Codex）に理解させ
 ## CI/品質ゲート要件
 
 1. `npm run test` が成功すること
-2. `npm run type-check` が型エラーなし（`tsc --noEmit`、esbuild/webpack 等でビルドする場合も必須）
+2. `npm run type-check` が型エラーなし（`tsc --noEmit`、esbuild/webpack/vite 等でビルドする場合も必須）
 3. `npm run lint` がエラーを出さないこと
 4. `npm run depcruise` が違反なし
 5. `npm run cpd` が重複コード検出なし（jscpd、min-lines 5 / min-tokens 50 / threshold 0）
@@ -261,6 +263,8 @@ function saveTasks(...) {}
 
 ### 最終ゲート
 - `npm run test` 成功
-- `npm run lint` エラーなし
-- `npm run build` 成功
-- `dist/index.bundle.js` が生成されていること
+* `npm run lint` エラーなし
+* `npm run build` 成功
+* `dist/index.bundle.js` が生成されていること
+
+---

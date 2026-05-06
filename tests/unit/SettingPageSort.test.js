@@ -13,7 +13,9 @@ function createStoreMock(configOverride = {}) {
       fontSize: 16,
       tabSize: 4,
       theme: 'vs',
-      automaticLayout: true
+      automaticLayout: true,
+      unicodeHighlight: { ambiguousCharacters: false },
+      minimap: { enabled: true }
     },
     markdown: {
       basicOption: {
@@ -103,6 +105,59 @@ describe('SettingPage.vue - General Sort', () => {
 
     expect(storeMock.dispatch).toHaveBeenCalledWith('setConfig', expect.objectContaining({
       general: expect.objectContaining({ sort: '2' })
+    }))
+  })
+})
+
+describe('SettingPage.vue - Markdown Mermaid setting', () => {
+  test('Markdown の設定画面に Mermaid チェックボックスが表示される', async () => {
+    const storeMock = createStoreMock()
+    const wrapper = mount(SettingPage, {
+      global: {
+        mocks: {
+          $store: storeMock
+        },
+        stubs: {
+          FileDownload: true,
+          DraggableList: true,
+          UniconIcon: true
+        }
+      }
+    })
+
+    await Promise.resolve()
+    await nextTick()
+
+    await wrapper.find('.TabListButton[data-uri="3"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.text()).toContain('Mermaid - Set ON to enable Mermaid')
+    expect(wrapper.text()).toContain('PlantUML - Set ON to enable PlantUML')
+  })
+
+  test('Mermaid 設定を変更すると setConfig が dispatch される', async () => {
+    const storeMock = createStoreMock()
+    const wrapper = mount(SettingPage, {
+      global: {
+        mocks: {
+          $store: storeMock
+        },
+        stubs: {
+          FileDownload: true,
+          DraggableList: true,
+          UniconIcon: true
+        }
+      }
+    })
+
+    await Promise.resolve()
+    await nextTick()
+
+    wrapper.vm.localConfig.markdown.mermaid = false
+    await nextTick()
+
+    expect(storeMock.dispatch).toHaveBeenCalledWith('setConfig', expect.objectContaining({
+      markdown: expect.objectContaining({ mermaid: false })
     }))
   })
 })
