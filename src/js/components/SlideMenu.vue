@@ -1,7 +1,14 @@
 <template>
   <div>
-    <div v-if="panelOpen" class="slide-overlay" @click="close"></div>
-    <div class="slide-panel" :class="{ 'slide-panel--open': panelOpen }">
+    <div
+      v-if="panelOpen"
+      class="slide-overlay"
+      @click="close"
+    />
+    <div
+      class="slide-panel"
+      :class="{ 'slide-panel--open': panelOpen }"
+    >
       <template v-if="panelOpen">
         <button
           type="button"
@@ -9,11 +16,11 @@
           aria-label="Close settings"
           @click="close"
         >
-          <span class="bm-cross bm-cross-a"></span>
-          <span class="bm-cross bm-cross-b"></span>
+          <span class="bm-cross bm-cross-a" />
+          <span class="bm-cross bm-cross-b" />
         </button>
         <div class="bm-item-list">
-          <slot></slot>
+          <slot />
         </div>
       </template>
     </div>

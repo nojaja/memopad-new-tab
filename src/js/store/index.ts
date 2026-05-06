@@ -9,7 +9,34 @@ import i18n from '../lang'
 
 // import Debug from '../Debug'
 
-let latestFileListCache: any[] = []
+/** ノートリストアイテム */
+interface ListItem {
+  name: string
+  uri: string
+  isActive: boolean
+  createdTime: number
+  lastUpdatedTime: number
+}
+
+/** Vuex ストアの currentFile エントリ型 */
+interface CurrentFileEntry {
+  filename?: string
+  projectName?: string
+}
+
+/** 正規化済みファイルエントリ */
+interface NormalizedFileEntry {
+  filename: string
+  fileType: string
+  type: string
+  language: string
+  size: number
+  truncated: boolean
+  content: string
+  description: string
+}
+
+let latestFileListCache: ListItem[] = []
 
 /** ストレージキー: ノートキーリスト */
 const STORAGE_KEY_NOTE_KEY_LIST = 'noteKeyList'
@@ -56,7 +83,18 @@ const defaultConfig = {
       headerless: true
     },
     multibyteconvert: false,
-    multibyteconvertList: (jmd as any).RegExpList || []
+    multibyteconvertList: (jmd as { RegExpList?: unknown[] }).RegExpList || []
+  }
+}
+
+/** normalizeConfig の入力用部分設定型 */
+type RawConfig = {
+  general?: Partial<typeof defaultConfig['general']>
+  editor?: Partial<typeof defaultConfig['editor']>
+  markdown?: Partial<typeof defaultConfig['markdown']> & {
+    basicOption?: Partial<typeof defaultConfig['markdown']['basicOption']>
+    multimdTableOption?: Partial<typeof defaultConfig['markdown']['multimdTableOption']>
+    multibyteconvertList?: unknown[]
   }
 }
 
@@ -64,10 +102,10 @@ const defaultConfig = {
  * 処理名: ロケール正規化
  * 処理概要: ロケール文字列を正規化してサポートされた値に変換する
  * 実装理由: 旧形式のロケール文字列や未サポートのロケールを安全に扱うため
- * @param {any} locale - 正規化対象のロケール文字列
+ * @param {unknown} locale - 正規化対象のロケール文字列
  * @returns {string} 正規化されたロケール（'en' または 'ja'）
  */
-function normalizeLocale(locale: any): string {
+function normalizeLocale(locale: unknown): string {
   if (locale === 'en-US') return 'en'
   if (locale === 'ja-JP') return 'ja'
   if (locale === 'en' || locale === 'ja') return locale
@@ -81,8 +119,8 @@ function normalizeLocale(locale: any): string {
  * @param {any} config - 正規化対象の設定オブジェクト
  * @returns {any} デフォルト値とマージされた正規化済み設定
  */
-function normalizeConfig(config: any): any {
-  const input = config || {}
+function normalizeConfig(config: unknown): typeof defaultConfig {
+  const input = (config || {}) as RawConfig
   const normalized = {
     ...defaultConfig,
     ...input,
@@ -112,7 +150,7 @@ function normalizeConfig(config: any): any {
   }
 
   normalized.general.i18n_locale = normalizeLocale(normalized.general.i18n_locale)
-  return normalized
+  return normalized as typeof defaultConfig
 }
 
 /**
@@ -123,12 +161,13 @@ function normalizeConfig(config: any): any {
  */
 function applyI18nLocale(locale: string) {
   const target = normalizeLocale(locale)
-  const globalLocale = (i18n.global as any).locale
+  const globalI18n = i18n.global as unknown as { locale: string | { value: string } }
+  const globalLocale = globalI18n.locale
   if (globalLocale && typeof globalLocale === 'object' && 'value' in globalLocale) {
-    globalLocale.value = target
+    (globalLocale as { value: string }).value = target
     return
   }
-  ;(i18n.global as any).locale = target
+  globalI18n.locale = target
 }
 
 /**
@@ -139,7 +178,7 @@ function applyI18nLocale(locale: string) {
  * @param {any} b - 比較先の設定オブジェクト
  * @returns {boolean} 等しい場合は true
  */
-function isSameConfig(a: any, b: any): boolean {
+function isSameConfig(a: unknown, b: unknown): boolean {
   try {
     return JSON.stringify(a) === JSON.stringify(b)
   } catch {
@@ -154,11 +193,12 @@ function isSameConfig(a: any, b: any): boolean {
  * @param {any} file - ファイルオブジェクト
  * @returns {string} ファイル名（取得不能の場合は空文字）
  */
-function getFileName(file: any): string {
-  if (!file) return ''
-  if (typeof file.name === 'string' && file.name) return file.name
-  if (typeof file.filename === 'string' && file.filename) return file.filename
-  if (typeof file.getFilename === 'function') return file.getFilename() || ''
+function getFileName(file: unknown): string {
+  if (!file || typeof file !== 'object') return ''
+  const f = file as Record<string, unknown>
+  if (typeof f.name === 'string' && f.name) return f.name
+  if (typeof f.filename === 'string' && f.filename) return f.filename
+  if (typeof f.getFilename === 'function') return (f.getFilename as () => string)() || ''
   return ''
 }
 
@@ -169,10 +209,11 @@ function getFileName(file: any): string {
  * @param {any} file - ファイルオブジェクト
  * @returns {string} ファイル内容（取得不能の場合は空文字）
  */
-function getFileContent(file: any): string {
-  if (!file) return ''
-  if (typeof file.getContent === 'function') return file.getContent() || ''
-  if (typeof file.content === 'string') return file.content
+function getFileContent(file: unknown): string {
+  if (!file || typeof file !== 'object') return ''
+  const f = file as Record<string, unknown>
+  if (typeof f.getContent === 'function') return (f.getContent as () => string)() || ''
+  if (typeof f.content === 'string') return f.content
   return ''
 }
 
@@ -183,11 +224,48 @@ function getFileContent(file: any): string {
  * @param {any} file - ファイルオブジェクト
  * @returns {string} ファイル説明（取得不能の場合は空文字）
  */
-function getFileDescription(file: any): string {
-  if (!file) return ''
-  if (typeof file.getDescription === 'function') return file.getDescription() || ''
-  if (typeof file.description === 'string') return file.description
+function getFileDescription(file: unknown): string {
+  if (!file || typeof file !== 'object') return ''
+  const f = file as Record<string, unknown>
+  if (typeof f.getDescription === 'function') return (f.getDescription as () => string)() || ''
+  if (typeof f.description === 'string') return f.description
   return ''
+}
+
+/**
+ * 処理名: ファイル説明設定
+ * 処理概要: FileData 互換オブジェクトへ説明文字列を設定する
+ * 実装理由: ライブラリ実装差異やテスト用スタブを吸収して安全に説明を更新するため
+ * @param {unknown} file - ファイルオブジェクト
+ * @param {string} description - 設定する説明文字列
+ * @returns {void} なし
+ */
+function setFileDescription(file: unknown, description: string): void {
+  if (!file || typeof file !== 'object') return
+  const target = file as Record<string, unknown>
+  if (typeof target.setDescription === 'function') {
+    ;(target.setDescription as (value: string) => void)(description)
+    return
+  }
+  target.description = description
+}
+
+/**
+ * 処理名: ファイル内容設定
+ * 処理概要: FileData 互換オブジェクトへ内容文字列を設定する
+ * 実装理由: ライブラリ実装差異やテスト用スタブを吸収して安全に内容を更新するため
+ * @param {unknown} file - ファイルオブジェクト
+ * @param {string} content - 設定する内容文字列
+ * @returns {void} なし
+ */
+function setFileContent(file: unknown, content: string): void {
+  if (!file || typeof file !== 'object') return
+  const target = file as Record<string, unknown>
+  if (typeof target.setContent === 'function') {
+    ;(target.setContent as (value: string) => void)(content)
+    return
+  }
+  target.content = content
 }
 
 /**
@@ -198,7 +276,7 @@ function getFileDescription(file: any): string {
  * @param {any} fallback - パース失敗時の代替値
  * @returns {any} パース結果またはフォールバック値
  */
-function parseJsonSafely(raw: string | null, fallback: any): any {
+function parseJsonSafely(raw: string | null, fallback: unknown): unknown {
   if (!raw) return fallback
   try {
     const parsed = JSON.parse(raw)
@@ -212,10 +290,12 @@ function parseJsonSafely(raw: string | null, fallback: any): any {
  * 処理名: 現在ファイル取得
  * 処理概要: ストア状態から現在開いているファイルオブジェクトを返す
  * 実装理由: 現在ファイルの取得ロジックを集約して重複を避けるため
- * @param {any} state - Vuex ストア状態
- * @returns {any|null} 現在のファイルオブジェクト（なければ null）
+ * @param state - Vuex ストア状態
+ * @param state.currentFile
+ * @param state.fileContainer
+ * @returns {FileData|null} 現在のファイルオブジェクト（なければ null）
  */
-function getCurrentFileFromState(state: any): any | null {
+function getCurrentFileFromState(state: { currentFile?: CurrentFileEntry; fileContainer?: FileContainer }): FileData | null {
   const filename = typeof state.currentFile?.filename === 'string' ? state.currentFile.filename : ''
   if (!filename) return null
   if (!state.fileContainer || typeof state.fileContainer.getFile !== 'function') return null
@@ -230,7 +310,7 @@ function getCurrentFileFromState(state: any): any | null {
  * @param {string} fallback - フォールバック文字列
  * @returns {string} 正規化された文字列
  */
-function pickString(value: any, fallback: string): string {
+function pickString(value: unknown, fallback: string): string {
   return typeof value === 'string' && value ? value : fallback
 }
 
@@ -242,7 +322,7 @@ function pickString(value: any, fallback: string): string {
  * @param {string} key - ファイルキー（ファイル名のフォールバックに使用）
  * @returns {Record<string, any>} 正規化されたファイルオブジェクト
  */
-function normalizeFileEntry(source: Record<string, any>, key: string): Record<string, any> {
+function normalizeFileEntry(source: Record<string, unknown>, key: string): NormalizedFileEntry {
   const filename = pickString(source.filename, key)
   return {
     filename,
@@ -263,11 +343,11 @@ function normalizeFileEntry(source: Record<string, any>, key: string): Record<st
  * @param {Record<string, any>} files - 正規化対象の files オブジェクト
  * @returns {Record<string, any>|null} 正規化済みファイルマップ（空の場合は null）
  */
-function normalizeFilesMap(files: Record<string, any>): Record<string, any> | null {
-  const result = Object.keys(files).reduce((acc: Record<string, any>, key) => {
+function normalizeFilesMap(files: Record<string, unknown>): Record<string, NormalizedFileEntry> | null {
+  const result = Object.keys(files).reduce((acc: Record<string, NormalizedFileEntry>, key) => {
     const source = files[key]
     if (!source || typeof source !== 'object') return acc
-    const entry = normalizeFileEntry(source as Record<string, any>, key)
+    const entry = normalizeFileEntry(source as Record<string, unknown>, key)
     acc[entry.filename] = entry
     return acc
   }, {})
@@ -283,7 +363,7 @@ function normalizeFilesMap(files: Record<string, any>): Record<string, any> | nu
  * @param {any} projectName - プロジェクト名
  * @returns {any} 復元後の id
  */
-function restoreProjectId(id: any, projectName: any): any {
+function restoreProjectId(id: unknown, projectName: unknown): unknown {
   if (id !== '') return id
   if (typeof projectName !== 'string') return id
   const match = projectName.match(/^note_(\d+)$/)
@@ -299,7 +379,7 @@ function restoreProjectId(id: any, projectName: any): any {
  * @param {Record<string, any>} parsed - パース済みプロジェクトオブジェクト
  * @returns {Record<string, any>} 正規化されたメタデータオブジェクト
  */
-function buildProjectMeta(parsed: Record<string, any>): Record<string, any> {
+function buildProjectMeta(parsed: Record<string, unknown>): Record<string, unknown> {
   const restoredId = restoreProjectId(parsed.id, parsed.projectName)
   return {
     v: typeof parsed.v === 'number' ? parsed.v : 0.1,
@@ -320,17 +400,18 @@ function buildProjectMeta(parsed: Record<string, any>): Record<string, any> {
  * @param {any} raw - ローカルストレージから取得した raw 値（文字列またはオブジェクト）
  * @returns {any|null} 正規化されたプロジェクトオブジェクト（変換不能の場合は null）
  */
-function normalizeStoredProject(raw: any): any | null {
+function normalizeStoredProject(raw: unknown): Record<string, unknown> | null {
   const parsed = typeof raw === 'string' ? parseJsonSafely(raw, null) : raw
   if (!parsed || typeof parsed !== 'object') return null
+  const parsedRecord = parsed as Record<string, unknown>
 
-  const files = parsed.files
+  const files = parsedRecord.files
   if (!files || typeof files !== 'object') return null
 
-  const normalizedFiles = normalizeFilesMap(files as Record<string, any>)
+  const normalizedFiles = normalizeFilesMap(files as Record<string, unknown>)
   if (!normalizedFiles) return null
 
-  return { ...buildProjectMeta(parsed as Record<string, any>), files: normalizedFiles }
+  return { ...buildProjectMeta(parsedRecord), files: normalizedFiles }
 }
 
 /**
@@ -340,12 +421,12 @@ function normalizeStoredProject(raw: any): any | null {
  * @param {any} raw - ローカルストレージから取得した raw 値
  * @returns {FileContainer|null} 生成した FileContainer（変換不能の場合は null）
  */
-function getProjectFromStorage(raw: any): FileContainer | null {
+function getProjectFromStorage(raw: unknown): FileContainer | null {
   const normalizedProject = normalizeStoredProject(raw)
   if (!normalizedProject) return null
 
   const container = new FileContainer()
-  const setContainerFn = (container as any)['setContainer']
+  const setContainerFn = (container as FileContainer & { setContainer?: (c: Record<string, unknown>) => void })['setContainer']
   if (typeof setContainerFn === 'function') {
     setContainerFn.call(container, normalizedProject)
   } else {
@@ -365,7 +446,7 @@ function getProjectFromStorage(raw: any): FileContainer | null {
  * @param {number} lastUpdatedTime - 最終更新日時（Unix ms）
  * @returns {object} リストアイテムオブジェクト
  */
-function makeListItemEntry(noteKey: string, isActive: boolean, label: string, createdTime: number, lastUpdatedTime: number): object {
+function makeListItemEntry(noteKey: string, isActive: boolean, label: string, createdTime: number, lastUpdatedTime: number): ListItem {
   return { name: label, uri: noteKey, isActive, createdTime, lastUpdatedTime }
 }
 
@@ -377,12 +458,13 @@ function makeListItemEntry(noteKey: string, isActive: boolean, label: string, cr
  * @param {string} noteKey - フォールバック用ノートキー
  * @returns {string} 表示用ラベル
  */
-function getFirstFileLabel(parsed: any, noteKey: string): string {
+function getFirstFileLabel(parsed: Record<string, unknown>, noteKey: string): string {
   const files = parsed.files
   if (!files || typeof files !== 'object') return noteKey
-  const fileKeys = Object.keys(files)
+  const filesMap = files as Record<string, unknown>
+  const fileKeys = Object.keys(filesMap)
   if (fileKeys.length === 0) return noteKey
-  const first = files[fileKeys[0]] || {}
+  const first = (filesMap[fileKeys[0]] || {}) as Record<string, unknown>
   const content = typeof first.content === 'string' ? first.content : ''
   const description = typeof first.description === 'string' ? first.description : ''
   return description || content.split('\n')[0] || noteKey
@@ -397,11 +479,12 @@ function getFirstFileLabel(parsed: any, noteKey: string): string {
  * @param {string} currentProjectName - 現在開いているプロジェクト名
  * @returns {object} リストアイテムオブジェクト
  */
-function getListItemNoFilter(raw: string, noteKey: string, currentProjectName: string): object {
-  const parsed = parseJsonSafely(raw, null)
-  if (!parsed || typeof parsed !== 'object') {
+function getListItemNoFilter(raw: string, noteKey: string, currentProjectName: string): ListItem {
+  const rawParsed = parseJsonSafely(raw, null)
+  if (!rawParsed || typeof rawParsed !== 'object') {
     return makeListItemEntry(noteKey, currentProjectName === noteKey, noteKey, 0, 0)
   }
+  const parsed = rawParsed as Record<string, unknown>
   const label = getFirstFileLabel(parsed, noteKey)
   return makeListItemEntry(
     noteKey,
@@ -422,13 +505,15 @@ function getListItemNoFilter(raw: string, noteKey: string, currentProjectName: s
  * @param {string} filter - フィルター文字列
  * @returns {object|null} リストアイテムオブジェクト（マッチしない場合は null）
  */
-function getListItemWithFilter(raw: string, noteKey: string, currentProjectName: string, filter: string): object | null {
-  const parsed = parseJsonSafely(raw, null)
-  if (!parsed || typeof parsed !== 'object') return null
+function getListItemWithFilter(raw: string, noteKey: string, currentProjectName: string, filter: string): ListItem | null {
+  const rawParsed = parseJsonSafely(raw, null)
+  if (!rawParsed || typeof rawParsed !== 'object') return null
+  const parsed = rawParsed as Record<string, unknown>
   if (!parsed.files || typeof parsed.files !== 'object') return null
-  const fileKeys = Object.keys(parsed.files)
+  const filesMap = parsed.files as Record<string, unknown>
+  const fileKeys = Object.keys(filesMap)
   if (fileKeys.length === 0) return null
-  const first = parsed.files[fileKeys[0]] || {}
+  const first = (filesMap[fileKeys[0]] || {}) as Record<string, unknown>
   const content = typeof first.content === 'string' ? first.content : ''
   if (content.indexOf(filter) === -1) return null
   const projectName = typeof parsed.projectName === 'string' ? parsed.projectName : ''
@@ -452,7 +537,7 @@ function getListItemWithFilter(raw: string, noteKey: string, currentProjectName:
  * @param {string} filter - フィルター文字列（空文字でフィルターなし）
  * @returns {object|null} リストアイテムオブジェクト（マッチしない場合は null）
  */
-function getListItemFromRaw(raw: string, noteKey: string, currentProjectName: string, filter: string): object | null {
+function getListItemFromRaw(raw: string, noteKey: string, currentProjectName: string, filter: string): ListItem | null {
   if (filter === '') {
     return getListItemNoFilter(raw, noteKey, currentProjectName)
   }
@@ -466,10 +551,10 @@ function getListItemFromRaw(raw: string, noteKey: string, currentProjectName: st
  * @param {any} list - 正規化対象のリスト
  * @returns {string[]} 正規化された重複排除済みノートキー配列
  */
-function sanitizeNoteKeyList(list: any): string[] {
+function sanitizeNoteKeyList(list: unknown): string[] {
   if (!Array.isArray(list)) return []
   const uniq = new Set<string>()
-  list.forEach((v: any) => {
+  list.forEach((v: unknown) => {
     if (typeof v !== 'string') return
     if (!v.startsWith(NOTE_PREFIX)) return
     uniq.add(v)
@@ -508,7 +593,7 @@ function findLatestReadableNoteName(noteKeyList: string[]): string {
    * @param {any} b - 比較先アイテム
    * @returns {number} 比較結果（-1 / 0 / 1）
    */
-function compareLastUpdatedDesc(a: any, b: any): number {
+function compareLastUpdatedDesc(a: ListItem, b: ListItem): number {
     if (a.lastUpdatedTime > b.lastUpdatedTime) return -1
     if (a.lastUpdatedTime < b.lastUpdatedTime) return 1
     return 0
@@ -522,7 +607,7 @@ function compareLastUpdatedDesc(a: any, b: any): number {
    * @param {any} b - 比較先アイテム
    * @returns {number} 比較結果（-1 / 0 / 1）
    */
-function compareLastUpdatedAsc(a: any, b: any): number {
+function compareLastUpdatedAsc(a: ListItem, b: ListItem): number {
     if (a.lastUpdatedTime < b.lastUpdatedTime) return -1
     if (a.lastUpdatedTime > b.lastUpdatedTime) return 1
     return 0
@@ -536,7 +621,7 @@ function compareLastUpdatedAsc(a: any, b: any): number {
    * @param {any} b - 比較先アイテム
    * @returns {number} 比較結果（-1 / 0 / 1）
    */
-function compareCreatedDesc(a: any, b: any): number {
+function compareCreatedDesc(a: ListItem, b: ListItem): number {
     if (a.createdTime > b.createdTime) return -1
     if (a.createdTime < b.createdTime) return 1
     return 0
@@ -550,7 +635,7 @@ function compareCreatedDesc(a: any, b: any): number {
    * @param {any} b - 比較先アイテム
    * @returns {number} 比較結果（-1 / 0 / 1）
    */
-function compareCreatedAsc(a: any, b: any): number {
+function compareCreatedAsc(a: ListItem, b: ListItem): number {
     if (a.createdTime < b.createdTime) return -1
     if (a.createdTime > b.createdTime) return 1
     return 0
@@ -563,7 +648,7 @@ function compareCreatedAsc(a: any, b: any): number {
    * @param {any[]} items - 並び替え対象のアイテム配列
    * @param {string} sort - ソート設定値（'0'〜'3'）
    */
-function applySortOrder(items: any[], sort: string): void {
+function applySortOrder(items: ListItem[], sort: string): void {
     if (sort === '0') items.sort(compareLastUpdatedDesc)
     else if (sort === '1') items.sort(compareLastUpdatedAsc)
     else if (sort === '2') items.sort(compareCreatedDesc)
@@ -574,13 +659,13 @@ function applySortOrder(items: any[], sort: string): void {
   devtools: false,
   state: {
     itemList: { filter: '' },
-    editor: null as any,
-    currentFile: {} as any,
+    editor: null as unknown,
+    currentFile: {} as CurrentFileEntry,
     currentModelId: 'source',
     sourceVersion: 0,
     fileContainer: markRaw(new FileContainer()),
     noteKeyList: sanitizeNoteKeyList(parseJsonSafely(localStorage.getItem(STORAGE_KEY_NOTE_KEY_LIST), [])) as string[],
-    config: normalizeConfig(parseJsonSafely(localStorage.getItem(STORAGE_KEY_CONFIG), null) as any),
+    config: normalizeConfig(parseJsonSafely(localStorage.getItem(STORAGE_KEY_CONFIG), null)),
     isImporting: false
   },
   getters: { // state の参照
@@ -644,7 +729,7 @@ function applySortOrder(items: any[], sort: string): void {
       if (state.isImporting) {
         return latestFileListCache
       }
-      const items: any[] = []
+      const items: ListItem[] = []
       const filter = state.itemList.filter || ''
       const projectName = state.currentFile.projectName
       for (const val of state.noteKeyList) {
@@ -683,11 +768,7 @@ function applySortOrder(items: any[], sort: string): void {
 
       const currentTitle = getFileDescription(currentFile)
       if (currentTitle === title) return
-      if (typeof currentFile.setDescription === 'function') {
-        currentFile.setDescription(title)
-      } else {
-        currentFile.description = title
-      }
+      setFileDescription(currentFile, title)
       state.fileContainer.putFile(currentFile)
       this.dispatch('saveProject')
     },
@@ -704,11 +785,7 @@ function applySortOrder(items: any[], sort: string): void {
 
       const currentContent = getFileContent(currentFile)
       if (currentContent === content) return
-      if (typeof currentFile.setContent === 'function') {
-        currentFile.setContent(content)
-      } else {
-        currentFile.content = content
-      }
+      setFileContent(currentFile, content)
       state.fileContainer.putFile(currentFile)
       state.sourceVersion += 1
       this.dispatch('saveProject')
@@ -753,7 +830,7 @@ function applySortOrder(items: any[], sort: string): void {
         return
       }
 
-      const setContainerFn = (state.fileContainer as any)['setContainer']
+      const setContainerFn = (state.fileContainer as FileContainer & { setContainer?: (c: Record<string, unknown>) => void })['setContainer']
       if (typeof setContainerFn === 'function') {
         setContainerFn.call(state.fileContainer, normalizedProject)
       } else {
@@ -1010,9 +1087,9 @@ function applySortOrder(items: any[], sort: string): void {
      * @param {string} noteName - 削除するノートキー
      */
     deleteNoteKeyList(context, noteName) {
-      (this as any).noteKeyList = ((this as any).noteKeyList as string[]).filter((v: string) => v !== noteName)// リストから対象を消して新しいリストにする
+      context.state.noteKeyList = context.state.noteKeyList.filter((v: string) => v !== noteName)// リストから対象を消して新しいリストにする
       const name = 'noteKeyList'
-      localStorage.setItem(name, JSON.stringify((this as any).noteKeyList))
+      localStorage.setItem(name, JSON.stringify(context.state.noteKeyList))
     },
     // プロジェクトの読み込み処理
     /**

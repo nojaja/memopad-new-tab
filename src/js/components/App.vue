@@ -1,7 +1,10 @@
 <template>
   <div id="app">
-    <div v-if="isBlurred" class="privacy-blur-overlay"></div>
-    <MainContents></MainContents>
+    <div
+      v-if="isBlurred"
+      class="privacy-blur-overlay"
+    />
+    <MainContents />
   </div>
 </template>
 

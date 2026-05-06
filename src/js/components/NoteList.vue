@@ -1,20 +1,51 @@
 <template>
-  <div class="noteListMenu" @keydown="handleSidebarKeydown">
-    <div class="newNote" @click="onNew">+New</div>
-    <ul tabindex="0" class="noteList">
+  <div
+    class="noteListMenu"
+    @keydown="handleSidebarKeydown"
+  >
+    <div
+      class="newNote"
+      @click="onNew"
+    >
+      +New
+    </div>
+    <ul
+      tabindex="0"
+      class="noteList"
+    >
       <li class="noteListItem-search">
         <div class="noteListItem-input">
-          <UniconIcon class="input-icon" name="search-alt"></UniconIcon>
+          <UniconIcon
+            class="input-icon"
+            name="search-alt"
+          />
           <div class="input-wrapper">
-            <input type="text" class="input" v-model="itemList.filter" />
+            <input
+              v-model="itemList.filter"
+              type="text"
+              class="input"
+            >
           </div>
         </div>
       </li>
-      <li class="noteListItem" v-for="item in items" :key="item.uri" v-bind:class="{ active: item.isActive }">
-        <div class="noteListItem-text" :data-uri="item.uri" @click="select(item.uri)">
+      <li
+        v-for="item in items"
+        :key="item.uri"
+        class="noteListItem"
+        :class="{ active: item.isActive }"
+      >
+        <div
+          class="noteListItem-text"
+          :data-uri="item.uri"
+          @click="select(item.uri)"
+        >
           <div class="container">
-            <div class="title">{{ displayTitle(item.name) }}</div>
-            <div class="lastUpdatedTime">{{ formatLastUpdatedTime(item.lastUpdatedTime) }}</div>
+            <div class="title">
+              {{ displayTitle(item.name) }}
+            </div>
+            <div class="lastUpdatedTime">
+              {{ formatLastUpdatedTime(item.lastUpdatedTime) }}
+            </div>
           </div>
         </div>
       </li>
@@ -26,17 +57,6 @@
 
 export default {
   components: {
-  },
-  computed: {
-    /**
-     * 処理名: アイテムリスト取得
-     * 処理概要: ストアから検索フィルター状態を含むアイテムリストを返す
-     * 実装理由: フィルター状態をストアで集中管理するため
-     * @returns {object} フィルター情報を含むアイテムリスト
-     */
-    itemList() {
-      return this.$store.getters.itemList
-    }
   },
   props: {
     items: {
@@ -69,6 +89,17 @@ export default {
        * 実装理由: prop が渡されなかった場合の安全なデフォルト実装
        */
         function () { }
+    }
+  },
+  computed: {
+    /**
+     * 処理名: アイテムリスト取得
+     * 処理概要: ストアから検索フィルター状態を含むアイテムリストを返す
+     * 実装理由: フィルター状態をストアで集中管理するため
+     * @returns {object} フィルター情報を含むアイテムリスト
+     */
+    itemList() {
+      return this.$store.getters.itemList
     }
   },
   methods: {
