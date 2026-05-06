@@ -11,9 +11,10 @@
         "lint": "cross-env ESLINT_USE_FLAT_CONFIG=true eslint src/js",
         "test:e2e": "cross-env NODE_OPTIONS=\"--openssl-legacy-provider\" playwright test",
         "type-check": "vue-tsc --noEmit",
-        "test:unit": "jest",
-        "test": "jest",
-        "test:ci": "jest --coverage",
+        "test:unit": "jest -c jest.unit.config.js",
+        "test:spec": "jest -c jest.spec.config.js",
+        "test": "jest -c jest.unit.config.js",
+        "test:ci": "jest -c jest.coverage.config.js --coverage",
         "depcruise": "depcruise src/js --config .dependency-cruiser.js",
         "cpd": "jscpd src/js --min-lines 5 --min-tokens 50 --threshold 0",
         "docs": "typedoc --options typedoc.js"

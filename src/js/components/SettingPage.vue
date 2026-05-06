@@ -66,6 +66,12 @@
           <label class="label">Minimap - Set ON to show the minimap on the right side of the editor.</label>
         </div>
 
+        <h3 class="h3">Editor to Preview Scroll Sync</h3>
+        <div>
+          <input type="checkbox" v-model="localConfig.editor.syncEditorToPreview" class="toggle-checkbox">
+          <label class="label">Editor to Preview Scroll Sync - Set ON to sync preview when editor scrolls.</label>
+        </div>
+
         <!--
         <h3 class="h3">Font Color</h3>
         <div>
@@ -181,6 +187,7 @@ export default {
         editor: {
           fontSize: 16,
           tabSize: 4,
+          syncEditorToPreview: false,
           unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
           minimap: { enabled: true }
         },
