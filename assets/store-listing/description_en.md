@@ -33,6 +33,16 @@ See the final result right alongside your writing for a seamless note-taking exp
 ---------
 [Updates]
 
+v1.3.3 (2026/05/07)
+* Added idle timeout detection to Privacy Blur
+The screen will automatically blur after 5 minutes of inactivity, even while the window is focused. Click to instantly remove the blur.
+
+* Added hover tooltips and F8-F10 hotkey support for view toggle buttons
+Added descriptions to the edit/preview/column view toggle buttons and can now be controlled with F8, F9, and F10 keys.
+
+* Added export button to sidebar footer
+An export button is now permanently displayed at the bottom of the note list for easier backup.
+
 v1.3.0 (2026/05/07)
 * Mermaid diagram support
 You can now draw diagrams using Mermaid syntax — flowcharts, sequence diagrams, and more. Toggle it on or off in settings.
