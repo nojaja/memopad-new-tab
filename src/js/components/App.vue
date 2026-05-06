@@ -11,6 +11,12 @@
 <script>
 import MainContents from '@/components/MainContents.vue'
 
+const VIEW_MODE_BUTTON_SELECTORS = {
+  F8: '#app > div > div.wrapper > div.contents-wrapper > div.footer > button:nth-child(1)',
+  F9: '#app > div > div.wrapper > div.contents-wrapper > div.footer > button:nth-child(2)',
+  F10: '#app > div > div.wrapper > div.contents-wrapper > div.footer > button:nth-child(3)'
+}
+
 export default {
   name: 'MemoApp',
   components: {
@@ -88,14 +94,32 @@ export default {
     },
     /**
      * 処理名: キーダウンハンドラ
-     * 処理概要: Ctrl+S キー押下時にプロジェクト保存を実行する
-     * 実装理由: ユーザーの習慣的なショートカットキーによる保存を提供するため
+     * 処理概要: Ctrl+S またはファンクションキー押下時に対応する操作を実行する
+     * 実装理由: 保存と表示モード切替をキーボードから素早く実行できるようにするため
      * @param {KeyboardEvent} e - キーボードイベント
      */
     handleKeydown(e) {
       if (e.ctrlKey && e.key === 's') {
         this.saveProject(e)
+        return
       }
+      this.handleViewModeHotkey(e)
+    },
+    /**
+     * 処理名: 表示モードショートカット処理
+     * 処理概要: F8/F9/F10 押下時に contents footer の対応ボタンをクリックする
+     * 実装理由: 既存 UI の表示切替ボタンを再利用して挙動の一貫性を保つため
+     * @param {KeyboardEvent} e - キーボードイベント
+     */
+    handleViewModeHotkey(e) {
+      const selector = VIEW_MODE_BUTTON_SELECTORS[e.key]
+      if (!selector) return
+
+      const button = document.querySelector(selector)
+      if (!(button instanceof HTMLButtonElement)) return
+
+      e.preventDefault()
+      button.click()
     },
     /**
      * 処理名: ストレージイベントハンドラ

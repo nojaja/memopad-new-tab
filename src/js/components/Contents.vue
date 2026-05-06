@@ -16,16 +16,36 @@
       :config="config"
     />
     <AppFooter>
-      <button @click="hideEditPane = false;hidePreviewPane=true">
+      <button
+        type="button"
+        aria-label="show editor pane(F8)"
+        title="show editor pane(F8)"
+        @click="hideEditPane = false;hidePreviewPane=true"
+      >
         <UniconIcon name="edit" />
       </button>
-      <button @click="hideEditPane = false;hidePreviewPane=false">
+      <button
+        type="button"
+        aria-label="show editor and preview panes(F9)"
+        title="show editor and preview panes(F9)"
+        @click="hideEditPane = false;hidePreviewPane=false"
+      >
         <UniconIcon name="columns" />
       </button>
-      <button @click="hideEditPane = true;hidePreviewPane=false">
+      <button
+        type="button"
+        aria-label="show preview pane(F10)"
+        title="show preview pane(F10)"
+        @click="hideEditPane = true;hidePreviewPane=false"
+      >
         <UniconIcon name="eye" />
       </button>
-      <button @click="onDelete">
+      <button
+        type="button"
+        aria-label="delete note"
+        title="delete note"
+        @click="onDelete"
+      >
         <UniconIcon name="trash-alt" />
       </button>
     </AppFooter>
