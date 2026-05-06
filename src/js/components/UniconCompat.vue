@@ -23,6 +23,8 @@ import uilBars from '@iconify-icons/uil/bars'
 import uilTimes from '@iconify-icons/uil/times'
 import uilSearchAlt from '@iconify-icons/uil/search-alt'
 import ggSidebarOpen from '@iconify-icons/gg/sidebar-open'
+import tdesignFileExport from '@iconify-icons/tdesign/file-export'
+import tdesignFileImport from '@iconify-icons/tdesign/file-import'
 
 const uilCircle = {
   body: '<circle cx="12" cy="12" r="10" />',
@@ -42,7 +44,9 @@ const iconMap = {
   bars: uilBars,
   times: uilTimes,
   'search-alt': uilSearchAlt,
-  'gg:sidebar-open': ggSidebarOpen
+  'gg:sidebar-open': ggSidebarOpen,
+  'tdesign:export': tdesignFileExport,
+  'tdesign:import': tdesignFileImport
 }
 
 export default defineComponent({

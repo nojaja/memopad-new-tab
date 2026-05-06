@@ -55,7 +55,8 @@ const defaultConfig = {
     sort: '0',
     cover: '-1',
     i18n_locale: 'ja',
-    privacyBlur: false
+    privacyBlur: false,
+    lastExportDataAt: ''
   },
   editor: {
     automaticLayout: true,

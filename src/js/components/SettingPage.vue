@@ -57,7 +57,7 @@
           @click="importLocalStorage"
         >
           <UniconIcon
-            name="import"
+            name="tdesign:import"
             fill="white"
           />Import Data
         </button>
@@ -69,7 +69,7 @@
           @click="exportLocalStorage"
         >
           <UniconIcon
-            name="export"
+            name="tdesign:export"
             fill="white"
           />Export Data
         </button>
@@ -347,6 +347,7 @@
 import TabList from '@/components/TabList.vue'
 import Select from '@/components/Select.vue'
 import Download from '@/components/Download.vue'
+import { createExportData, saveAsLegacy } from '@/utils/exportData'
 // import ColorPicker from 'vue-sketch-color-picker'
 import draggable from 'vuedraggable'
 
@@ -373,7 +374,8 @@ export default {
         general: {
           sort: '0',
           i18n_locale: 'ja',
-          privacyBlur: false
+          privacyBlur: false,
+          lastExportDataAt: ''
         },
         editor: {
           fontSize: 16,
@@ -677,14 +679,9 @@ export default {
      */
     exportLocalStorage() {
       localStorage.setItem('currentVersion', '0.0.1')
-      const now = new Date()
-      const year = String(now.getFullYear())
-      const month = String(now.getMonth() + 1).padStart(2, '0')
-      const day = String(now.getDate()).padStart(2, '0')
-      const hour = String(now.getHours()).padStart(2, '0')
-      const fileName = `MemoPad_${year}${month}${day}${hour}.json`
-      const formattedJson = JSON.stringify(localStorage, null, 2)
-      this.$refs.export.saveAsLegacy(formattedJson, fileName, 'application/json')
+      const { formattedJson, fileName, executedAt } = createExportData(localStorage, new Date())
+      this.localConfig.general.lastExportDataAt = executedAt
+      saveAsLegacy(formattedJson, fileName, 'application/json')
     },
     /**
      * 処理名: ファイル読み込み
