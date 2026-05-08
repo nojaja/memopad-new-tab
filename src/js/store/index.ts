@@ -156,6 +156,36 @@ function normalizeConfig(config: unknown): typeof defaultConfig {
 }
 
 /**
+ * 処理名: 新規インストール設定作成
+ * 処理概要: 新規インストール判定時の初期設定を生成し localStorage へ保存する
+ * 実装理由: 初回起動から30日間はエクスポート注意アニメーションを抑制するため
+ * @returns {typeof defaultConfig} 新規インストール向けの設定オブジェクト
+ */
+function createAndPersistConfigForNewInstall(): typeof defaultConfig {
+  const initialized = normalizeConfig({
+    general: {
+      lastExportDataAt: new Date().toISOString()
+    }
+  })
+  localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(initialized))
+  return initialized
+}
+
+/**
+ * 処理名: 初期設定読み込み
+ * 処理概要: localStorage の config を読み込み、未存在時は新規インストール設定を作成する
+ * 実装理由: 新規と既存ユーザーを config キー有無で判定して初期挙動を分岐するため
+ * @returns {typeof defaultConfig} 正規化済み設定オブジェクト
+ */
+function loadInitialConfigFromStorage(): typeof defaultConfig {
+  const stored = localStorage.getItem(STORAGE_KEY_CONFIG)
+  if (stored == null) {
+    return createAndPersistConfigForNewInstall()
+  }
+  return normalizeConfig(parseJsonSafely(stored, null))
+}
+
+/**
  * 処理名: i18n ロケール適用
  * 処理概要: 指定ロケールを vue-i18n のグローバル設定に反映する
  * 実装理由: アプリのロケール設定を変更したときに即座に UI に反映するため
@@ -707,7 +737,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
     sourceVersion: 0,
     fileContainer: markRaw(new FileContainer()),
     noteKeyList: sanitizeNoteKeyList(parseJsonSafely(localStorage.getItem(STORAGE_KEY_NOTE_KEY_LIST), [])) as string[],
-    config: normalizeConfig(parseJsonSafely(localStorage.getItem(STORAGE_KEY_CONFIG), null)),
+    config: loadInitialConfigFromStorage(),
     isImporting: false
   },
   getters: { // state の参照
@@ -1063,10 +1093,10 @@ function applySortOrder(items: ListItem[], sort: string): void {
      */
     loadConfig(state) {
       const stored = localStorage.getItem(STORAGE_KEY_CONFIG)
-      if (stored) {
-        state.config = normalizeConfig(parseJsonSafely(stored, null))
+      if (stored == null) {
+        state.config = createAndPersistConfigForNewInstall()
       } else {
-        state.config = normalizeConfig(state.config)
+        state.config = normalizeConfig(parseJsonSafely(stored, null))
       }
       applyI18nLocale(state.config.general.i18n_locale)
     },
