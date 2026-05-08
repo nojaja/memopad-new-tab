@@ -480,11 +480,4 @@ export default {
   pointer-events: none;
 }
 
-@media (max-width: 1400px) {
-  .splitpanes--vertical>.splitpanes__splitter {
-    width: 16px !important;
-    min-width: 16px !important;
-    background-color: #f0f0f0;
-  }
-}
 </style>

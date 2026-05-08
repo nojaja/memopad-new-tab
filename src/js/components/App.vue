@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div id="app">
     <div
       v-if="isBlurred"
@@ -167,13 +167,18 @@ export default {
         return
       }
 
-      const currentProjectName = this.$store.getters.currentFile?.projectName
-      if (!currentProjectName || e.key !== currentProjectName) return
+      if (!e.key.startsWith('note_')) return
 
-      if (document.hasFocus && document.hasFocus()) {
-        this.$store.dispatch('duplicateCurrentProject')
+      const currentProjectName = this.$store.getters.currentFile?.projectName
+      if (currentProjectName && e.key === currentProjectName) {
+        if (document.hasFocus && document.hasFocus()) {
+          this.$store.dispatch('duplicateCurrentProject')
+        } else {
+          this.$store.dispatch('loadProject', currentProjectName)
+        }
       } else {
-        this.$store.dispatch('loadProject', currentProjectName)
+        // 他ノートの description 等が更新された場合に noteList を再評価する
+        this.$store.dispatch('loadNoteKeyList')
       }
     },
     /**
@@ -208,14 +213,11 @@ export default {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css?family=M+PLUS+1p&amp;subset=japanese');
+@import url('https://fonts.googleapis.com/css?family=M+PLUS+1p&subset=japanese');
 #app {
   font-family: 'M PLUS 1p', Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-/*  text-align: center;*/
-/*  color: #2c3e50;*/
-/*  margin-top: 60px;*/
 }
 body {
   margin: 0px;

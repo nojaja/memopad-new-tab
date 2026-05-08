@@ -107,6 +107,17 @@ describe('store mutations - updateTitle', () => {
     }).not.toThrow()
   })
 
+  test('updateTitle 後に refreshFileList のタイトルも更新される', () => {
+    const noteKey = 'note_title_list_test'
+    window.localStorage.setItem(noteKey, makeProjectJson(noteKey, '# 旧タイトル'))
+    storeModule.commit('replaceNoteKeyList', [noteKey])
+    storeModule.commit('loadProject', noteKey)
+
+    storeModule.commit('updateTitle', '新しい一覧タイトル')
+
+    expect(storeModule.getters.refreshFileList[0].name).toBe('新しい一覧タイトル')
+  })
+
   test('currentFile がない場合でも例外が発生しない', () => {
     storeModule.state.currentFile = {}
     expect(() => {
