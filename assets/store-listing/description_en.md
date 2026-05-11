@@ -33,6 +33,19 @@ See the final result right alongside your writing for a seamless note-taking exp
 ---------
 [Updates]
 
+v1.3.6 (2026/05/12)
+* Added instant Privacy Blur activation with F6
+When you need to hide the screen immediately, pressing F6 now enables Privacy Blur on the spot and switches to a blurred view right away.
+
+* Fixed an issue where Privacy Blur did not work correctly
+
+v1.3.5 (2026/05/11)
+* Fixed delayed note update reflection
+Resolved an issue where updates made in another tab could appear with a delay, so the latest content is now shown more smoothly.
+
+* Adjusted export reminder animation for new installations
+For new installations, the export reminder bounce animation is suppressed for the first 30 days to improve initial usability and visual comfort.
+
 v1.3.3 (2026/05/07)
 * Added idle timeout detection to Privacy Blur
 The screen will automatically blur after 5 minutes of inactivity, even while the window is focused. Click to instantly remove the blur.
