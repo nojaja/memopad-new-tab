@@ -798,6 +798,10 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @returns {any[]} フィルター・ソート適用済みノートリスト
      */
     refreshFileList(state) {
+      // fileContainer/localStorage are non-reactive, so depend on a reactive counter.
+      if (state.sourceVersion < 0) {
+        return latestFileListCache
+      }
       if (state.isImporting) {
         return latestFileListCache
       }
@@ -842,6 +846,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
       if (currentTitle === title) return
       setFileDescription(currentFile, title)
       state.fileContainer.putFile(currentFile)
+      state.sourceVersion += 1
       this.dispatch('saveProject')
     },
     /**
