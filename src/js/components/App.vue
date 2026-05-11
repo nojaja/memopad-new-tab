@@ -1,5 +1,8 @@
 ﻿<template>
-  <div id="app">
+  <div
+    id="app"
+    :class="{ 'privacy-blur-active': isBlurred }"
+  >
     <div
       v-if="isBlurred"
       class="privacy-blur-overlay"
@@ -31,8 +34,9 @@ export default {
    */
   data() {
     return {
-      windowActive: false,
-      idleTimer: null
+      windowActive: !document.hidden,
+      idleTimer: null,
+      manualBlurOverride: false
     }
   },
   computed: {
@@ -52,7 +56,7 @@ export default {
      * @returns {boolean} ブラーを表示するなら true
      */
     isBlurred() {
-      return this.privacyBlurEnabled && !this.windowActive
+      return this.manualBlurOverride || (this.privacyBlurEnabled && !this.windowActive)
     }
   },
   /**
@@ -61,9 +65,11 @@ export default {
    * 実装理由: コンポーネントのライフサイクルに合わせてイベントを管理するため
    */
   mounted() {
-    window.addEventListener('keydown', this.handleKeydown)
+    this.syncWindowState()
+    window.addEventListener('keydown', this.handleKeydown, true)
     window.addEventListener('blur', this.handleWindowBlur)
     window.addEventListener('focus', this.handleWindowFocus)
+    document.addEventListener('visibilitychange', this.handleVisibilityChange)
     window.addEventListener('storage', this.handleStorageEvent)
     window.addEventListener('mousemove', this.resetIdleTimer)
     window.addEventListener('click', this.resetIdleTimer)
@@ -75,9 +81,10 @@ export default {
    * 実装理由: メモリリークとゴーストイベントを防ぐため
    */
   beforeUnmount() {
-    window.removeEventListener('keydown', this.handleKeydown)
+    window.removeEventListener('keydown', this.handleKeydown, true)
     window.removeEventListener('blur', this.handleWindowBlur)
     window.removeEventListener('focus', this.handleWindowFocus)
+    document.removeEventListener('visibilitychange', this.handleVisibilityChange)
     window.removeEventListener('storage', this.handleStorageEvent)
     window.removeEventListener('mousemove', this.resetIdleTimer)
     window.removeEventListener('click', this.resetIdleTimer)
@@ -85,6 +92,27 @@ export default {
     clearTimeout(this.idleTimer)
   },
   methods: {
+    /**
+     * ウィンドウの表示状態を同期
+     * 処理概要: Page Visibility API の document.hidden 状態に基づいて windowActive を更新し、
+     * アイドルタイマーの状態を管理する。Chrome 拡張の新規タブ上下文で信頼性の高い状態管理を実現
+     */
+    syncWindowState() {
+      const hidden = typeof document.hidden === 'boolean' ? document.hidden : null
+      const visibilityState = typeof document.visibilityState === 'string' ? document.visibilityState : null
+      const hasFocus = typeof document.hasFocus === 'function' ? document.hasFocus() : true
+      const isVisible = hidden == null
+        ? (visibilityState == null || visibilityState === 'visible')
+        : !hidden
+      this.windowActive = isVisible && hasFocus
+      if (this.windowActive) {
+        this.manualBlurOverride = false
+        this.resetIdleTimer()
+      } else {
+        clearTimeout(this.idleTimer)
+        this.idleTimer = null
+      }
+    },
     /**
      * 処理名: ウィンドウブラーハンドラ
      * 処理概要: ウィンドウが非アクティブになったときに windowActive を false にする
@@ -101,8 +129,15 @@ export default {
      * 実装理由: プライバシーブラーを解除し、フォーカス後の無操作タイマーを開始するため
      */
     handleWindowFocus() {
-      this.windowActive = true
-      this.resetIdleTimer()
+      this.syncWindowState()
+    },
+    /**
+     * 処理名: 可視状態変更ハンドラ
+     * 処理概要: タブの表示状態に応じて windowActive を同期する
+     * 実装理由: Chrome 拡張の新規タブ表示など、focus/blur が不安定な環境でも状態を保つため
+     */
+    handleVisibilityChange() {
+      this.syncWindowState()
     },
     /**
      * 処理名: アイドルタイマーリセット
@@ -121,6 +156,7 @@ export default {
      * 実装理由: クリック一発でブラーを解除できるようにするため
      */
     handleOverlayClick() {
+      this.manualBlurOverride = false
       this.windowActive = true
       this.resetIdleTimer()
     },
@@ -136,7 +172,33 @@ export default {
         this.saveProject(e)
         return
       }
+      if (e.key === 'F6' || e.code === 'F6') {
+        this.triggerImmediatePrivacyBlur(e)
+        return
+      }
       this.handleViewModeHotkey(e)
+    },
+    /**
+     * 処理名: Privacy Blur 即時実行
+     * 処理概要: F6 押下時に Privacy Blur を有効化し、直ちにブラー状態へ遷移する
+     * 実装理由: 拡張環境でイベントが取りこぼされる際の強制切り分け手段を提供するため
+     * @param {KeyboardEvent} e - キーボードイベント
+     */
+    triggerImmediatePrivacyBlur(e) {
+      e.preventDefault()
+      this.manualBlurOverride = true
+      if (!this.privacyBlurEnabled) {
+        const currentConfig = this.$store.getters.config || {}
+        const nextConfig = {
+          ...currentConfig,
+          general: {
+            ...(currentConfig.general || {}),
+            privacyBlur: true
+          }
+        }
+        this.$store.dispatch('setConfig', nextConfig)
+      }
+      this.handleWindowBlur()
     },
     /**
      * 処理名: 表示モードショートカット処理
@@ -228,9 +290,16 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
+  background: rgba(18, 22, 28, 0.18);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   z-index: 99999;
   cursor: pointer;
+}
+
+#app.privacy-blur-active > :not(.privacy-blur-overlay) {
+  filter: blur(12px);
+  -webkit-filter: blur(12px);
+  transition: filter 120ms ease;
 }
 </style>

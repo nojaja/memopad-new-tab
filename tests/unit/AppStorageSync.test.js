@@ -12,8 +12,19 @@ describe('App.vue storage sync', () => {
   }
 
   beforeEach(() => {
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: () => false
+    })
     storeMock = {
-      dispatch: jest.fn(),
+      dispatch: jest.fn((action, payload) => {
+        if (action === 'setConfig' && payload && payload.general) {
+          storeMock.getters.config.general = {
+            ...storeMock.getters.config.general,
+            ...payload.general
+          }
+        }
+      }),
       getters: {
         config: { general: { privacyBlur: false } },
         currentFile: { projectName: 'note_12345' }
@@ -128,23 +139,71 @@ describe('App.vue storage sync', () => {
     expect(clickSpy).toHaveBeenCalled()
   })
 
-  test('Privacy Blur が ON の時、フォーカスを失うと直ちにブラーが掛かる', async () => {
+  test('F6 で Privacy Blur を ON に切り替えて即時ブラーを実行する', async () => {
+    const preventDefault = jest.fn()
+
+    wrapper.vm.handleKeydown({ key: 'F6', ctrlKey: false, preventDefault })
+    await nextTick()
+
+    expect(preventDefault).toHaveBeenCalled()
+    expect(storeMock.dispatch).toHaveBeenCalledWith('setConfig', expect.objectContaining({
+      general: expect.objectContaining({ privacyBlur: true })
+    }))
+    expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(true)
+  })
+
+  test('F6 は Privacy Blur が既に ON の場合も即時ブラーを実行する', async () => {
+    remountWithPrivacyBlur(true)
+    const preventDefault = jest.fn()
+
+    wrapper.vm.handleKeydown({ key: 'F6', ctrlKey: false, preventDefault })
+    await nextTick()
+
+    expect(preventDefault).toHaveBeenCalled()
+    expect(storeMock.dispatch).not.toHaveBeenCalledWith('setConfig', expect.anything())
+    expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(true)
+  })
+
+  test('Privacy Blur が ON の時、表示中はブラーが掛からない', async () => {
     remountWithPrivacyBlur(true)
 
-    wrapper.vm.handleWindowFocus()
     await nextTick()
     expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(false)
+  })
 
-    window.dispatchEvent(new Event('blur'))
+  test('Privacy Blur が ON の時、タブが非表示になるとブラーが掛かる', async () => {
+    remountWithPrivacyBlur(true)
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: () => true
+    })
+
+    document.dispatchEvent(new Event('visibilitychange'))
     await nextTick()
 
     expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(true)
   })
 
-  test('Privacy Blur が ON の時、ページ表示直後にブラーが掛かる', () => {
+  test('Privacy Blur が ON の時、タブが再表示されるとブラーが解除される', async () => {
     remountWithPrivacyBlur(true)
 
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: () => true
+    })
+    document.dispatchEvent(new Event('visibilitychange'))
+    await nextTick()
     expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(true)
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: () => false
+    })
+    document.dispatchEvent(new Event('visibilitychange'))
+    await nextTick()
+
+    expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(false)
   })
 
   test('Privacy Blur が ON の時、フォーカス中でも3秒経過でブラーが掛かる（本来5分）', async () => {
