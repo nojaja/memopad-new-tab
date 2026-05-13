@@ -52,7 +52,7 @@
         "@babel/preset-typescript": "^7.28.5",
         "@playwright/test": "1.59.1",
         "@types/jest": "^29.5.14",
-        "@types/node": "^25.6.0",
+        "@types/node": "^25.7.0",
         "@typescript-eslint/eslint-plugin": "^8.59.2",
         "@typescript-eslint/parser": "^8.59.2",
         "@vitejs/plugin-vue": "^6.0.1",
