@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'vite'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import path from 'node:path'
@@ -24,23 +24,28 @@ export default defineConfig({
         },
         {
           src: 'src/assets/_locales/en/messages.json',
-          dest: '_locales/en'
+          dest: '_locales/en',
+          flatten: true
         },
         {
           src: 'src/assets/_locales/ja/messages.json',
-          dest: '_locales/ja'
+          dest: '_locales/ja',
+          flatten: true
         },
         {
           src: 'src/assets/icons/*',
-          dest: 'icons'
+          dest: 'icons',
+          flatten: true
         },
         {
           src: 'src/css/github-markdown-css.css',
-          dest: 'css'
+          dest: 'css',
+          flatten: true
         },
         {
           src: 'public/favicon.ico',
-          dest: '.'
+          dest: '.',
+          flatten: true
         }
       ]
     })
