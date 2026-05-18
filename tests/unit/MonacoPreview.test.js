@@ -375,7 +375,7 @@ describe('Preview.vue メソッドテスト', () => {
         }
       }
     }
-    Preview.methods.scrollToSourceLine.call({ $refs: fakeRefs, isSyncingScroll: false }, 5)
+    Preview.methods.scrollToSourceLine.call({ $refs: fakeRefs, isSyncingScroll: false, scheduleClearSyncing: Preview.methods.scheduleClearSyncing }, 5)
     expect(scrollToMock).toHaveBeenCalledWith(0, 400)
   })
 
@@ -395,7 +395,7 @@ describe('Preview.vue メソッドテスト', () => {
       { line: 1, top: 0, height: 20 },
       { line: 5, top: 400, height: 20 }
     ]
-    Preview.methods.scrollToSourceLine.call({ $refs: fakeRefs, cachedLinePositions: cachedPositions, isSyncingScroll: false }, 5)
+    Preview.methods.scrollToSourceLine.call({ $refs: fakeRefs, cachedLinePositions: cachedPositions, isSyncingScroll: false, scheduleClearSyncing: Preview.methods.scheduleClearSyncing }, 5)
     expect(scrollToMock).toHaveBeenCalledWith(0, 400)
     expect(fakeRefs.childFrame.contentDocument.querySelectorAll).not.toHaveBeenCalled()
   })
@@ -469,7 +469,11 @@ describe('Preview.vue メソッドテスト', () => {
         }
       }
     }
-    Preview.methods.scrollToRatio.call({ $refs: fakeRefs, isSyncingScroll: false }, 0.5)
+    Preview.methods.scrollToRatio.call({
+      $refs: fakeRefs,
+      isSyncingScroll: false,
+      scheduleClearSyncing: Preview.methods.scheduleClearSyncing
+    }, 0.5)
     expect(scrollToMock).toHaveBeenCalledWith(0, 400)
   })
 })

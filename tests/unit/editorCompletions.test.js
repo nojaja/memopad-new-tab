@@ -19,7 +19,7 @@ describe('editorCompletions', () => {
     expect(monaco.languages.registerCompletionItemProvider).toHaveBeenCalledWith(
       'markdown',
       expect.objectContaining({
-        triggerCharacters: expect.arrayContaining(['#', '*', '`']),
+        triggerCharacters: [],
         provideCompletionItems: expect.any(Function)
       })
     )

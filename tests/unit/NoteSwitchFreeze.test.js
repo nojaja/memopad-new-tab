@@ -137,6 +137,7 @@ describe('ノート切り替えスクロール同期テスト', () => {
         { line: 1, top: 0, height: 20 },
         { line: 5, top: 100, height: 20 }
       ],
+      scheduleClearSyncing: Preview.methods.scheduleClearSyncing,
       cacheSourceLineElements: jest.fn()
     }
 
@@ -176,7 +177,8 @@ describe('ノート切り替えスクロール同期テスト', () => {
 
     const previewInstance = {
       $refs: fakeRefs,
-      isSyncingScroll: false
+      isSyncingScroll: false,
+      scheduleClearSyncing: Preview.methods.scheduleClearSyncing
     }
 
     Preview.methods.scrollToRatio.call(previewInstance, 0.5)

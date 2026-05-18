@@ -46,7 +46,8 @@ export default {
         fontSize: 16,
         fontFamily: '',
         tabSize: 4,
-        theme: 'vs'
+        theme: 'vs',
+        quickSuggestions: false
       })
     },
     onChange: {
