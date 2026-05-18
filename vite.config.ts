@@ -15,6 +15,7 @@ export default defineConfig({
         {
           src: 'src/assets/manifest.json',
           dest: '.',
+          flatten: true,
           transform: (content: string) => {
             const manifest = JSON.parse(content)
             manifest.version = pkg.version
