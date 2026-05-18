@@ -15,6 +15,7 @@ import ruby from 'markdown-it-ruby'
 import multimdTable from 'markdown-it-multimd-table'
 import checkbox from 'markdown-it-task-checkbox'
 import uml from 'markdown-it-plantuml'
+import { getDefaultConfig } from '@/utils/defaultConfig'
 
 const SOURCE_LINE_ATTRIBUTE = 'data-source-line'
 const CONTENT_WRAPPER_ID = 'content'
@@ -167,24 +168,7 @@ export default {
        * 実装理由: 親から設定未指定でも安定した描画を行うため
        * @returns {object} preview設定デフォルト値
        */
-      default: () => ({
-        basicOption: {
-          html: true,
-          breaks: false,
-          linkify: true,
-          typography: true
-        },
-        emoji: true,
-        ruby: true,
-        mermaid: true,
-        uml: true,
-        multimdTable: true,
-        multimdTableOption: {
-          multiline: true,
-          rowspan: true,
-          headerless: true
-        }
-      })
+      default: () => getDefaultConfig().markdown
     }
   },
   emits: ['previewScroll', 'previewFocus', 'previewBlur'],
@@ -688,6 +672,20 @@ export default {
       this.isSyncingScroll = false
     },
     /**
+     * 処理名: スクロール同期解除スケジューリング
+     * 処理概要: 次フレームで isSyncingScroll フラグを解除する
+     * 実装理由: scrollTo 後のスクロールイベント抑制を終了させるため
+     * @returns {void} なし
+     */
+    scheduleClearSyncing() {
+      const clearSyncing = typeof this.clearSyncingScroll === 'function'
+        ? this.clearSyncingScroll.bind(this)
+        : function() {
+          this.isSyncingScroll = false
+        }.bind(this)
+      requestAnimationFrame(clearSyncing)
+    },
+    /**
      * 処理名: 行スクロール
      * 処理概要: 指定行に最も近い preview 行位置までスクロールする
      * 実装理由: editor から preview への行同期を実現するため
@@ -704,12 +702,7 @@ export default {
       const top = positions[candidateIndex].top || 0
       this.isSyncingScroll = true
       context.win.scrollTo(0, top)
-      const clearSyncing = typeof this.clearSyncingScroll === 'function'
-        ? this.clearSyncingScroll.bind(this)
-        : function() {
-          this.isSyncingScroll = false
-        }.bind(this)
-      requestAnimationFrame(clearSyncing)
+      this.scheduleClearSyncing()
     },
     /**
      * 処理名: 比率スクロール
@@ -727,12 +720,7 @@ export default {
       const top = ratioNumber * Math.max(0, scrollHeight - clientHeight)
       this.isSyncingScroll = true
       context.win.scrollTo(0, top)
-      const clearSyncing = typeof this.clearSyncingScroll === 'function'
-        ? this.clearSyncingScroll.bind(this)
-        : function() {
-          this.isSyncingScroll = false
-        }.bind(this)
-      requestAnimationFrame(clearSyncing)
+      this.scheduleClearSyncing()
     },
     /**
      * 処理名: iframe内容更新

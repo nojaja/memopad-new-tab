@@ -49,6 +49,7 @@ import { Splitpanes, Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import Monaco from '@/components/Monaco.vue'
 import Preview from '@/components/Preview.vue'
+import { getDefaultConfig } from '@/utils/defaultConfig'
 
 export default {
   components: {
@@ -72,36 +73,7 @@ export default {
        * 実装理由: prop が渡されなかった場合に標準設定を適用するため
        * @returns {object} デフォルト設定オブジェクト
        */
-      () => ({
-        editor: {
-          automaticLayout: true,
-          fontSize: 16,
-          fontFamily: '',
-          tabSize: 4,
-          syncEditorToPreview: false,
-          theme: 'vs'
-        },
-        markdown: {
-          basicOption: {
-            html: true,
-            breaks: false,
-            linkify: true,
-            typography: true
-          },
-          emoji: true,
-          ruby: true,
-          mermaid: true,
-          uml: true,
-          multimdTable: true,
-          multimdTableOption: {
-            multiline: true,
-            rowspan: true,
-            headerless: true
-          },
-          multibyteconvert: false,
-          multibyteconvertList: []
-        }
-      })
+      getDefaultConfig
     },
     hideEditPane: { // 編集パネルの表示非表示
       type: Boolean,

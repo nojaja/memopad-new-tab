@@ -348,6 +348,7 @@ import TabList from '@/components/TabList.vue'
 import Select from '@/components/Select.vue'
 import Download from '@/components/Download.vue'
 import { createExportData, saveAsLegacy } from '@/utils/exportData'
+import { getDefaultConfig } from '@/utils/defaultConfig'
 // import ColorPicker from 'vue-sketch-color-picker'
 import draggable from 'vuedraggable'
 
@@ -366,6 +367,7 @@ export default {
    * @returns {object} 初期データオブジェクト
    */
   data() {
+    const defaultConfig = getDefaultConfig()
     return {
       dragging: true,
       isSyncingStoreConfig: false,
@@ -377,33 +379,8 @@ export default {
           privacyBlur: false,
           lastExportDataAt: ''
         },
-        editor: {
-          fontSize: 16,
-          tabSize: 4,
-          syncEditorToPreview: false,
-          unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
-          minimap: { enabled: true }
-        },
-        markdown: {
-          basicOption: {
-            html: true,
-            breaks: false,
-            linkify: true,
-            typography: true
-          },
-          emoji: true,
-          ruby: true,
-          mermaid: true,
-          uml: true,
-          multimdTable: true,
-          multimdTableOption: {
-            multiline: true,
-            rowspan: true,
-            headerless: true
-          },
-          multibyteconvert: false,
-          multibyteconvertList: []
-        }
+        editor: defaultConfig.editor,
+        markdown: defaultConfig.markdown
       },
       items: [
         { id: 1, name: 'General', uri: '1', isActive: true },
@@ -857,8 +834,8 @@ export default {
 .button:hover {
     background-color: rgb(3, 197, 136);
 }
-.button-small {
-    background-color: rgb(117, 199, 145);
+.button-small,
+.button-small-secondary {
     color: rgb(255, 255, 255);
     font-size: 11px;
     height: 20px;
@@ -872,25 +849,15 @@ export default {
     border-image: initial;
     padding: 0px 8px;
     border-radius: 2px;
+}
+.button-small {
+    background-color: rgb(117, 199, 145);
 }
 .button-small:hover {
     background-color: rgb(3, 197, 136);
 }
 .button-small-secondary {
     background-color: rgb(128, 128, 128);
-    color: rgb(255, 255, 255);
-    font-size: 11px;
-    height: 20px;
-    cursor: pointer;
-    vertical-align: middle;
-    -webkit-box-align: center;
-    align-items: center;
-    border-width: initial;
-    border-style: none;
-    border-color: initial;
-    border-image: initial;
-    padding: 0px 8px;
-    border-radius: 2px;
 }
 .button-small-secondary:hover {
     background-color: rgb(71, 71, 71);
