@@ -11,7 +11,7 @@ export function registerCompletions(): void {
   registered = true
 
   monaco.languages.registerCompletionItemProvider('markdown', {
-    triggerCharacters: ['#', '*', '`', '[', '!', '-', '>', '|', '@', ':', 'm'],
+    triggerCharacters: [],
     /**
      * 処理名: 補完候補提供
      * 処理概要: カーソル位置に応じた補完候補リストを返す
