@@ -2,52 +2,101 @@ const fs = require('fs')
 const path = require('path')
 
 const cwd = process.cwd()
-const srcManifest = path.join(cwd, 'dist', 'src', 'assets', 'manifest.json')
-const destManifest = path.join(cwd, 'dist', 'manifest.json')
-const publicFavicon = path.join(cwd, 'dist', 'public', 'favicon.ico')
-const rootFavicon = path.join(cwd, 'dist', 'favicon.ico')
+const distDir = path.join(cwd, 'dist')
+
+function ensureDir(dirPath) {
+  fs.mkdirSync(dirPath, { recursive: true })
+}
+
+function copyAndRemove(srcPath, destPath, label) {
+  if (!fs.existsSync(srcPath)) {
+    return false
+  }
+  ensureDir(path.dirname(destPath))
+  fs.copyFileSync(srcPath, destPath)
+  fs.unlinkSync(srcPath)
+  console.log(`${label}: copied to ${destPath} and removed ${srcPath}`)
+  return true
+}
+
+function removeDirIfExists(dirPath) {
+  if (fs.existsSync(dirPath)) {
+    fs.rmSync(dirPath, { recursive: true, force: true })
+    console.log(`Removed directory ${dirPath}`)
+  }
+}
+
+function ensureRootFileFromSource(sourcePath, destPath, label) {
+  if (fs.existsSync(destPath)) {
+    return
+  }
+  if (fs.existsSync(sourcePath)) {
+    ensureDir(path.dirname(destPath))
+    fs.copyFileSync(sourcePath, destPath)
+    console.log(`${label}: copied from source ${sourcePath} to ${destPath}`)
+  }
+}
 
 try {
-  // Move manifest to dist root and remove nested copy
-  if (fs.existsSync(srcManifest)) {
-    fs.copyFileSync(srcManifest, destManifest)
-    fs.unlinkSync(srcManifest)
-    console.log(`Copied manifest to ${destManifest} and removed ${srcManifest}`)
-  } else {
-    console.warn(`Source manifest not found: ${srcManifest}`)
+  // manifest.json -> dist/manifest.json
+  copyAndRemove(
+    path.join(distDir, 'src', 'assets', 'manifest.json'),
+    path.join(distDir, 'manifest.json'),
+    'manifest'
+  )
+
+  // _locales/*/messages.json -> dist/_locales/*/messages.json
+  copyAndRemove(
+    path.join(distDir, '_locales', 'en', 'src', 'assets', '_locales', 'en', 'messages.json'),
+    path.join(distDir, '_locales', 'en', 'messages.json'),
+    'locale en'
+  )
+  copyAndRemove(
+    path.join(distDir, '_locales', 'ja', 'src', 'assets', '_locales', 'ja', 'messages.json'),
+    path.join(distDir, '_locales', 'ja', 'messages.json'),
+    'locale ja'
+  )
+
+  // icons/*.png -> dist/icons/*.png
+  copyAndRemove(
+    path.join(distDir, 'icons', 'src', 'assets', 'icons', 'icon_32.png'),
+    path.join(distDir, 'icons', 'icon_32.png'),
+    'icon 32'
+  )
+  copyAndRemove(
+    path.join(distDir, 'icons', 'src', 'assets', 'icons', 'icon_42.png'),
+    path.join(distDir, 'icons', 'icon_42.png'),
+    'icon 42'
+  )
+  copyAndRemove(
+    path.join(distDir, 'icons', 'src', 'assets', 'icons', 'icon_128.png'),
+    path.join(distDir, 'icons', 'icon_128.png'),
+    'icon 128'
+  )
+
+  // css/github-markdown-css.css -> dist/css/github-markdown-css.css
+  copyAndRemove(
+    path.join(distDir, 'css', 'src', 'css', 'github-markdown-css.css'),
+    path.join(distDir, 'css', 'github-markdown-css.css'),
+    'css'
+  )
+
+  // favicon.ico -> dist/favicon.ico
+  if (!copyAndRemove(path.join(distDir, 'public', 'favicon.ico'), path.join(distDir, 'favicon.ico'), 'favicon')) {
+    ensureRootFileFromSource(
+      path.join(cwd, 'public', 'favicon.ico'),
+      path.join(distDir, 'favicon.ico'),
+      'favicon'
+    )
   }
 
-  // Ensure favicon is at dist root and remove any duplicated copy under dist/public
-  if (fs.existsSync(publicFavicon)) {
-    fs.copyFileSync(publicFavicon, rootFavicon)
-    fs.unlinkSync(publicFavicon)
-    console.log(`Moved favicon to ${rootFavicon} and removed ${publicFavicon}`)
-
-    // Remove dist/public directory if empty
-    const publicDir = path.join(cwd, 'dist', 'public')
-    try {
-      const files = fs.readdirSync(publicDir)
-      if (files.length === 0) {
-        fs.rmdirSync(publicDir)
-        console.log(`Removed empty directory ${publicDir}`)
-      }
-    } catch (e) {
-      // ignore
-    }
-  } else {
-    // If no dist/public/favicon.ico, ensure root favicon exists by copying from source public/
-    if (!fs.existsSync(rootFavicon)) {
-      const originalPublicFavicon = path.join(cwd, 'public', 'favicon.ico')
-      if (fs.existsSync(originalPublicFavicon)) {
-        fs.copyFileSync(originalPublicFavicon, rootFavicon)
-        console.log(`Copied original public/favicon.ico to ${rootFavicon}`)
-      } else {
-        console.warn('Favicon not found in dist/public or public/')
-      }
-    } else {
-      console.log('Root favicon already exists')
-    }
-  }
+  // remove now-unnecessary nested folders
+  removeDirIfExists(path.join(distDir, 'src'))
+  removeDirIfExists(path.join(distDir, 'public'))
+  removeDirIfExists(path.join(distDir, 'icons', 'src'))
+  removeDirIfExists(path.join(distDir, 'css', 'src'))
+  removeDirIfExists(path.join(distDir, '_locales', 'en', 'src'))
+  removeDirIfExists(path.join(distDir, '_locales', 'ja', 'src'))
 } catch (err) {
   console.error('Failed to postbuild cleanup:', err)
   process.exit(1)
