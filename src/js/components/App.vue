@@ -116,9 +116,15 @@ export default {
     /**
      * 処理名: ウィンドウブラーハンドラ
      * 処理概要: ウィンドウが非アクティブになったときに windowActive を false にする
-     * 実装理由: プライバシーブラーの表示トリガーとするため
+     * 実装理由: プライバシーブラーの表示トリガーとするため。ただし preview iframe への
+     *          フォーカス移動は blur として扱わない
      */
     handleWindowBlur() {
+      if (document.activeElement instanceof HTMLIFrameElement && document.activeElement.id === 'child-frame') {
+        this.windowActive = true
+        this.resetIdleTimer()
+        return
+      }
       this.windowActive = false
       clearTimeout(this.idleTimer)
       this.idleTimer = null

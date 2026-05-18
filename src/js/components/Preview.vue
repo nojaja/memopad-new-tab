@@ -338,10 +338,14 @@ export default {
     /**
      * 処理名: iframe 操作開始通知
      * 処理概要: pointerdown 時に previewFocus を通知する
-     * 実装理由: ドラッグやクリック開始時点でアクティブ状態に反映するため
+     * 実装理由: ドラッグやクリック開始時点でアクティブ状態に反映し、
+     *          iframe 内操作もウィンドウ操作として扱うため
      * @returns {void} なし
      */
     handleIframeActivate() {
+      if (typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new Event('mousemove'))
+      }
       this.$emit('previewFocus')
     },
     /**
