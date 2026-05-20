@@ -37,7 +37,7 @@
         "markdown-it-plantuml": "^1.4.1",
         "markdown-it-ruby": "^0.1.1",
         "markdown-it-task-checkbox": "^1.0.6",
-        "mermaid": "^10.9.6",
+        "mermaid": "^11.15.0",
         "monaco-editor": "^0.47.0",
         "monaco-editor-vue3": "^1.0.5",
         "normalize.css": "^8.0.1",
