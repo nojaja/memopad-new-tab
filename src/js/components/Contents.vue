@@ -46,14 +46,6 @@
       >
         <UniconIcon name="eye" />
       </button>
-      <button
-        type="button"
-        aria-label="delete note"
-        title="delete note"
-        @click="onDelete"
-      >
-        <UniconIcon name="trash-alt" />
-      </button>
     </AppFooter>
   </div>
 </template>
@@ -61,7 +53,6 @@
 <script>
 import SplitpanesWrapper from '@/components/SplitpanesWrapper.vue'
 import Footer from '@/components/Footer.vue'
-import DialogHelper from '@/DialogHelper'
 
 export default {
     name: 'NoteContents',
@@ -259,31 +250,6 @@ export default {
      */
     updateTitle(e) {
       this.$store.commit('updateTitle', e.target.value)
-    },
-    /**
-     * 処理名: 削除ハンドラ
-     * 処理概要: 確認ダイアログを表示して OK の場合にプロジェクトを削除する
-     * 実装理由: 誤削除を防ぐために確認ステップを挟むため
-     */
-    onDelete() {
-      DialogHelper.showDialog(this, {
-        subject: 'Delete',
-        message: this.$t('message.Delete'),
-        ok: /**
-         * 処理名: 削除確認後コールバック
-         * 処理概要: ダイアログ確認後にストアの deleteProject ミューテーションを実行する
-         * 実装理由: 確認後にのみ削除を実行するため
-         */
-        () => {
-          this.$store.commit('deleteProject')
-        },
-        cancel: /**
-         * 処理名: 削除キャンセルコールバック
-         * 処理概要: 削除をキャンセルする（何もしない）
-         * 実装理由: ダイアログの cancel prop として空のハンドラを提供するため
-         */
-        () => {}
-      })
     }
   }
 }

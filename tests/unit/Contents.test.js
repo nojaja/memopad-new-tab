@@ -133,4 +133,9 @@ describe('Contents.vue', () => {
       general: expect.objectContaining({ viewMode: 'preview' })
     }))
   })
+
+  test('contents footer に delete note ボタンが存在しない', () => {
+    const wrapper = mountContents()
+    expect(wrapper.find('button[aria-label="delete note"]').exists()).toBe(false)
+  })
 })

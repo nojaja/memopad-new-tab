@@ -48,15 +48,23 @@
             </div>
           </div>
         </div>
+        <div class="noteListItem-actions">
+          <NoteListItemToolbar
+            :uri="item.uri"
+            :on-delete="deleteItem"
+          />
+        </div>
       </li>
     </ul>
   </div>
 </template>
 
 <script>
+import NoteListItemToolbar from '@/components/NoteListItemToolbar.vue'
 
 export default {
   components: {
+    NoteListItemToolbar
   },
   props: {
     items: {
@@ -89,6 +97,16 @@ export default {
        * 実装理由: prop が渡されなかった場合の安全なデフォルト実装
        */
         function () { }
+    },
+    onDelete: {
+      type: Function,
+      required: false,
+      default: /**
+       * 処理名: onDelete デフォルトハンドラ
+       * 処理概要: 削除イベントのデフォルトコールバック（何もしない）
+       * 実装理由: prop が渡されなかった場合の安全なデフォルト実装
+       */
+        function () { }
     }
   },
   computed: {
@@ -111,6 +129,15 @@ export default {
      */
     select: function (uri) {
       this.onSelect(uri)
+    },
+    /**
+     * 処理名: アイテム削除要求
+     * 処理概要: 指定 URI の削除要求を親コンポーネントへ通知する
+     * 実装理由: 削除実行責務を親へ委譲して一覧項目を拡張可能に保つため
+     * @param {string} uri - 削除対象ノートのキー
+     */
+    deleteItem: function (uri) {
+      this.onDelete(uri)
     },
     /**
      * 処理名: サイドバーキーダウン処理
@@ -234,12 +261,14 @@ export default {
 
 .newNote,
 .noteListItem {
-  display: block;
+  display: flex;
+  align-items: stretch;
   cursor: pointer;
-  border-bottom: 1px solid rgba(0, 0, 0, .05);
+  border: 1px solid transparent;
   font-size: 15px;
   min-height: 62px;
   box-sizing: border-box;
+  transition: box-shadow .18s ease, border-color .18s ease, transform .18s ease;
 }
 
 .newNote,
@@ -257,11 +286,18 @@ export default {
   background-color: #FCFCFC;
 }
 
+.noteListItem:hover {
+  border-color: rgba(30, 135, 240, .25);
+  box-shadow: 0 6px 14px rgba(21, 39, 55, .12);
+  transform: translateY(-1px);
+}
+
 .noteListItem.active {
   border-left: 3px solid #1e87f0
 }
 
 .noteListItem-text {
+  flex: 1 1 auto;
   padding: 11px 16px;
   -webkit-transition: .3s;
   transition: .3s;
@@ -289,6 +325,46 @@ export default {
 
 .noteListItem.active .noteListItem-text {
   opacity: .9
+}
+
+.noteListItem-actions {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.noteListItem-toolbar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: none;
+}
+
+.noteListItem:hover .noteListItem-toolbar,
+.noteListItem:focus-within .noteListItem-toolbar {
+  display: flex;
+}
+
+.noteListItem-actionButton {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2c3e50;
+  opacity: .65;
+}
+
+.noteListItem-actionButton:hover {
+  opacity: .95;
+}
+
+.noteListItem-actionButton:focus-visible {
+  outline: 2px solid #4f9bff;
+  outline-offset: 2px;
 }
 
 .noteList {
