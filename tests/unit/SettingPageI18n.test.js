@@ -77,7 +77,7 @@ describe('SettingPage.vue - i18n', () => {
 
     expect(wrapper.text()).toContain('設定')
     expect(wrapper.text()).toContain('言語')
-    expect(wrapper.text()).toContain('Privacy Blur - ウィンドウが非アクティブの間、画面をぼかします。')
+    expect(wrapper.text()).toContain('Privacy Blur - ウィンドウが非アクティブ時に画面をぼかします。')
   })
 
   test('Settings 画面で言語を ja -> en に切り替えると文言が即時反映される', async () => {
@@ -104,7 +104,7 @@ describe('SettingPage.vue - i18n', () => {
 
     expect(wrapper.text()).toContain('Settings')
     expect(wrapper.text()).toContain('Language')
-    expect(wrapper.text()).toContain('Privacy Blur - Set ON to blur the screen when the window is inactive.')
+    expect(wrapper.text()).toContain('Privacy Blur - Blurs the screen when the window is inactive.')
   })
 
   test('messages.json の SettingPage キーセットは en/ja で一致する', () => {
