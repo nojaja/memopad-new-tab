@@ -17,26 +17,32 @@
     />
     <AppFooter>
       <button
+        class="view-mode-button"
+        :class="{ 'view-mode-button--active': currentViewMode === 'editor' }"
         type="button"
         aria-label="show editor pane(F8)"
         title="show editor pane(F8)"
-        @click="hideEditPane = false;hidePreviewPane=true"
+        @click="setViewMode('editor')"
       >
         <UniconIcon name="edit" />
       </button>
       <button
+        class="view-mode-button"
+        :class="{ 'view-mode-button--active': currentViewMode === 'both' }"
         type="button"
         aria-label="show editor and preview panes(F9)"
         title="show editor and preview panes(F9)"
-        @click="hideEditPane = false;hidePreviewPane=false"
+        @click="setViewMode('both')"
       >
         <UniconIcon name="columns" />
       </button>
       <button
+        class="view-mode-button"
+        :class="{ 'view-mode-button--active': currentViewMode === 'preview' }"
         type="button"
         aria-label="show preview pane(F10)"
         title="show preview pane(F10)"
-        @click="hideEditPane = true;hidePreviewPane=false"
+        @click="setViewMode('preview')"
       >
         <UniconIcon name="eye" />
       </button>
@@ -72,7 +78,7 @@ export default {
   data() {
     return {
       hideEditPane: false,
-      hidePreviewPane: true,
+      hidePreviewPane: false,
       width: window.innerWidth,
       height: window.innerHeight
     }
@@ -116,6 +122,21 @@ export default {
      */
     currentFileKey() {
       return this.$store.getters.currentFile?.projectName || ''
+    },
+    /**
+     * 処理名: 現在ビューモード取得
+     * 処理概要: editor/preview の表示フラグから現在モードIDを返す
+     * 実装理由: フッターボタンの選択中表示を一元判定するため
+     * @returns {'editor'|'both'|'preview'} 現在モード
+     */
+    currentViewMode() {
+      if (this.hideEditPane) {
+        return 'preview'
+      }
+      if (this.hidePreviewPane) {
+        return 'editor'
+      }
+      return 'both'
     }
   },
   watch: {
@@ -139,6 +160,7 @@ export default {
    * 実装理由: ウィンドウサイズ変更に追従するため
    */
   mounted: function() {
+    this.initializeViewMode()
     window.addEventListener('resize', this.handleResize)
   },
   /**
@@ -158,6 +180,76 @@ export default {
     handleResize: function() {
       this.width = window.innerWidth
       this.height = window.innerHeight
+    },
+    /**
+     * 処理名: ビューモード正規化
+     * 処理概要: 入力値を有効なモードIDへ正規化する
+     * 実装理由: 不正値や未設定時でも表示モードを安定化するため
+     * @param {string} mode - 正規化対象のモードID
+     * @returns {'editor'|'both'|'preview'} 正規化済みモードID
+     */
+    normalizeViewMode(mode) {
+      if (mode === 'editor' || mode === 'both' || mode === 'preview') {
+        return mode
+      }
+      return 'both'
+    },
+    /**
+     * 処理名: ビューモード適用
+     * 処理概要: 指定モードに応じてペイン表示フラグを更新する
+     * 実装理由: UI 表示切替ロジックを1箇所に集約するため
+     * @param {'editor'|'both'|'preview'} mode - 適用するモードID
+     */
+    applyViewMode(mode) {
+      if (mode === 'editor') {
+        this.hideEditPane = false
+        this.hidePreviewPane = true
+        return
+      }
+      if (mode === 'preview') {
+        this.hideEditPane = true
+        this.hidePreviewPane = false
+        return
+      }
+      this.hideEditPane = false
+      this.hidePreviewPane = false
+    },
+    /**
+     * 処理名: 初期ビューモード適用
+     * 処理概要: config.general.viewMode から初期モードを読み取り表示へ反映する
+     * 実装理由: 新規インストール時は F9、既存ユーザーは保存済みモードを復元するため
+     */
+    initializeViewMode() {
+      const configuredMode = this.config?.general?.viewMode
+      this.applyViewMode(this.normalizeViewMode(configuredMode))
+    },
+    /**
+     * 処理名: ビューモード保存
+     * 処理概要: 現在モードを config.general.viewMode として保存する
+     * 実装理由: 次回起動時に最後の表示モードを復元するため
+     * @param {'editor'|'both'|'preview'} mode - 保存するモードID
+     */
+    persistViewMode(mode) {
+      const currentConfig = this.config || {}
+      const nextConfig = {
+        ...currentConfig,
+        general: {
+          ...(currentConfig.general || {}),
+          viewMode: mode
+        }
+      }
+      this.$store.dispatch('setConfig', nextConfig)
+    },
+    /**
+     * 処理名: ビューモード切替
+     * 処理概要: モードを表示へ適用し config へ保存する
+     * 実装理由: クリック・ホットキーの両経路で同一処理を保証するため
+     * @param {'editor'|'both'|'preview'} mode - 切替先モードID
+     */
+    setViewMode(mode) {
+      const normalized = this.normalizeViewMode(mode)
+      this.applyViewMode(normalized)
+      this.persistViewMode(normalized)
     },
     /**
      * 処理名: タイトル更新
@@ -234,5 +326,9 @@ export default {
     flex: 1 1 0%;
     outline: none;
     box-sizing: border-box;
+}
+
+.view-mode-button--active {
+  color: rgb(30, 135, 240);
 }
 </style>

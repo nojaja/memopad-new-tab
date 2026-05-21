@@ -55,6 +55,7 @@ const defaultConfig = {
     sort: '0',
     cover: '-1',
     i18n_locale: 'ja',
+    viewMode: 'both',
     privacyBlur: false,
     lastExportDataAt: ''
   },
@@ -115,6 +116,20 @@ function normalizeLocale(locale: unknown): string {
 }
 
 /**
+ * 処理名: ビューモード正規化
+ * 処理概要: 設定文字列を有効なビューモード値へ正規化する
+ * 実装理由: 不正値や未設定時でも初期表示モードを一貫させるため
+ * @param {unknown} viewMode - 正規化対象のビューモード
+ * @returns {'editor'|'both'|'preview'} 正規化されたビューモード
+ */
+function normalizeViewMode(viewMode: unknown): 'editor' | 'both' | 'preview' {
+  if (viewMode === 'editor' || viewMode === 'both' || viewMode === 'preview') {
+    return viewMode
+  }
+  return 'both'
+}
+
+/**
  * 処理名: 設定正規化
  * 処理概要: 不完全な設定オブジェクトをデフォルト値とマージして正規化する
  * 実装理由: 設定の不足・旧形式による不整合を防ぐため
@@ -152,6 +167,7 @@ function normalizeConfig(config: unknown): typeof defaultConfig {
   }
 
   normalized.general.i18n_locale = normalizeLocale(normalized.general.i18n_locale)
+  normalized.general.viewMode = normalizeViewMode(normalized.general.viewMode)
   return normalized as typeof defaultConfig
 }
 
