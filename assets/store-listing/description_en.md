@@ -33,6 +33,34 @@ See the final result right alongside your writing for a seamless note-taking exp
 ---------
 [Updates]
 
+v1.3.11 (2026/05/22)
+* Added nested list conversion for full-width-space-prefixed "・"
+We revised Settings -> multibyte -> Enable convert rules so lines starting with `　・` are now correctly converted into nested Markdown lists.
+
+* Changed the default breaks setting to ON
+The Markdown Settings breaks option is now enabled by default, so notes with line breaks are displayed more naturally.
+
+v1.3.10 (2026/05/22)
+* Moved the delete action to each note item in the list
+The delete action is now available directly on each note item, making it easier to remove the intended note.
+
+* Separated view switching and destructive actions
+We removed the delete action from the footer to avoid mixing it with view mode switching (F8/F9/F10).
+
+v1.3.9 (2026/05/22)
+* Visualized the selected view mode
+The currently selected mode (F8/F9/F10) is now highlighted by button color, making the current state easier to understand.
+
+* Saved and restored the selected view mode
+Your last selected view mode is now persisted and restored when you open the app again.
+
+v1.3.7 (2026/05/19)
+* Improved the timing of Markdown autocompletion popups
+Unintended suggestion popups are now suppressed so completions appear only when needed.
+
+* Show completion suggestions with Ctrl+Space
+Suggestions are now explicitly shown with Ctrl+Space to reduce interruption while typing.
+
 v1.3.6 (2026/05/12)
 * Added instant Privacy Blur activation with F6
 When you need to hide the screen immediately, pressing F6 now enables Privacy Blur on the spot and switches to a blurred view right away.

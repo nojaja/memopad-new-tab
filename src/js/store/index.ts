@@ -71,7 +71,7 @@ const defaultConfig = {
   markdown: {
     basicOption: {
       html: true,
-      breaks: false,
+      breaks: true,
       linkify: true,
       typography: true
     },

@@ -23,7 +23,7 @@ export function getDefaultConfig() {
     markdown: {
       basicOption: {
         html: true,
-        breaks: false,
+        breaks: true,
         linkify: true,
         typography: true
       },
