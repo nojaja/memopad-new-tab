@@ -1,8 +1,14 @@
 /**
  * MainContents.vue のメソッドカバレッジ追加テスト
  */
+jest.mock('@/DialogHelper', () => ({
+  __esModule: true,
+  default: { showDialog: jest.fn() }
+}))
+
 const { shallowMount } = require('@vue/test-utils')
 const { createStore } = require('vuex')
+const DialogHelper = require('@/DialogHelper').default
 const MainContents = require('@/components/MainContents.vue').default
 
 // Chrome API モック
@@ -93,6 +99,32 @@ describe('MainContents.vue メソッドテスト', () => {
     expect(dispatchSpy).toHaveBeenCalledWith('loadProject', 'note_test_123')
     dispatchSpy.mockRestore()
     jest.useRealTimers()
+  })
+
+  test('一覧削除要求で確認ダイアログを開き、OK時に対象ノートを削除する', () => {
+    const commitSpy = jest.spyOn(store, 'commit')
+
+    wrapper.vm.requestDeleteProject('note_test_123')
+
+    expect(DialogHelper.showDialog).toHaveBeenCalled()
+    const options = DialogHelper.showDialog.mock.calls[0][1]
+    expect(options.subject).toBe('Delete')
+    options.ok()
+
+    expect(commitSpy).toHaveBeenCalledWith('loadProject', 'note_test_123')
+    expect(commitSpy).toHaveBeenCalledWith('deleteProject')
+    commitSpy.mockRestore()
+  })
+
+  test('一覧削除要求でキャンセル時は削除しない', () => {
+    const commitSpy = jest.spyOn(store, 'commit')
+
+    wrapper.vm.requestDeleteProject('note_test_123')
+    const options = DialogHelper.showDialog.mock.calls[0][1]
+    options.cancel()
+
+    expect(commitSpy).not.toHaveBeenCalledWith('deleteProject')
+    commitSpy.mockRestore()
   })
 
   test('beforeUnmount でリスナーが削除される', () => {

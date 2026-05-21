@@ -17,13 +17,17 @@ function createTestStore() {
 describe('NoteList.vue メソッドテスト', () => {
   let store
 
+  function getStubs() {
+    return { unicon: true, NoteListItemToolbar: false }
+  }
+
   beforeEach(() => {
     store = createTestStore()
   })
 
   test('コンポーネントがマウントされる', () => {
     const wrapper = shallowMount(NoteList, {
-      global: { plugins: [store], stubs: { unicon: true } }
+      global: { plugins: [store], stubs: getStubs() }
     })
     expect(wrapper.exists()).toBe(true)
   })
@@ -31,16 +35,51 @@ describe('NoteList.vue メソッドテスト', () => {
   test('select メソッドが onSelect を呼ぶ', () => {
     const onSelectMock = jest.fn()
     const wrapper = shallowMount(NoteList, {
-      global: { plugins: [store], stubs: { unicon: true } },
+      global: { plugins: [store], stubs: getStubs() },
       props: { onSelect: onSelectMock, items: [{ uri: 'note_test', name: 'テスト', isActive: false }] }
     })
     wrapper.vm.select('note_test')
     expect(onSelectMock).toHaveBeenCalledWith('note_test')
   })
 
+  test('各ノート行に delete note ボタンが表示される', () => {
+    const wrapper = shallowMount(NoteList, {
+      global: { plugins: [store], stubs: getStubs() },
+      props: {
+        items: [
+          { uri: 'note_1', name: '1', isActive: true },
+          { uri: 'note_2', name: '2', isActive: false }
+        ]
+      }
+    })
+
+    const buttons = wrapper.findAll('button[aria-label="delete note"]')
+    expect(buttons).toHaveLength(2)
+  })
+
+  test('delete note ボタンクリックで onDelete が呼ばれ、onSelect と競合しない', async () => {
+    const onSelectMock = jest.fn()
+    const onDeleteMock = jest.fn()
+    const wrapper = shallowMount(NoteList, {
+      global: { plugins: [store], stubs: getStubs() },
+      props: {
+        onSelect: onSelectMock,
+        onDelete: onDeleteMock,
+        items: [{ uri: 'note_1', name: '1', isActive: true }]
+      }
+    })
+
+    await wrapper.find('.noteListItem-text').trigger('click')
+    expect(onSelectMock).toHaveBeenCalledWith('note_1')
+
+    await wrapper.find('button[aria-label="delete note"]').trigger('click')
+    expect(onDeleteMock).toHaveBeenCalledWith('note_1')
+    expect(onSelectMock).toHaveBeenCalledTimes(1)
+  })
+
   test('onNew のデフォルトは空関数', () => {
     const wrapper = shallowMount(NoteList, {
-      global: { plugins: [store], stubs: { unicon: true } },
+      global: { plugins: [store], stubs: getStubs() },
       props: {}
     })
     expect(() => wrapper.vm.onNew()).not.toThrow()
@@ -48,7 +87,7 @@ describe('NoteList.vue メソッドテスト', () => {
 
   test('タイトル先頭の日時プレフィックスを除去して表示する', () => {
     const wrapper = shallowMount(NoteList, {
-      global: { plugins: [store], stubs: { unicon: true } },
+      global: { plugins: [store], stubs: getStubs() },
       props: {
         items: [{ uri: 'note_1', name: '2026/05/04 11:22 サンプルタイトル', isActive: false, lastUpdatedTime: 0 }]
       }
@@ -60,7 +99,7 @@ describe('NoteList.vue メソッドテスト', () => {
   test('lastUpdatedTime を yyyy/mm/dd hh24:mm 形式で2段目に表示する', () => {
     const value = Date.UTC(2026, 4, 4, 1, 2)
     const wrapper = shallowMount(NoteList, {
-      global: { plugins: [store], stubs: { unicon: true } },
+      global: { plugins: [store], stubs: getStubs() },
       props: {
         items: [{ uri: 'note_2', name: 'タイトル', isActive: false, lastUpdatedTime: value }]
       }
@@ -74,7 +113,7 @@ describe('NoteList.vue メソッドテスト', () => {
   test('サイドバーフォーカス中に ArrowDown で次ノートへ切り替える', () => {
     const onSelectMock = jest.fn()
     const wrapper = shallowMount(NoteList, {
-      global: { plugins: [store], stubs: { unicon: true } },
+      global: { plugins: [store], stubs: getStubs() },
       props: {
         onSelect: onSelectMock,
         items: [
@@ -94,7 +133,7 @@ describe('NoteList.vue メソッドテスト', () => {
   test('検索入力中の ArrowDown ではノート切り替えしない', () => {
     const onSelectMock = jest.fn()
     const wrapper = shallowMount(NoteList, {
-      global: { plugins: [store], stubs: { unicon: true } },
+      global: { plugins: [store], stubs: getStubs() },
       props: {
         onSelect: onSelectMock,
         items: [

@@ -211,6 +211,17 @@ describe('Preview.vue メソッドテスト', () => {
     expect(wrapper.emitted('previewFocus')).toBeTruthy()
   })
 
+  test('iframe pointerdown で window の操作を通知し previewFocus が emit される', () => {
+    wrapper = shallowMount(Preview, { props: { source: '# テスト', config: defaultConfig } })
+    const dispatchSpy = jest.spyOn(window, 'dispatchEvent')
+
+    wrapper.vm.handleIframeActivate()
+
+    expect(dispatchSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'mousemove' }))
+    expect(wrapper.emitted('previewFocus')).toBeTruthy()
+    dispatchSpy.mockRestore()
+  })
+
   test('source watcher は現在の表示行を用いて updateIframeContent を呼ぶ', () => {
     const updateSpy = jest.fn()
     Preview.watch.source.call({

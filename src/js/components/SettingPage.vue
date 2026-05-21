@@ -2,11 +2,11 @@
   <div class="setting-wrapper">
     <div style="width: 200px">
       <h1 class="h1">
-        Settings
+        {{ settingText.title.settings }}
       </h1>
       <div style="width: 200px">
         <TabList
-          :items="items"
+          :items="tabItems"
           :on-select="selectItem"
         />
       </div>
@@ -14,12 +14,13 @@
     <div style="width: 100%">
       <div v-if="currentId === '1'">
         <h1 class="h1">
-          General
+          {{ settingText.title.general }}
         </h1>
         <h3 class="h3">
-          Sort
+          {{ settingText.section.sort }}
         </h3>
         <FilterSelect
+          :key="`sort-${currentLocale}`"
           :items="sortSelectItems"
           :selected="localConfig.general.sort"
           :on-select="(newValue) => {localConfig.general.sort = newValue}"
@@ -29,7 +30,7 @@
         <Select :items="coverSelectItems" :selected="config.general.cover"></Select>
         -->
         <h3 class="h3">
-          Language
+          {{ settingText.section.language }}
         </h3>
         <FilterSelect
           :items="selectItems"
@@ -38,7 +39,7 @@
         />
 
         <h3 class="h3">
-          Privacy Blur
+          {{ settingText.section.privacyBlur }}
         </h3>
         <div>
           <input
@@ -46,11 +47,11 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Privacy Blur - Set ON to blur the screen when the window is inactive.</label>
+          <label class="label">{{ settingText.label.privacyBlur }}</label>
         </div>
 
         <h3 class="h3">
-          Import Data
+          {{ settingText.section.importData }}
         </h3>
         <button
           class="button"
@@ -59,10 +60,10 @@
           <UniconIcon
             name="tdesign:import"
             fill="white"
-          />Import Data
+          />{{ settingText.label.importData }}
         </button>
         <h3 class="h3">
-          Export Data
+          {{ settingText.section.exportData }}
         </h3>
         <button
           class="button"
@@ -71,16 +72,16 @@
           <UniconIcon
             name="tdesign:export"
             fill="white"
-          />Export Data
+          />{{ settingText.label.exportData }}
         </button>
         <FileDownload ref="export" />
       </div>
       <div v-else-if="currentId === '2'">
         <h1 class="h1">
-          Editor
+          {{ settingText.title.editor }}
         </h1>
         <h3 class="h3">
-          FontSize
+          {{ settingText.section.fontSize }}
         </h3>
         <div class="number-option">
           <button
@@ -111,7 +112,7 @@
         -->
 
         <h3 class="h3">
-          Tab Size
+          {{ settingText.section.tabSize }}
         </h3>
         <div class="number-option">
           <button
@@ -134,7 +135,7 @@
         </div>
 
         <h3 class="h3">
-          Unicode Highlight: Ambiguous Characters
+          {{ settingText.section.unicodeAmbiguous }}
         </h3>
         <div>
           <input
@@ -143,11 +144,11 @@
             class="toggle-checkbox"
             @change="localConfig.editor.unicodeHighlight.invisibleCharacters = localConfig.editor.unicodeHighlight.ambiguousCharacters"
           >
-          <label class="label">Ambiguous Characters - Set ON to highlight ambiguous Unicode characters.</label>
+          <label class="label">{{ settingText.label.unicodeAmbiguous }}</label>
         </div>
 
         <h3 class="h3">
-          Minimap
+          {{ settingText.section.minimap }}
         </h3>
         <div>
           <input
@@ -155,11 +156,11 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Minimap - Set ON to show the minimap on the right side of the editor.</label>
+          <label class="label">{{ settingText.label.minimap }}</label>
         </div>
 
         <h3 class="h3">
-          Editor to Preview Scroll Sync
+          {{ settingText.section.editorPreviewScrollSync }}
         </h3>
         <div>
           <input
@@ -167,7 +168,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Editor to Preview Scroll Sync - Set ON to sync preview when editor scrolls.</label>
+          <label class="label">{{ settingText.label.editorPreviewScrollSync }}</label>
         </div>
 
         <!--
@@ -179,7 +180,7 @@
       </div>
       <div v-else-if="currentId === '3'">
         <h3 class="h3">
-          markdown Settings
+          {{ settingText.title.markdownSettings }}
         </h3>
         <div>
           <input
@@ -187,7 +188,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">html - Set ON to enable HTML tags in memo. </label>
+          <label class="label">{{ settingText.label.markdownHtml }}</label>
         </div>
         <div>
           <input
@@ -195,7 +196,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">breaks - Set ON to convert \n in paragraphs into &lt;br&gt;.</label>
+          <label class="label">{{ settingText.label.markdownBreaks }}</label>
         </div>
         <div>
           <input
@@ -203,7 +204,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">linkify - Set ON to autoconvert URL-like text to links.</label>
+          <label class="label">{{ settingText.label.markdownLinkify }}</label>
         </div>
         <div>
           <input
@@ -211,11 +212,11 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">typography - Set ON to enable some language-neutral replacement + quotes beautification (smartquotes).</label>
+          <label class="label">{{ settingText.label.markdownTypography }}</label>
         </div>
 
         <h3 class="h3">
-          Extensions
+          {{ settingText.section.extensions }}
         </h3>
         <div>
           <input
@@ -223,7 +224,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Emoji - Set ON to enable Emoji syntax </label>
+          <label class="label">{{ settingText.label.emoji }}</label>
         </div>
         <div>
           <input
@@ -231,7 +232,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Ruby - Set ON to enable ruby</label>
+          <label class="label">{{ settingText.label.ruby }}</label>
         </div>
         <div>
           <input
@@ -239,7 +240,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Mermaid - Set ON to enable Mermaid</label>
+          <label class="label">{{ settingText.label.mermaid }}</label>
         </div>
         <div>
           <input
@@ -247,7 +248,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">PlantUML - Set ON to enable PlantUML</label>
+          <label class="label">{{ settingText.label.plantUml }}</label>
         </div>
         <div>
           <input
@@ -255,7 +256,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Enable multimdTable</label>
+          <label class="label">{{ settingText.label.multimdTable }}</label>
         </div>
         <div>
           <input
@@ -263,7 +264,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Enable multimdTable.multiline</label>
+          <label class="label">{{ settingText.label.multimdTableMultiline }}</label>
         </div>
         <div>
           <input
@@ -271,7 +272,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Enable multimdTable.rowspan</label>
+          <label class="label">{{ settingText.label.multimdTableRowspan }}</label>
         </div>
         <div>
           <input
@@ -279,11 +280,11 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Enable multimdTable.headerless</label>
+          <label class="label">{{ settingText.label.multimdTableHeaderless }}</label>
         </div>
 
         <h3 class="h3">
-          multibyte
+          {{ settingText.section.multibyte }}
         </h3>
         <div>
           <input
@@ -291,7 +292,7 @@
             type="checkbox"
             class="toggle-checkbox"
           >
-          <label class="label">Enable convert</label>
+          <label class="label">{{ settingText.label.enableConvert }}</label>
         </div>
         <DraggableList
           v-model="multibyteconvertList"
@@ -336,7 +337,7 @@
           class="button-small-secondary"
           @click="addMultibyteconvertList"
         >
-          + Add Record
+          {{ settingText.label.addRecord }}
         </button>
       </div>
     </div>
@@ -382,16 +383,10 @@ export default {
         editor: defaultConfig.editor,
         markdown: defaultConfig.markdown
       },
-      items: [
-        { id: 1, name: 'General', uri: '1', isActive: true },
-        { id: 2, name: 'Editor', uri: '2', isActive: false },
-        { id: 3, name: 'Markdown', uri: '3', isActive: false }
-      ],
-      sortSelectItems: [
-        { name: 'Desc LastUpdated', value: '0' },
-        { name: 'Asc LastUpdated', value: '1' },
-        { name: 'Desc Created', value: '2' },
-        { name: 'Asc Created', value: '3' }
+      itemStates: [
+        { id: 1, uri: '1', isActive: true },
+        { id: 2, uri: '2', isActive: false },
+        { id: 3, uri: '3', isActive: false }
       ],
       coverSelectItems: [
         { name: '5min', value: '5' },
@@ -453,6 +448,94 @@ export default {
     storeConfig() {
       return this.$store.getters.config
     },
+    /**
+     * 処理名: 現在ロケール取得
+     * 処理概要: ローカル設定から現在の表示ロケールを返す
+     * 実装理由: 言語切替時の再描画キーや i18n 参照に利用するため
+     * @returns {string} 現在ロケール
+     */
+    currentLocale() {
+      return this.localConfig?.general?.i18n_locale || 'ja'
+    },
+    /**
+     * 処理名: 設定画面文言取得
+     * 処理概要: SettingPage 用の翻訳文言をまとめて返す
+     * 実装理由: テンプレート上の翻訳キー重複を減らして可読性を維持するため
+     * @returns {object} SettingPage 用文言オブジェクト
+     */
+    settingText() {
+      return {
+        title: {
+          settings: this.translateSettingText('title.settings', 'Settings'),
+          general: this.translateSettingText('title.general', 'General'),
+          editor: this.translateSettingText('title.editor', 'Editor'),
+          markdownSettings: this.translateSettingText('title.markdownSettings', 'markdown Settings')
+        },
+        section: {
+          sort: this.translateSettingText('section.sort', 'Sort'),
+          language: this.translateSettingText('section.language', 'Language'),
+          privacyBlur: this.translateSettingText('section.privacyBlur', 'Privacy Blur'),
+          importData: this.translateSettingText('section.importData', 'Import Data'),
+          exportData: this.translateSettingText('section.exportData', 'Export Data'),
+          fontSize: this.translateSettingText('section.fontSize', 'FontSize'),
+          tabSize: this.translateSettingText('section.tabSize', 'Tab Size'),
+          unicodeAmbiguous: this.translateSettingText('section.unicodeAmbiguous', 'Unicode Highlight: Ambiguous Characters'),
+          minimap: this.translateSettingText('section.minimap', 'Minimap'),
+          editorPreviewScrollSync: this.translateSettingText('section.editorPreviewScrollSync', 'Editor to Preview Scroll Sync'),
+          extensions: this.translateSettingText('section.extensions', 'Extensions'),
+          multibyte: this.translateSettingText('section.multibyte', 'multibyte')
+        },
+        label: {
+          privacyBlur: this.translateSettingText('label.privacyBlur', 'Privacy Blur - Set ON to blur the screen when the window is inactive.'),
+          importData: this.translateSettingText('label.importData', 'Import Data'),
+          exportData: this.translateSettingText('label.exportData', 'Export Data'),
+          unicodeAmbiguous: this.translateSettingText('label.unicodeAmbiguous', 'Ambiguous Characters - Set ON to highlight ambiguous Unicode characters.'),
+          minimap: this.translateSettingText('label.minimap', 'Minimap - Set ON to show the minimap on the right side of the editor.'),
+          editorPreviewScrollSync: this.translateSettingText('label.editorPreviewScrollSync', 'Editor to Preview Scroll Sync - Set ON to sync preview when editor scrolls.'),
+          markdownHtml: this.translateSettingText('label.markdownHtml', 'html - Set ON to enable HTML tags in memo.'),
+          markdownBreaks: this.translateSettingText('label.markdownBreaks', 'breaks - Set ON to convert \\n in paragraphs into &lt;br&gt;.'),
+          markdownLinkify: this.translateSettingText('label.markdownLinkify', 'linkify - Set ON to autoconvert URL-like text to links.'),
+          markdownTypography: this.translateSettingText('label.markdownTypography', 'typography - Set ON to enable some language-neutral replacement + quotes beautification (smartquotes).'),
+          emoji: this.translateSettingText('label.emoji', 'Emoji - Set ON to enable Emoji syntax'),
+          ruby: this.translateSettingText('label.ruby', 'Ruby - Set ON to enable ruby'),
+          mermaid: this.translateSettingText('label.mermaid', 'Mermaid - Set ON to enable Mermaid'),
+          plantUml: this.translateSettingText('label.plantUml', 'PlantUML - Set ON to enable PlantUML'),
+          multimdTable: this.translateSettingText('label.multimdTable', 'Enable multimdTable'),
+          multimdTableMultiline: this.translateSettingText('label.multimdTableMultiline', 'Enable multimdTable.multiline'),
+          multimdTableRowspan: this.translateSettingText('label.multimdTableRowspan', 'Enable multimdTable.rowspan'),
+          multimdTableHeaderless: this.translateSettingText('label.multimdTableHeaderless', 'Enable multimdTable.headerless'),
+          enableConvert: this.translateSettingText('label.enableConvert', 'Enable convert'),
+          addRecord: this.translateSettingText('label.addRecord', '+ Add Record')
+        }
+      }
+    },
+    /**
+     * 処理名: タブ表示データ生成
+     * 処理概要: タブ状態に翻訳済みラベルを付与した配列を返す
+     * 実装理由: Locale 切替時にタブ名も追従させるため
+     * @returns {Array} タブ表示データ
+     */
+    tabItems() {
+      return this.itemStates.map((item) => {
+        if (item.uri === '1') return { ...item, name: this.translateSettingText('tab.general', 'General') }
+        if (item.uri === '2') return { ...item, name: this.translateSettingText('tab.editor', 'Editor') }
+        return { ...item, name: this.translateSettingText('tab.markdown', 'Markdown') }
+      })
+    },
+    /**
+     * 処理名: 並び順選択肢生成
+     * 処理概要: Locale に応じた並び順選択肢を返す
+     * 実装理由: Sort セクションの選択肢文言を i18n 化するため
+     * @returns {Array} 並び順選択肢配列
+     */
+    sortSelectItems() {
+      return [
+        { name: this.translateSettingText('sortSelectItems.desc_lastUpdatedTime', 'Desc LastUpdated'), value: '0' },
+        { name: this.translateSettingText('sortSelectItems.asc_lastUpdatedTime', 'Asc LastUpdated'), value: '1' },
+        { name: this.translateSettingText('sortSelectItems.desc_createdTime', 'Desc Created'), value: '2' },
+        { name: this.translateSettingText('sortSelectItems.asc_createdTime', 'Asc Created'), value: '3' }
+      ]
+    },
     multibyteconvertList: {
       get: /**
        * 処理名: 多バイト変換リストゲッター
@@ -506,6 +589,17 @@ export default {
         this.$store.dispatch('setConfig', this.cloneConfig(val))
       },
       deep: true
+    },
+    'localConfig.general.i18n_locale': {
+      handler: /**
+       * 処理名: ロケール変更ウォッチャー
+       * 処理概要: 言語設定変更時に vue-i18n の locale を更新する
+       * 実装理由: Settings 画面を開いたままでも文言を即時に反映するため
+       * @param {string} locale - 新しいロケール
+       */
+      function(locale) {
+        this.setI18nLocale(locale)
+      }
     }
   },
   /**
@@ -516,8 +610,40 @@ export default {
    */
   created() {
     this.syncLocalConfig(this.storeConfig)
+    this.setI18nLocale(this.storeConfig?.general?.i18n_locale)
   },
   methods: {
+    /**
+     * 処理名: SettingPage 文言翻訳
+     * 処理概要: SettingPage 名前空間の翻訳値を取得し未定義時はフォールバックを返す
+     * 実装理由: テスト環境や欠落キーでも UI 表示を維持するため
+     * @param {string} path - SettingPage 配下のキー
+     * @param {string} fallback - 翻訳未解決時のフォールバック文言
+     * @returns {string} 翻訳済みまたはフォールバック文言
+     */
+    translateSettingText(path, fallback) {
+      const key = `message.SettingPage.${path}`
+      if (typeof this.$t !== 'function') return fallback
+      const translated = this.$t(key)
+      if (typeof translated !== 'string') return fallback
+      return translated === key ? fallback : translated
+    },
+    /**
+     * 処理名: i18n ロケール適用
+     * 処理概要: vue-i18n グローバル locale に指定値を反映する
+     * 実装理由: 言語選択変更時に再読み込みなしで文言を切り替えるため
+     * @param {string} locale - 適用するロケール
+     */
+    setI18nLocale(locale) {
+      const target = locale === 'en' ? 'en' : 'ja'
+      if (!this.$i18n || !this.$i18n.locale) return
+      const current = this.$i18n.locale
+      if (current && typeof current === 'object' && 'value' in current) {
+        current.value = target
+        return
+      }
+      this.$i18n.locale = target
+    },
     /**
      * 処理名: 次フレーム待機
      * 処理概要: setTimeout(0) を Promise でラップして 1 フレーム待機する
@@ -630,7 +756,7 @@ export default {
      */
     selectItem(uri) {
       this.currentId = String(uri)
-      this.items = this.items.map((item) => ({
+      this.itemStates = this.itemStates.map((item) => ({
         ...item,
         isActive: item.uri === this.currentId
       }))

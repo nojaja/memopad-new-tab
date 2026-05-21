@@ -230,4 +230,21 @@ describe('App.vue storage sync', () => {
     setTimeoutSpy.mockRestore()
     jest.useRealTimers()
   })
+
+  test('Privacy Blur が ON の時、preview iframe にフォーカスが移っても window blur ではブラーにしない', async () => {
+    remountWithPrivacyBlur(true)
+
+    const iframe = document.createElement('iframe')
+    iframe.id = 'child-frame'
+    Object.defineProperty(document, 'activeElement', {
+      configurable: true,
+      get: () => iframe
+    })
+
+    wrapper.vm.handleWindowBlur()
+    await nextTick()
+
+    expect(wrapper.vm.windowActive).toBe(true)
+    expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(false)
+  })
 })

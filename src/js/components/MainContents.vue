@@ -13,6 +13,7 @@
           :items="fileList"
           :on-new="newProject"
           :on-select="loadProject"
+          :on-delete="requestDeleteProject"
         />
         <AppFooter background-color="#fff">
           <button
@@ -64,6 +65,7 @@ import Contents from '@/components/Contents.vue'
 import Footer from '@/components/Footer.vue'
 import SlideMenu from '@/components/SlideMenu.vue'
 import SettingPage from '@/components/SettingPage.vue'
+import DialogHelper from '@/DialogHelper'
 import { createExportData, saveAsLegacy } from '@/utils/exportData'
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
@@ -266,6 +268,41 @@ export default {
       setTimeout(() => {
         this.$store.dispatch('loadProject', uri)
       }, 0)
+    },
+    /**
+     * 処理名: ノート削除要求
+     * 処理概要: 一覧から渡されたノートキーで削除確認ダイアログを表示する
+     * 実装理由: 削除責務を MainContents に集約して一覧項目のアクション拡張を容易にするため
+     * @param {string} uri - 削除対象ノートのキー
+     */
+    requestDeleteProject(uri) {
+      if (typeof uri !== 'string' || uri.length === 0) {
+        return
+      }
+
+      const message = typeof this.$t === 'function' ? this.$t('message.Delete') : 'Delete'
+      /**
+       * 処理名: 削除確認ハンドラ
+       * 処理概要: 対象ノートをアクティブ化してから削除コミットを実行する
+       * 実装理由: deleteProject が currentFile を削除対象にするため、対象を先に切り替える必要があるため
+       */
+      const onConfirmDelete = () => {
+        this.$store.commit('loadProject', uri)
+        this.$store.commit('deleteProject')
+      }
+      /**
+       * 処理名: 削除キャンセルハンドラ
+       * 処理概要: キャンセル時は何も実行しない
+       * 実装理由: ダイアログAPIへ明示的な cancel コールバックを渡して意図を固定するため
+       */
+      const onCancelDelete = () => {}
+
+      DialogHelper.showDialog(this, {
+        subject: 'Delete',
+        message,
+        ok: onConfirmDelete,
+        cancel: onCancelDelete
+      })
     },
     /**
      * 処理名: 設定パネル開く
