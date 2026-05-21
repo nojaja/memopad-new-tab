@@ -59,7 +59,9 @@ describe('SettingPage.vue - General Sort', () => {
     const wrapper = mount(SettingPage, {
       global: {
         mocks: {
-          $store: storeMock
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
         },
         stubs: {
           TabList: true,
@@ -85,7 +87,9 @@ describe('SettingPage.vue - General Sort', () => {
     const wrapper = mount(SettingPage, {
       global: {
         mocks: {
-          $store: storeMock
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
         },
         stubs: {
           TabList: true,
@@ -115,7 +119,9 @@ describe('SettingPage.vue - Markdown Mermaid setting', () => {
     const wrapper = mount(SettingPage, {
       global: {
         mocks: {
-          $store: storeMock
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
         },
         stubs: {
           FileDownload: true,
@@ -140,7 +146,9 @@ describe('SettingPage.vue - Markdown Mermaid setting', () => {
     const wrapper = mount(SettingPage, {
       global: {
         mocks: {
-          $store: storeMock
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
         },
         stubs: {
           FileDownload: true,
@@ -168,7 +176,9 @@ describe('SettingPage.vue - TabList active state', () => {
     const wrapper = mount(SettingPage, {
       global: {
         mocks: {
-          $store: storeMock
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
         },
         stubs: {
           FileDownload: true,
@@ -203,7 +213,9 @@ describe('SettingPage.vue - Import Note Entry', () => {
     const wrapper = mount(SettingPage, {
       global: {
         mocks: {
-          $store: storeMock
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
         },
         stubs: {
           TabList: true,
@@ -228,7 +240,9 @@ describe('SettingPage.vue - Import Note Entry', () => {
     const wrapper = mount(SettingPage, {
       global: {
         mocks: {
-          $store: storeMock
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
         },
         stubs: {
           TabList: true,

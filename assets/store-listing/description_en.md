@@ -33,6 +33,13 @@ See the final result right alongside your writing for a seamless note-taking exp
 ---------
 [Updates]
 
+v1.3.12 (2026/05/22)
+* Added bilingual (English/Japanese) text support for the Settings page
+The Settings page now follows your Language setting (en/ja), and section headings, descriptions, tab names, and sort options are displayed in the selected language.
+
+* Applied language changes instantly without reload
+You can now switch language while keeping the Settings page open, and all displayed text updates immediately.
+
 v1.3.11 (2026/05/22)
 * Added nested list conversion for full-width-space-prefixed "・"
 We revised Settings -> multibyte -> Enable convert rules so lines starting with `　・` are now correctly converted into nested Markdown lists.
