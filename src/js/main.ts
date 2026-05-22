@@ -115,4 +115,13 @@ app.component('UniconIcon', UniconCompat)
 
 app.mount('#app')
 
+// テストから確実にアクセスできるようにグローバルに公開 (E2E 用フック)
+// @ts-ignore
+if (typeof window !== 'undefined') {
+	// @ts-ignore
+	window.__APP__ = app
+	// @ts-ignore
+	window.__STORE__ = store
+}
+
 store.dispatch('init')
