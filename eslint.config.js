@@ -20,6 +20,13 @@ module.exports = [
       'vue.config.js'
     ]
   },
+  {
+    rules: {
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error'
+    }
+  },
   // Vue ファイル設定（vue-eslint-parser + TypeScript parser + Vue ルール）
   ...vuePlugin.configs['flat/recommended'],
   // Vue ファイル追加設定: TypeScript パーサー + SonarJS + JSDoc

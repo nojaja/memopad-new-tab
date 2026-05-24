@@ -242,7 +242,7 @@ const mermaidDiagramTemplates = [
       '    id: 2',
       '    text: "System validates credentials"',
       '  }',
-      '  R1 --> FR1'
+      '  R1 - traces -> FR1'
     ].join('\n')
   },
   {
@@ -274,10 +274,11 @@ const mermaidDiagramTemplates = [
     label: 'sankey',
     detail: 'サンキーチャート',
     insertText: [
-      'sankey',
-      '  A [A] 5 B [B]',
-      '  B [B] 3 C [C]',
-      '  A [A] 2 C [C]'
+      'sankey-beta',
+      '',
+      'A,B,5',
+      'B,C,3',
+      'A,C,2'
     ].join('\n')
   },
   {
@@ -327,7 +328,6 @@ function getMarkdownMermaidTemplates(
       value: formatMermaidCodeBlock(template.insertText)
     },
     insertText: formatMermaidCodeBlock(template.insertText),
-    insertTextRules: InsertAsSnippet,
     range
   }))
 }
@@ -708,7 +708,6 @@ function getMermaidSuggestions(
     kind: S,
     detail: `Mermaid ${template.detail}`,
     insertText: template.insertText,
-    insertTextRules: InsertAsSnippet,
     range
   }))
 }
