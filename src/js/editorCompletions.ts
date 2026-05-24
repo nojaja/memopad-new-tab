@@ -328,7 +328,6 @@ function getMarkdownMermaidTemplates(
       value: formatMermaidCodeBlock(template.insertText)
     },
     insertText: formatMermaidCodeBlock(template.insertText),
-    insertTextRules: InsertAsSnippet,
     range
   }))
 }
@@ -709,7 +708,6 @@ function getMermaidSuggestions(
     kind: S,
     detail: `Mermaid ${template.detail}`,
     insertText: template.insertText,
-    insertTextRules: InsertAsSnippet,
     range
   }))
 }

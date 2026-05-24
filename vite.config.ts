@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 import path from 'node:path'
 import { createRequire } from 'node:module'
@@ -10,6 +11,10 @@ const pkg = require('./package.json')
 export default defineConfig({
   plugins: [
     vue(),
+    vueI18n({
+      // only include locale message files (avoid processing index.ts)
+      include: path.resolve(__dirname, 'src/js/lang/messages.json')
+    }),
     viteStaticCopy({
       targets: [
         {

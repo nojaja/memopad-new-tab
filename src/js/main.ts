@@ -116,11 +116,11 @@ app.component('UniconIcon', UniconCompat)
 app.mount('#app')
 
 // テストから確実にアクセスできるようにグローバルに公開 (E2E 用フック)
-// @ts-ignore
+// @ts-expect-error: expose app for E2E tests
 if (typeof window !== 'undefined') {
-	// @ts-ignore
+	// @ts-expect-error: attach app instance for test hooks
 	window.__APP__ = app
-	// @ts-ignore
+	// @ts-expect-error: attach store instance for test hooks
 	window.__STORE__ = store
 }
 

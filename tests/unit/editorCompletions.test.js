@@ -105,6 +105,37 @@ describe('editorCompletions', () => {
     expect(labels).toEqual(expect.arrayContaining(['mermaid: graph TD', 'mermaid: gantt', 'mermaid: classDiagram']))
   })
 
+  test.each([
+    [
+      'mermaid: sankey',
+      '```mermaid\nsankey-beta\n\nA,B,5\nB,C,3\nA,C,2\n```'
+    ],
+    [
+      'mermaid: mindmap',
+      '```mermaid\nmindmap\n  root((Mindmap))\n    Origins\n      Long history\n      Another branch\n    Research\n      ML\n      UX\n```'
+    ],
+    [
+      'mermaid: requirementDiagram',
+      '```mermaid\nrequirementDiagram\n  requirement R1 {\n    id: 1\n    text: "User can log in"\n  }\n  functionalRequirement FR1 {\n    id: 2\n    text: "System validates credentials"\n  }\n  R1 - traces -> FR1\n```'
+    ]
+  ])('Markdown Mermaid テンプレート %s の insertText は改行を保持する', (label, expectedText) => {
+    const calls = monaco.languages.registerCompletionItemProvider.mock.calls
+    const provider = calls[0][1]
+
+    const mockModel = {
+      getWordUntilPosition: jest.fn(() => ({ startColumn: 1, endColumn: 1 })),
+      getValueInRange: jest.fn(() => '# 通常テキスト\n'),
+      getLineContent: jest.fn(() => '# 通常テキスト')
+    }
+    const mockPosition = { lineNumber: 2, column: 1 }
+
+    const result = provider.provideCompletionItems(mockModel, mockPosition)
+    const item = result.suggestions.find((suggestion) => suggestion.label === label)
+    expect(item).toBeDefined()
+    expect(item.insertText).toBe(expectedText)
+    expect(item.insertTextRules).toBeUndefined()
+  })
+
   test('provideCompletionItems が Mermaid ブロック内で Mermaid 補完候補を返す', () => {
     const calls = monaco.languages.registerCompletionItemProvider.mock.calls
     const provider = calls[0][1]

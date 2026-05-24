@@ -270,6 +270,69 @@ describe('Preview.vue メソッドテスト', () => {
     expect(compiled).toContain('mermaid')
   })
 
+  test('Mermaid sankey-beta テンプレートの SVG を生成し、正しいコードを渡す', async () => {
+    const cfg = { ...defaultConfig, mermaid: true }
+    wrapper = shallowMount(Preview, {
+      props: {
+        source: '```mermaid\nsankey-beta\n\nA,B,5\nB,C,3\nA,C,2\n```',
+        config: cfg
+      }
+    })
+    const mermaidMock = require('mermaid').default
+    mermaidMock.render.mockClear()
+
+    const html = await wrapper.vm.renderMarkdown()
+
+    expect(mermaidMock.render).toHaveBeenCalled()
+    expect(mermaidMock.render.mock.calls[0][1]).toBe('sankey-beta\n\nA,B,5\nB,C,3\nA,C,2')
+    expect(html).toContain('<div class="mermaid">')
+    expect(html).toContain('<svg><text>mermaid</text></svg>')
+  })
+
+  test('Mermaid mindmap テンプレートの SVG を生成し、正しいコードを渡す', async () => {
+    const cfg = { ...defaultConfig, mermaid: true }
+    wrapper = shallowMount(Preview, {
+      props: {
+        source:
+          '```mermaid\nmindmap\n  root((Mindmap))\n    Origins\n      Long history\n      Another branch\n    Research\n      ML\n      UX\n```',
+        config: cfg
+      }
+    })
+    const mermaidMock = require('mermaid').default
+    mermaidMock.render.mockClear()
+
+    const html = await wrapper.vm.renderMarkdown()
+
+    expect(mermaidMock.render).toHaveBeenCalled()
+    expect(mermaidMock.render.mock.calls[0][1]).toBe(
+      'mindmap\n  root((Mindmap))\n    Origins\n      Long history\n      Another branch\n    Research\n      ML\n      UX'
+    )
+    expect(html).toContain('<div class="mermaid">')
+    expect(html).toContain('<svg><text>mermaid</text></svg>')
+  })
+
+  test('Mermaid requirementDiagram テンプレートの SVG を生成し、正しいコードを渡す', async () => {
+    const cfg = { ...defaultConfig, mermaid: true }
+    wrapper = shallowMount(Preview, {
+      props: {
+        source:
+          '```mermaid\nrequirementDiagram\n  requirement R1 {\n    id: 1\n    text: "User can log in"\n  }\n  functionalRequirement FR1 {\n    id: 2\n    text: "System validates credentials"\n  }\n  R1 - traces -> FR1\n```',
+        config: cfg
+      }
+    })
+    const mermaidMock = require('mermaid').default
+    mermaidMock.render.mockClear()
+
+    const html = await wrapper.vm.renderMarkdown()
+
+    expect(mermaidMock.render).toHaveBeenCalled()
+    expect(mermaidMock.render.mock.calls[0][1]).toBe(
+      'requirementDiagram\n  requirement R1 {\n    id: 1\n    text: "User can log in"\n  }\n  functionalRequirement FR1 {\n    id: 2\n    text: "System validates credentials"\n  }\n  R1 - traces -> FR1'
+    )
+    expect(html).toContain('<div class="mermaid">')
+    expect(html).toContain('<svg><text>mermaid</text></svg>')
+  })
+
   test('config.mermaid false のとき連続レンダリングでもコードブロックが壊れない', async () => {
     wrapper = shallowMount(Preview, {
       props: {
