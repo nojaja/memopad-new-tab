@@ -51,6 +51,7 @@
     "devDependencies": {
         "@babel/preset-env": "^7.29.0",
         "@babel/preset-typescript": "^7.28.5",
+        "@intlify/unplugin-vue-i18n": "^11.2.3",
         "@playwright/test": "1.59.1",
         "@types/jest": "^29.5.14",
         "@types/node": "^25.7.0",
@@ -84,8 +85,7 @@
         "typedoc": "^0.28.19",
         "typedoc-plugin-markdown": "^4.11.0",
         "typescript": "^6.0.3",
-        "vite": "^8.0.10",
-        "@intlify/unplugin-vue-i18n": "^11.2.3",
+        "vite": "^8.0.14",
         "vite-plugin-static-copy": "^4.1.0",
         "vue-eslint-parser": "^10.4.0",
         "vue-tsc": "^3.2.8"
