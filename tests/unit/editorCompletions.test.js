@@ -133,7 +133,7 @@ describe('editorCompletions', () => {
     const item = result.suggestions.find((suggestion) => suggestion.label === label)
     expect(item).toBeDefined()
     expect(item.insertText).toBe(expectedText)
-    expect(item.insertTextRules).toBeUndefined()
+    expect(item.insertTextRules).toBe(monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet)
   })
 
   test('provideCompletionItems が Mermaid ブロック内で Mermaid 補完候補を返す', () => {
