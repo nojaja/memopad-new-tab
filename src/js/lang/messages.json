@@ -64,7 +64,16 @@
           "multimdTableRowspan" : "multimdTable.rowspan - Set ON to enable merged cells in multimdTable. Example: ```multimdTable.rowspan \\| Header1 \\| Header2 \\| \n\\| --- \\| --- \\| \n\\| Cell1 \\| Cell2 \\|```",
           "multimdTableHeaderless" : "multimdTable.headerless - Set ON to enable headerless tables. Example: ```multimdTable.headerless \\| Cell1 \\| Cell2 \\| \n\\| Cell3 \\| Cell4 \\|```",
           "enableConvert" : "Enable convert",
-          "addRecord" : "+ Add conversion rule"
+          "addRecord" : "+ Add conversion rule",
+          "loadPreset" : "Load",
+          "savePreset" : "Save",
+          "deletePreset" : "Delete"
+        },
+        "dialog" : {
+          "loadPresetConfirm" : "Load selected preset and replace current rules?",
+          "savePresetPrompt" : "Enter preset name",
+          "overwritePresetConfirm" : "Preset already exists. Overwrite it?",
+          "deletePresetConfirm" : "Delete selected preset?"
         }
       }
     }
@@ -134,7 +143,16 @@
           "multimdTableRowspan" : "multimdTable.rowspan - 有効にすると multimdTable 内でセルの結合が使用できます 例：```multimdTable.rowspan \\| Header1 \\| Header2 \\| \n\\| --- \\| --- \\| \n\\| Cell1 \\| Cell2 \\|```",
           "multimdTableHeaderless" : "multimdTable.headerless - 有効にするとヘッダーなしのテーブルを使用できます 例：```multimdTable.headerless \\| Cell1 \\| Cell2 \\| \n\\| Cell3 \\| Cell4 \\|```",
           "enableConvert" : "変換を有効化",
-          "addRecord" : "+ 変換ルールを追加"
+          "addRecord" : "+ 変換ルールを追加",
+          "loadPreset" : "読み込み",
+          "savePreset" : "保存",
+          "deletePreset" : "削除"
+        },
+        "dialog" : {
+          "loadPresetConfirm" : "選択したプリセットを読み込み、現在の変換ルールを置き換えますか？",
+          "savePresetPrompt" : "保存するプリセット名を入力してください",
+          "overwritePresetConfirm" : "同名のプリセットがあります。上書きしますか？",
+          "deletePresetConfirm" : "選択したプリセットを削除しますか？"
         }
       }
     }

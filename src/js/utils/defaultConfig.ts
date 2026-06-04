@@ -9,6 +9,7 @@
  * @returns {object} デフォルト設定オブジェクト
  */
 export function getDefaultConfig() {
+  const defaultMultibyteRules = []
   return {
     editor: {
       automaticLayout: true,
@@ -43,7 +44,14 @@ export function getDefaultConfig() {
         headerless: true
       },
       multibyteconvert: false,
-      multibyteconvertList: []
+      multibyteconvertList: defaultMultibyteRules,
+      multibytePresetSelected: 'プリセット',
+      multibytePresetList: [
+        {
+          name: 'プリセット',
+          rules: defaultMultibyteRules
+        }
+      ]
     }
   }
 }

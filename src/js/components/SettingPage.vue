@@ -359,6 +359,38 @@
           >
           <label class="label">{{ settingText.label.enableConvert }}</label>
         </div>
+        <div class="multibyte-preset-controls">
+          <select
+            v-model="localConfig.markdown.multibytePresetSelected"
+            class="option multibyte-preset-select"
+          >
+            <option
+              v-for="item in multibytePresetSelectItems"
+              :key="item.value"
+              :value="item.value"
+            >
+              {{ item.name }}
+            </option>
+          </select>
+          <button
+            class="button-small-secondary multibyte-preset-load"
+            @click="loadSelectedMultibytePreset"
+          >
+            {{ settingText.label.loadPreset }}
+          </button>
+          <button
+            class="button-small-secondary multibyte-preset-save"
+            @click="saveCurrentMultibytePreset"
+          >
+            {{ settingText.label.savePreset }}
+          </button>
+          <button
+            class="button-small multibyte-preset-delete"
+            @click="deleteSelectedMultibytePreset"
+          >
+            {{ settingText.label.deletePreset }}
+          </button>
+        </div>
         <DraggableList
           v-model="multibyteconvertList"
           tag="ul"
@@ -433,6 +465,7 @@ export default {
    * @returns {object} 初期データオブジェクト
    */
   data() {
+    const defaultPresetName = 'プリセット'
     const defaultConfig = getDefaultConfig()
     return {
       dragging: true,
@@ -448,6 +481,7 @@ export default {
         editor: defaultConfig.editor,
         markdown: defaultConfig.markdown
       },
+      defaultMultibytePresetName: defaultPresetName,
       itemStates: [
         { id: 1, uri: '1', isActive: true },
         { id: 2, uri: '2', isActive: false },
@@ -579,7 +613,10 @@ export default {
           multimdTableRowspan: this.translateSettingText('label.multimdTableRowspan', 'Enable multimdTable.rowspan'),
           multimdTableHeaderless: this.translateSettingText('label.multimdTableHeaderless', 'Enable multimdTable.headerless'),
           enableConvert: this.translateSettingText('label.enableConvert', 'Enable convert'),
-          addRecord: this.translateSettingText('label.addRecord', '+ Add Record')
+          addRecord: this.translateSettingText('label.addRecord', '+ Add Record'),
+          loadPreset: this.translateSettingText('label.loadPreset', 'Load'),
+          savePreset: this.translateSettingText('label.savePreset', 'Save'),
+          deletePreset: this.translateSettingText('label.deletePreset', 'Delete')
         }
       }
     },
@@ -609,6 +646,22 @@ export default {
         { name: this.translateSettingText('sortSelectItems.desc_createdTime', 'Desc Created'), value: '2' },
         { name: this.translateSettingText('sortSelectItems.asc_createdTime', 'Asc Created'), value: '3' }
       ]
+    },
+    /**
+     * 処理名: 多バイトプリセット選択肢生成
+     * 処理概要: 現在設定されたプリセット一覧をセレクトボックス向けに整形する
+     * 実装理由: 保存済みプリセットを UI から読み込み・削除できるようにするため
+     * @returns {Array<{name: string, value: string}>} プリセット選択肢配列
+     */
+    multibytePresetSelectItems() {
+      const list = this.localConfig?.markdown?.multibytePresetList
+      if (!Array.isArray(list)) return [{ name: this.defaultMultibytePresetName, value: this.defaultMultibytePresetName }]
+      return list
+        .filter((preset) => preset && typeof preset.name === 'string')
+        .map((preset) => ({
+          name: preset.name,
+          value: preset.name
+        }))
     },
     multibyteconvertList: {
       get: /**
@@ -801,9 +854,133 @@ export default {
     syncLocalConfig(config) {
       this.isSyncingStoreConfig = true
       this.localConfig = this.cloneConfig(config)
+      this.ensureMultibytePresetState()
       Promise.resolve().then(() => {
         this.isSyncingStoreConfig = false
       })
+    },
+    /**
+     * 処理名: ルール配列ディープコピー
+     * 処理概要: [正規表現, 置換] 配列の2次元配列を文字列化して安全にコピーする
+     * 実装理由: プリセット読み込み・保存時に参照共有による副作用を防ぐため
+     * @param {Array} rules - コピー元ルール配列
+     * @returns {Array} コピー済みルール配列
+     */
+    cloneMultibyteRules(rules) {
+      if (!Array.isArray(rules)) return []
+      return rules
+        .filter((rule) => Array.isArray(rule) && rule.length >= 2)
+        .map((rule) => [String(rule[0]), String(rule[1])])
+    },
+    /**
+     * 処理名: プリセット名正規化
+     * 処理概要: 入力名を trim し、空文字なら空文字を返す
+     * 実装理由: 保存名のバリデーションと重複判定を一貫化するため
+     * @param {unknown} name - 入力されたプリセット名
+     * @returns {string} 正規化済みプリセット名
+     */
+    normalizePresetName(name) {
+      return typeof name === 'string' ? name.trim() : ''
+    },
+    /**
+     * 処理名: 多バイトプリセット状態補完
+     * 処理概要: markdown 設定にプリセット関連キーが不足している場合に補完する
+     * 実装理由: 旧設定を読み込んでもプリセット操作を安全に行えるようにするため
+     */
+    ensureMultibytePresetState() {
+      if (!this.localConfig || !this.localConfig.markdown) return
+      const markdown = this.localConfig.markdown
+      const defaultName = this.defaultMultibytePresetName
+      const currentRules = this.cloneMultibyteRules(markdown.multibyteconvertList)
+      const sourceList = Array.isArray(markdown.multibytePresetList) ? markdown.multibytePresetList : []
+      const normalized = sourceList
+        .filter((preset) => preset && typeof preset.name === 'string')
+        .map((preset) => ({
+          name: this.normalizePresetName(preset.name),
+          rules: this.cloneMultibyteRules(preset.rules)
+        }))
+        .filter((preset) => preset.name.length > 0)
+
+      const hasDefault = normalized.some((preset) => preset.name === defaultName)
+      if (!hasDefault) {
+        normalized.unshift({ name: defaultName, rules: currentRules })
+      }
+      markdown.multibytePresetList = normalized
+
+      const selected = this.normalizePresetName(markdown.multibytePresetSelected)
+      markdown.multibytePresetSelected = normalized.some((preset) => preset.name === selected)
+        ? selected
+        : defaultName
+    },
+    /**
+     * 処理名: プリセット読み込み
+     * 処理概要: 選択中プリセットのルール一覧を現在の変換ルールへ洗い替えする
+     * 実装理由: 用途ごとに保存済みルールへ即座に切り替えられるようにするため
+     */
+    loadSelectedMultibytePreset() {
+      this.ensureMultibytePresetState()
+      const markdown = this.localConfig.markdown
+      const selected = this.normalizePresetName(markdown.multibytePresetSelected)
+      const preset = markdown.multibytePresetList.find((item) => item.name === selected)
+      if (!preset) return
+
+      const message = this.translateSettingText('dialog.loadPresetConfirm', 'Load selected preset and replace current rules?')
+      if (typeof window.confirm === 'function' && !window.confirm(message)) {
+        return
+      }
+
+      markdown.multibyteconvertList = this.cloneMultibyteRules(preset.rules)
+    },
+    /**
+     * 処理名: プリセット保存
+     * 処理概要: 現在の変換ルール一覧を名前付きプリセットとして保存する
+     * 実装理由: ルール編集結果を再利用できるようにするため
+     */
+    saveCurrentMultibytePreset() {
+      this.ensureMultibytePresetState()
+      const markdown = this.localConfig.markdown
+      const defaultValue = this.normalizePresetName(markdown.multibytePresetSelected) || this.defaultMultibytePresetName
+      const promptMessage = this.translateSettingText('dialog.savePresetPrompt', 'Enter preset name')
+      const rawName = typeof window.prompt === 'function' ? window.prompt(promptMessage, defaultValue) : null
+      if (rawName == null) return
+
+      const presetName = this.normalizePresetName(rawName)
+      if (!presetName) return
+
+      const nextRules = this.cloneMultibyteRules(markdown.multibyteconvertList)
+      const existingIndex = markdown.multibytePresetList.findIndex((preset) => preset.name === presetName)
+      if (existingIndex >= 0) {
+        const overwriteMessage = this.translateSettingText('dialog.overwritePresetConfirm', 'Preset already exists. Overwrite it?')
+        if (typeof window.confirm === 'function' && !window.confirm(overwriteMessage)) {
+          return
+        }
+        markdown.multibytePresetList.splice(existingIndex, 1, { name: presetName, rules: nextRules })
+      } else {
+        markdown.multibytePresetList.push({ name: presetName, rules: nextRules })
+      }
+      markdown.multibytePresetSelected = presetName
+    },
+    /**
+     * 処理名: プリセット削除
+     * 処理概要: 選択中プリセットを削除し、選択状態を既定プリセットへ戻す
+     * 実装理由: 不要なプリセットを管理画面から整理できるようにするため
+     */
+    deleteSelectedMultibytePreset() {
+      this.ensureMultibytePresetState()
+      const markdown = this.localConfig.markdown
+      const selected = this.normalizePresetName(markdown.multibytePresetSelected)
+      if (selected.length === 0 || selected === this.defaultMultibytePresetName) return
+
+      const index = markdown.multibytePresetList.findIndex((preset) => preset.name === selected)
+      if (index < 0) return
+
+      const message = this.translateSettingText('dialog.deletePresetConfirm', 'Delete selected preset?')
+      if (typeof window.confirm === 'function' && !window.confirm(message)) {
+        return
+      }
+
+      markdown.multibytePresetList.splice(index, 1)
+      markdown.multibytePresetSelected = this.defaultMultibytePresetName
     },
     /**
      * 処理名: 多バイト変換ルール削除
@@ -1075,6 +1252,31 @@ export default {
 .button-small-secondary:hover {
     background-color: rgb(71, 71, 71);
 }
+.multibyte-preset-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.multibyte-preset-controls .multibyte-preset-select,
+.multibyte-preset-controls .multibyte-preset-load,
+.multibyte-preset-controls .multibyte-preset-save,
+.multibyte-preset-controls .multibyte-preset-delete {
+  width: 200px;
+  height: 40px;
+  font-size: 16px;
+}
+
+.multibyte-preset-controls .multibyte-preset-load,
+.multibyte-preset-controls .multibyte-preset-save,
+.multibyte-preset-controls .multibyte-preset-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+}
+
 .number-option {
   display: inline-flex;
   align-items: center;
