@@ -116,13 +116,19 @@ export default {
     /**
      * 処理名: ウィンドウブラーハンドラ
      * 処理概要: ウィンドウが非アクティブになったときに windowActive を false にする
-     * 実装理由: プライバシーブラーの表示トリガーとするため。ただし preview iframe への
-     *          フォーカス移動は blur として扱わない
+     * 実装理由: プライバシーブラーの表示トリガーとするため。ただし preview クリック中の
+     *          一時的な blur は非アクティブ化として扱わない
      */
     handleWindowBlur() {
-      if (document.activeElement instanceof HTMLIFrameElement && document.activeElement.id === 'child-frame') {
+      const isTabVisible = typeof document.hidden === 'boolean' ? !document.hidden : true
+      const hasWindowFocus = typeof document.hasFocus === 'function' ? document.hasFocus() : true
+      if (isTabVisible && hasWindowFocus) {
         this.windowActive = true
         this.resetIdleTimer()
+        // blur 先行で hasFocus 更新が遅れるケースに備えて次マイクロタスクで再同期する
+        Promise.resolve().then(() => {
+          this.syncWindowState()
+        })
         return
       }
       this.windowActive = false

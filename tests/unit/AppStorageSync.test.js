@@ -231,7 +231,7 @@ describe('App.vue storage sync', () => {
     jest.useRealTimers()
   })
 
-  test('Privacy Blur が ON の時、preview iframe にフォーカスが移っても window blur ではブラーにしない', async () => {
+  test('Privacy Blur が ON の時、pane-body クリック後に window blur したらブラーが掛かる', async () => {
     remountWithPrivacyBlur(true)
 
     const iframe = document.createElement('iframe')
@@ -240,11 +240,65 @@ describe('App.vue storage sync', () => {
       configurable: true,
       get: () => iframe
     })
+    document.hasFocus = jest.fn(() => false)
 
-    wrapper.vm.handleWindowBlur()
+    const blurEvent = new Event('blur')
+    window.dispatchEvent(blurEvent)
+    await nextTick()
+
+    expect(wrapper.vm.windowActive).toBe(false)
+    expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(true)
+  })
+
+  test('Privacy Blur が ON の時、preview クリック直後で activeElement 未反映でもブラーを切り替えない', async () => {
+    remountWithPrivacyBlur(true)
+
+    const activeElementBeforeIframeFocus = document.createElement('div')
+    activeElementBeforeIframeFocus.id = 'preview-pane-body'
+    Object.defineProperty(document, 'activeElement', {
+      configurable: true,
+      get: () => activeElementBeforeIframeFocus
+    })
+    document.hasFocus = jest.fn(() => true)
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: () => false
+    })
+
+    // 実機では preview クリック時に activeElement 更新より先に blur が発火することがある
+    window.dispatchEvent(new Event('blur'))
     await nextTick()
 
     expect(wrapper.vm.windowActive).toBe(true)
     expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(false)
+  })
+
+  test('Privacy Blur が ON の時、preview クリック後に blur が先行して hasFocus が遅延更新でも非アクティブ化ならブラーが掛かる', async () => {
+    remountWithPrivacyBlur(true)
+
+    const iframe = document.createElement('iframe')
+    iframe.id = 'child-frame'
+    Object.defineProperty(document, 'activeElement', {
+      configurable: true,
+      get: () => iframe
+    })
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      get: () => false
+    })
+
+    // blur 発火時点では true が返るが、その直後に false へ更新される実機レースを再現
+    document.hasFocus = jest
+      .fn()
+      .mockImplementationOnce(() => true)
+      .mockImplementation(() => false)
+
+    window.dispatchEvent(new Event('blur'))
+    await Promise.resolve()
+    await nextTick()
+    await nextTick()
+
+    expect(wrapper.vm.windowActive).toBe(false)
+    expect(wrapper.find('.privacy-blur-overlay').exists()).toBe(true)
   })
 })
