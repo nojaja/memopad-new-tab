@@ -10,7 +10,7 @@
 
 <script>
 import md from 'markdown-it'
-import emoji from 'markdown-it-emoji'
+import { full as emoji } from 'markdown-it-emoji'
 import ruby from 'markdown-it-ruby'
 import multimdTable from 'markdown-it-multimd-table'
 import checkbox from 'markdown-it-task-checkbox'
@@ -385,7 +385,7 @@ export default {
       box-sizing: border-box;
     }
     body {
-      overflow-x: hidden;
+      overflow: hidden;
     }
   </style>
 </head>

@@ -160,6 +160,71 @@
         </div>
 
         <h3 class="h3">
+          {{ settingText.section.lineNumbers }}
+        </h3>
+        <div>
+          <input
+            v-model="localConfig.editor.lineNumbers"
+            type="checkbox"
+            class="toggle-checkbox"
+            true-value="on"
+            false-value="off"
+          >
+          <label class="label">{{ settingText.label.lineNumbers }}</label>
+        </div>
+
+        <h3 class="h3">
+          {{ settingText.section.insertSpaces }}
+        </h3>
+        <div>
+          <input
+            v-model="localConfig.editor.insertSpaces"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
+          <label class="label">{{ settingText.label.insertSpaces }}</label>
+        </div>
+
+        <h3 class="h3">
+          {{ settingText.section.wrapping }}
+        </h3>
+        <div>
+          <input
+            v-model="localConfig.editor.wrapping"
+            type="checkbox"
+            class="toggle-checkbox"
+          >
+          <label class="label">{{ settingText.label.wrapping }}</label>
+        </div>
+        <div
+          v-if="localConfig.editor.wrapping"
+          class="number-option"
+        >
+          <input
+            v-model.number="localConfig.editor.wrappingColumn"
+            class="option option--number"
+            type="number"
+            min="0"
+            @change="normalizeWrappingColumn"
+          >
+          <label class="label">{{ settingText.label.wrappingColumn }}</label>
+        </div>
+
+        <h3 class="h3">
+          {{ settingText.section.autoClosingBrackets }}
+        </h3>
+        <div>
+          <input
+            v-model="localConfig.editor.autoClosingBrackets"
+            type="checkbox"
+            class="toggle-checkbox"
+            true-value="always"
+            false-value="never"
+          >
+          <label class="label">{{ settingText.label.autoClosingBrackets }}</label>
+        </div>
+
+        <h3 class="h3">
           {{ settingText.section.editorPreviewScrollSync }}
         </h3>
         <div>
@@ -481,6 +546,10 @@ export default {
           tabSize: this.translateSettingText('section.tabSize', 'Tab Size'),
           unicodeAmbiguous: this.translateSettingText('section.unicodeAmbiguous', 'Unicode Highlight: Ambiguous Characters'),
           minimap: this.translateSettingText('section.minimap', 'Minimap'),
+          lineNumbers: this.translateSettingText('section.lineNumbers', 'Line Numbers'),
+          insertSpaces: this.translateSettingText('section.insertSpaces', 'Insert Spaces'),
+          wrapping: this.translateSettingText('section.wrapping', 'Word Wrapping'),
+          autoClosingBrackets: this.translateSettingText('section.autoClosingBrackets', 'Auto Closing Brackets'),
           editorPreviewScrollSync: this.translateSettingText('section.editorPreviewScrollSync', 'Editor to Preview Scroll Sync'),
           extensions: this.translateSettingText('section.extensions', 'Extensions'),
           multibyte: this.translateSettingText('section.multibyte', 'multibyte')
@@ -491,6 +560,11 @@ export default {
           exportData: this.translateSettingText('label.exportData', 'Export Data'),
           unicodeAmbiguous: this.translateSettingText('label.unicodeAmbiguous', 'Ambiguous Characters - Set ON to highlight ambiguous Unicode characters.'),
           minimap: this.translateSettingText('label.minimap', 'Minimap - Set ON to show the minimap on the right side of the editor.'),
+          lineNumbers: this.translateSettingText('label.lineNumbers', 'Line Numbers - Set ON to display line numbers in the editor gutter.'),
+          insertSpaces: this.translateSettingText('label.insertSpaces', 'Insert Spaces - Set ON to insert spaces when pressing Tab.'),
+          wrapping: this.translateSettingText('label.wrapping', 'Word Wrapping - Set ON to wrap long lines in the editor.'),
+          wrappingColumn: this.translateSettingText('label.wrappingColumn', 'Wrapping Column - 0 wraps at viewport width, values greater than 0 wrap at that column.'),
+          autoClosingBrackets: this.translateSettingText('label.autoClosingBrackets', 'Auto Closing Brackets - Set ON to auto-complete brackets and quotes.'),
           editorPreviewScrollSync: this.translateSettingText('label.editorPreviewScrollSync', 'Editor to Preview Scroll Sync - Set ON to sync preview when editor scrolls.'),
           markdownHtml: this.translateSettingText('label.markdownHtml', 'html - Set ON to enable HTML tags in memo.'),
           markdownBreaks: this.translateSettingText('label.markdownBreaks', 'breaks - Set ON to convert \\n in paragraphs into &lt;br&gt;.'),
@@ -776,6 +850,19 @@ export default {
       this.localConfig.editor[key] = next
     },
     /**
+     * 処理名: 折り返し桁数正規化
+     * 処理概要: wrappingColumn の入力値を 0 以上の整数に補正する
+     * 実装理由: 不正入力時も Monaco 設定へ安全な値を渡すため
+     */
+    normalizeWrappingColumn() {
+      const value = Number(this.localConfig.editor.wrappingColumn)
+      if (!Number.isFinite(value)) {
+        this.localConfig.editor.wrappingColumn = 0
+        return
+      }
+      this.localConfig.editor.wrappingColumn = Math.max(0, Math.floor(value))
+    },
+    /**
      * 処理名: データエクスポート
      * 処理概要: localStorage の全データを整形済み JSON としてファイルダウンロードする
      * 実装理由: ユーザーが読みやすい形式でメモデータをバックアップできるようにするため
@@ -997,6 +1084,7 @@ export default {
 .option--number {
   width: 120px;
   text-align: center;
+  appearance: textfield;
   -moz-appearance: textfield;
 }
 

@@ -65,8 +65,13 @@ const defaultConfig = {
     tabSize: 4,
     syncEditorToPreview: false,
     theme: 'vs',
+    lineNumbers: 'on',
+    insertSpaces: true,
+    wrapping: false,
+    wrappingColumn: 300,
+    autoClosingBrackets: 'always',
     unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
-    minimap: { enabled: true }
+    minimap: { enabled: false }
   },
   markdown: {
     basicOption: {
@@ -93,7 +98,10 @@ const defaultConfig = {
 /** normalizeConfig の入力用部分設定型 */
 type RawConfig = {
   general?: Partial<typeof defaultConfig['general']>
-  editor?: Partial<typeof defaultConfig['editor']>
+  editor?: Partial<typeof defaultConfig['editor']> & {
+    unicodeHighlight?: Partial<typeof defaultConfig['editor']['unicodeHighlight']>
+    minimap?: Partial<typeof defaultConfig['editor']['minimap']>
+  }
   markdown?: Partial<typeof defaultConfig['markdown']> & {
     basicOption?: Partial<typeof defaultConfig['markdown']['basicOption']>
     multimdTableOption?: Partial<typeof defaultConfig['markdown']['multimdTableOption']>
@@ -147,7 +155,15 @@ function normalizeConfig(config: unknown): typeof defaultConfig {
     },
     editor: {
       ...defaultConfig.editor,
-      ...(input.editor || {})
+      ...(input.editor || {}),
+      unicodeHighlight: {
+        ...defaultConfig.editor.unicodeHighlight,
+        ...((input.editor && input.editor.unicodeHighlight) || {})
+      },
+      minimap: {
+        ...defaultConfig.editor.minimap,
+        ...((input.editor && input.editor.minimap) || {})
+      }
     },
     markdown: {
       ...defaultConfig.markdown,

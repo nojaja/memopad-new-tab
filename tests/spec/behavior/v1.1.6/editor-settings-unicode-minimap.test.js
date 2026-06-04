@@ -1,7 +1,7 @@
 /**
  * v1.1.6 Editor 設定拡張
  * - unicodeHighlight.ambiguousCharacters (default: false)
- * - minimap.enabled (default: true)
+ * - minimap.enabled (default: false)
  * の normalizeConfig 動作を検証する
  */
 
@@ -29,7 +29,7 @@ describe('normalizeConfig — unicodeHighlight / minimap デフォルト値補�
     expect(config.editor.unicodeHighlight.invisibleCharacters).toBe(false)
   })
 
-  test('旧設定に minimap が存在しない場合、デフォルト値 true が補完される', () => {
+  test('旧設定に minimap が存在しない場合、デフォルト値 false が補完される', () => {
     const oldConfig = JSON.stringify({
       general: { sort: '0', i18n_locale: 'ja', privacyBlur: false },
       editor: { automaticLayout: true, fontSize: 16, tabSize: 4, theme: 'vs' },
@@ -41,7 +41,7 @@ describe('normalizeConfig — unicodeHighlight / minimap デフォルト値補�
 
     const config = storeModule.getters.config
     expect(config.editor.minimap).toBeDefined()
-    expect(config.editor.minimap.enabled).toBe(true)
+    expect(config.editor.minimap.enabled).toBe(false)
   })
 
   test('既存設定の unicodeHighlight.ambiguousCharacters が true の場合、上書きされない', () => {

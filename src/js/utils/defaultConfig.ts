@@ -17,8 +17,13 @@ export function getDefaultConfig() {
       tabSize: 4,
       syncEditorToPreview: false,
       theme: 'vs',
+      lineNumbers: 'on',
+      insertSpaces: true,
+      wrapping: false,
+      wrappingColumn: 300,
+      autoClosingBrackets: 'always',
       unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
-      minimap: { enabled: true }
+      minimap: { enabled: false }
     },
     markdown: {
       basicOption: {

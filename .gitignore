@@ -7,3 +7,6 @@ extension.zip
 /coverage
 /playwright-report
 /test-results
+_tmp.action.error.log
+_tmp.action.error2.log
+_tmp.qa.log
