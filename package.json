@@ -30,7 +30,7 @@
         "core-js": "^3.6.5",
         "cross-env": "^7.0.2",
         "lodash": "^4.18.1",
-        "markdown-it": "^12.3.2",
+        "markdown-it": "^14.2.0",
         "markdown-it-container": "^4.0.0",
         "markdown-it-emoji": "^1.4.0",
         "markdown-it-multimd-table": "^4.0.3",
