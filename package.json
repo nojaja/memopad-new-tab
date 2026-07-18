@@ -61,7 +61,7 @@
         "@vue/eslint-config-standard": "^8.0.1",
         "@vue/test-utils": "^2.4.10",
         "@vue/vue3-jest": "^29.2.6",
-        "adm-zip": "^0.5.17",
+        "adm-zip": "^0.6.0",
         "babel-eslint": "^10.1.0",
         "babel-jest": "^29.7.0",
         "chrome-webstore-upload": "^6.0.0",
