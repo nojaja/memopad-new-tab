@@ -44,6 +44,8 @@ const STORAGE_KEY_NOTE_KEY_LIST = 'noteKeyList'
 const STORAGE_KEY_CONFIG = 'config'
 /** ノートキーのプレフィックス */
 const NOTE_PREFIX = 'note_'
+/** マルチバイト変換の既定プリセット名 */
+const DEFAULT_MULTIBYTE_PRESET_NAME = 'プリセット'
 
 /**
  * 処理名: デフォルト設定オブジェクト
@@ -65,8 +67,13 @@ const defaultConfig = {
     tabSize: 4,
     syncEditorToPreview: false,
     theme: 'vs',
+    lineNumbers: 'on',
+    insertSpaces: true,
+    wrapping: false,
+    wrappingColumn: 300,
+    autoClosingBrackets: 'always',
     unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
-    minimap: { enabled: true }
+    minimap: { enabled: false }
   },
   markdown: {
     basicOption: {
@@ -86,19 +93,80 @@ const defaultConfig = {
       headerless: true
     },
     multibyteconvert: false,
-    multibyteconvertList: (jmd as { RegExpList?: unknown[] }).RegExpList || []
+    multibyteconvertList: (jmd as { RegExpList?: unknown[] }).RegExpList || [],
+    multibytePresetSelected: DEFAULT_MULTIBYTE_PRESET_NAME,
+    multibytePresetList: [
+      {
+        name: DEFAULT_MULTIBYTE_PRESET_NAME,
+        rules: (jmd as { RegExpList?: unknown[] }).RegExpList || []
+      }
+    ]
   }
 }
 
 /** normalizeConfig の入力用部分設定型 */
 type RawConfig = {
   general?: Partial<typeof defaultConfig['general']>
-  editor?: Partial<typeof defaultConfig['editor']>
+  editor?: Partial<typeof defaultConfig['editor']> & {
+    unicodeHighlight?: Partial<typeof defaultConfig['editor']['unicodeHighlight']>
+    minimap?: Partial<typeof defaultConfig['editor']['minimap']>
+  }
   markdown?: Partial<typeof defaultConfig['markdown']> & {
     basicOption?: Partial<typeof defaultConfig['markdown']['basicOption']>
     multimdTableOption?: Partial<typeof defaultConfig['markdown']['multimdTableOption']>
     multibyteconvertList?: unknown[]
+    multibytePresetList?: unknown[]
   }
+}
+
+/** マルチバイトプリセット要素の内部型 */
+type MultibytePreset = {
+  name: string
+  rules: unknown[]
+}
+
+/**
+ * 処理名: マルチバイトプリセットルール正規化
+ * 処理概要: [正規表現, 置換文字列] の2要素配列だけを抽出して返す
+ * 実装理由: プリセットに不正な構造が混入しても安全に扱えるようにするため
+ * @param {unknown} rules - 正規化対象のルール配列
+ * @returns {Array<[string, string]>} 正規化済みルール配列
+ */
+function normalizeMultibytePresetRules(rules: unknown): Array<[string, string]> {
+  if (!Array.isArray(rules)) return []
+  const normalized = rules
+    .filter((rule): rule is unknown[] => Array.isArray(rule) && rule.length >= 2)
+    .map((rule) => [String(rule[0]), String(rule[1])] as [string, string])
+  return normalized
+}
+
+/**
+ * 処理名: マルチバイトプリセット一覧正規化
+ * 処理概要: プリセット一覧を正規化し、既定プリセットを必ず含む形で返す
+ * 実装理由: 旧設定や不正設定でもプリセット機能を破綻させないため
+ * @param {unknown} presets - 正規化対象のプリセット一覧
+ * @returns {MultibytePreset[]} 正規化済みプリセット一覧
+ */
+function normalizeMultibytePresetList(presets: unknown): MultibytePreset[] {
+  const source = Array.isArray(presets) ? presets : []
+  const normalized = source
+    .filter((preset): preset is { name?: unknown, rules?: unknown } => !!preset && typeof preset === 'object')
+    .map((preset) => {
+      const name = String(preset.name || '').trim()
+      return {
+        name,
+        rules: normalizeMultibytePresetRules(preset.rules)
+      }
+    })
+    .filter((preset) => preset.name.length > 0)
+
+  const defaultPreset: MultibytePreset = {
+    name: DEFAULT_MULTIBYTE_PRESET_NAME,
+    rules: normalizeMultibytePresetRules((jmd as { RegExpList?: unknown[] }).RegExpList || [])
+  }
+
+  const withoutDefault = normalized.filter((preset) => preset.name !== DEFAULT_MULTIBYTE_PRESET_NAME)
+  return [defaultPreset, ...withoutDefault]
 }
 
 /**
@@ -147,7 +215,15 @@ function normalizeConfig(config: unknown): typeof defaultConfig {
     },
     editor: {
       ...defaultConfig.editor,
-      ...(input.editor || {})
+      ...(input.editor || {}),
+      unicodeHighlight: {
+        ...defaultConfig.editor.unicodeHighlight,
+        ...((input.editor && input.editor.unicodeHighlight) || {})
+      },
+      minimap: {
+        ...defaultConfig.editor.minimap,
+        ...((input.editor && input.editor.minimap) || {})
+      }
     },
     markdown: {
       ...defaultConfig.markdown,
@@ -162,9 +238,19 @@ function normalizeConfig(config: unknown): typeof defaultConfig {
       },
       multibyteconvertList: Array.isArray(input.markdown?.multibyteconvertList)
         ? input.markdown.multibyteconvertList
-        : defaultConfig.markdown.multibyteconvertList
+        : defaultConfig.markdown.multibyteconvertList,
+      multibytePresetList: normalizeMultibytePresetList(input.markdown?.multibytePresetList)
     }
   }
+
+  const selectedPreset = typeof input.markdown?.multibytePresetSelected === 'string'
+    ? input.markdown.multibytePresetSelected.trim()
+    : ''
+  const hasSelectedPreset = normalized.markdown.multibytePresetList
+    .some((preset) => preset.name === selectedPreset)
+  normalized.markdown.multibytePresetSelected = hasSelectedPreset
+    ? selectedPreset
+    : DEFAULT_MULTIBYTE_PRESET_NAME
 
   normalized.general.i18n_locale = normalizeLocale(normalized.general.i18n_locale)
   normalized.general.viewMode = normalizeViewMode(normalized.general.viewMode)

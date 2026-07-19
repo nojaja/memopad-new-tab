@@ -60,11 +60,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src/js')
     }
   },
+  optimizeDeps: {
+    exclude: ['vue-i18n']
+  },
   server: {
     host: 'localhost',
     port: 3001
   },
-  publicDir: false,
+  publicDir: 'public',
   build: {
     outDir: 'dist',
     emptyOutDir: true,

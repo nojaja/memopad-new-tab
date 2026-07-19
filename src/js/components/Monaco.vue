@@ -94,6 +94,23 @@ export default {
     editorOptions() {
       const options = { ...(this.config || {}) }
       delete options.theme
+
+      if (typeof options.wrapping === 'boolean') {
+        const wrappingColumn = Number(options.wrappingColumn)
+        if (!options.wrapping) {
+          options.wordWrap = 'off'
+          delete options.wordWrapColumn
+        } else if (!Number.isFinite(wrappingColumn) || wrappingColumn <= 0) {
+          options.wordWrap = 'on'
+          delete options.wordWrapColumn
+        } else {
+          options.wordWrap = 'wordWrapColumn'
+          options.wordWrapColumn = Math.floor(wrappingColumn)
+        }
+      }
+
+      delete options.wrapping
+      delete options.wrappingColumn
       return options
     }
   },
