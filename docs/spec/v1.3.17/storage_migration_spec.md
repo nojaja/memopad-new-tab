@@ -133,8 +133,14 @@ export interface ChromeLocalStorage {
 ```
 
 - ラッパーは callback 形式と Promise 形式の API 差異を吸収し、`chrome.runtime.lastError` を `Error` として reject する。
-- `chrome.storage.local` が存在しない実行環境では明示的に失敗させる。通常動作で `localStorage` へフォールバックしない。
+- `chrome.storage.local` と `chrome.storage.onChanged` が利用できる場合は Chrome Storage を使用する。いずれかが利用できない通常ブラウザ実行では、同一インターフェースを実装した `localStorage` フォールバックを使用する。
+- `set()` は渡されたレコードを JSON 往復でプレーンな JSON 互換値へ正規化してから Chrome Storage に渡す。Vuex/Vue のリアクティブ Proxy を API 境界の外へ出さず、`noteKeyList` を再読込した際に配列として復元できることを保証する。
+- フォールバックは旧形式との互換性のため、オブジェクト・配列を JSON 文字列として保存し、読込時に JSON として復元する。JSON ではない文字列（`currentVersion` など）は文字列のまま扱う。
+- フォールバック時は移行元と保存先が同じ `localStorage` になるため、`migrateLegacyStorage()` を実行しない。これにより保存済みデータを移行処理で削除しない。
 - `onChanged` は `areaName === 'local'` の変更だけを変換して通知し、返却関数でリスナーを確実に解除する。
+- `chrome.storage.onChanged` は保存操作を実行した同一拡張ページにも通知する。ラッパーは直前に保存・削除したキーと値を追跡し、一致する自己通知を購読者へ渡さない。これにより、編集中ノートの保存を別タブ更新と誤認して `duplicateCurrentProject()` を実行しない。
+- 発信元を確実に特定できない通知が残るため、App は現在編集中のノートキーに対する通知では自動複製・自動再読込を行わない。現在ノート以外の `note_*` 更新だけをノート一覧の再読込対象とし、入力中に `copy` ノートが連鎖作成されることを防止する。
+- フォールバックの `onChanged` は Web Storage の `storage` イベントを同じ変更形式へ変換する。これにより通常ブラウザの別タブでも変更を同期できる。
 - 移行処理は同ラッパーと `window.localStorage` のみを受け取る関数として分離し、単体テスト可能にする。
 
 ### 4.2 Vuex の責務分離
@@ -144,6 +150,7 @@ export interface ChromeLocalStorage {
 - action は「読み込み -> 検証/正規化 -> mutation -> 保存」の順に実行し、すべて `Promise` を返す。
 - `refreshFileList` getter はストレージを読まず、action が更新するノートキャッシュから一覧を生成する。これにより getter の再評価時に非同期 I/O や古いデータ読込が発生しない。
 - 起動 action は `migrateLegacyStorage()` を await してから `config` と `noteKeyList`、必要なノートを読み、最後に最初のノートを開く。画面マウント後に未初期化 state を利用しないよう、`main.ts` では起動 Promise を扱う。
+- `main.ts` は `store.dispatch('init')` の完了後に Vue アプリケーションをマウントする。これにより、初期ノート・ノート一覧の書込み通知を App の複数タブ同期として受信せず、未初期化のノートキャッシュで競合コピーを作成しない。
 
 ### 4.3 JSON.stringify / JSON.parse の除去方針
 
@@ -153,6 +160,8 @@ export interface ChromeLocalStorage {
 - `parseJsonSafely` は旧 `localStorage` 移行と旧バックアップファイルの読込互換に限定して残す。通常の Chrome Storage 読み書きには使用しない。
 - export は `getAll()` の戻り値を `createExportData(records, now)` に渡す。JSON ファイル化に必要な最終段の `JSON.stringify` は維持する。
 - import は文字列値の旧バックアップとオブジェクト値の新バックアップの両方を受け入れ、保存前に正規化する。
+- import 時はバックアップの外側にある `note_*` キーをノートの `projectName` として強制する。これにより、バックアップ内部の `projectName` が古い値・別名でも、ノート本体の保存キーと `noteKeyList` の参照キーが一致する。
+- import は `replaceNoteKeyList()` による永続化後、`loadNoteKeyList()` を await して Storage のノート一覧・ノート本体をVuexキャッシュへ再同期する。これにより、再起動を待たずに `sourceVersion` が更新され、`refreshFileList` がインポート済みノートを表示する。
 
 ### 4.4 Manifest 権限
 

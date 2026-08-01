@@ -113,8 +113,6 @@ app.use(store)
 app.use(lang)
 app.component('UniconIcon', UniconCompat)
 
-app.mount('#app')
-
 declare global {
 	interface Window {
 		__APP__?: unknown
@@ -122,10 +120,21 @@ declare global {
 	}
 }
 
-// テストから確実にアクセスできるようにグローバルに公開 (E2E 用フック)
-if (typeof window !== 'undefined') {
-	window.__APP__ = app
-	window.__STORE__ = store
+/**
+ * 処理名: アプリケーション起動
+ * 処理概要: 保存済み状態の初期化完了後にVueアプリケーションをマウントする
+ * 実装理由: 初期化中のChrome Storage通知をUIの複数タブ同期として処理しないため
+ * @returns {Promise<void>} アプリケーションのマウント完了後に resolve する Promise
+ */
+async function bootstrapApplication(): Promise<void> {
+	await store.dispatch('init')
+	app.mount('#app')
+
+	// テストから確実にアクセスできるようにグローバルに公開 (E2E 用フック)
+	if (typeof window !== 'undefined') {
+		window.__APP__ = app
+		window.__STORE__ = store
+	}
 }
 
-store.dispatch('init')
+void bootstrapApplication()

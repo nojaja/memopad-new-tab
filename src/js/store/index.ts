@@ -4,7 +4,7 @@ import { markRaw } from 'vue'
 import { FileContainer, FileData } from '@nojaja/filecontainer'
 import jmd from '@/jmd.json'
 import i18n from '../lang'
-import { createChromeLocalStorage } from '../storage/ChromeLocalStorage'
+import { createChromeLocalStorage, isChromeStorageAvailable } from '../storage/ChromeLocalStorage'
 import { migrateLegacyStorage } from '../storage/LegacyStorageMigration'
 
 // import Debug from '../Debug'
@@ -1382,7 +1382,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
      */
     async init(context) {
       const storage = createChromeLocalStorage()
-      await migrateLegacyStorage(window.localStorage, storage)
+      if (isChromeStorageAvailable()) await migrateLegacyStorage(window.localStorage, storage)
       const config = await storage.get(STORAGE_KEY_CONFIG)
       context.commit('loadConfig', config)
       if (config === undefined) await storage.set({ [STORAGE_KEY_CONFIG]: context.state.config })

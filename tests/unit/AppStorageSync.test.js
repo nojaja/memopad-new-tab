@@ -96,21 +96,21 @@ describe('App.vue storage sync', () => {
     expect(storeMock.dispatch).toHaveBeenCalledWith('loadNoteKeyList')
   })
 
-  test('Chrome Storage の現在ノート変更時はフォーカス中に複製する', () => {
+  test('Chrome Storage の現在ノート変更時は自動複製しない', () => {
     wrapper.vm.handleStorageChanges([{
       key: 'note_12345', oldValue: null, newValue: {}
     }])
 
-    expect(storeMock.dispatch).toHaveBeenCalledWith('duplicateCurrentProject')
+    expect(storeMock.dispatch).not.toHaveBeenCalledWith('duplicateCurrentProject')
+    expect(storeMock.dispatch).not.toHaveBeenCalledWith('loadProject', 'note_12345')
   })
 
-  test('Chrome Storage の現在ノート変更時は非フォーカスで再読込する', () => {
-    document.hasFocus = jest.fn(() => false)
+  test('Chrome Storage の非表示ノート変更時は一覧を再読込する', () => {
     wrapper.vm.handleStorageChanges([{
-      key: 'note_12345', oldValue: null, newValue: {}
+      key: 'note_67890', oldValue: null, newValue: {}
     }])
 
-    expect(storeMock.dispatch).toHaveBeenCalledWith('loadProject', 'note_12345')
+    expect(storeMock.dispatch).toHaveBeenCalledWith('loadNoteKeyList')
   })
 
   test.each([

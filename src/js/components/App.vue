@@ -72,9 +72,7 @@ export default {
     window.addEventListener('blur', this.handleWindowBlur)
     window.addEventListener('focus', this.handleWindowFocus)
     document.addEventListener('visibilitychange', this.handleVisibilityChange)
-    if (typeof globalThis.chrome !== 'undefined') {
-      this.unsubscribeStorageChanges = createChromeLocalStorage().onChanged(this.handleStorageChanges)
-    }
+    this.unsubscribeStorageChanges = createChromeLocalStorage().onChanged(this.handleStorageChanges)
     window.addEventListener('mousemove', this.resetIdleTimer)
     window.addEventListener('click', this.resetIdleTimer)
     window.addEventListener('touchstart', this.resetIdleTimer)
@@ -228,22 +226,15 @@ export default {
     },
     /**
      * 処理名: ノート変更処理
-     * 処理概要: 別コンテキストで更新されたノートへの競合対応を行う
-     * 実装理由: 編集中ノートを保護しつつ一覧を最新化するため
+    * 処理概要: 非表示ノートの変更時だけノート一覧を最新化する
+    * 実装理由: Chrome Storage通知の発信元を識別できないため、編集中ノートを自動複製しないため
      * @param {{ key: string, newValue: unknown }} change - Chrome Storageの変更内容
      */
     handleNoteStorageChange(change) {
       if (!change.key.startsWith('note_')) return
       const currentProjectName = this.$store.getters.currentFile?.projectName
-      const cachedRecord = this.$store.state?.noteRecords?.[change.key]
-      if (JSON.stringify(cachedRecord) === JSON.stringify(change.newValue)) return
-      if (currentProjectName !== change.key) {
-        this.$store.dispatch('loadNoteKeyList')
-      } else if (document.hasFocus && document.hasFocus()) {
-        this.$store.dispatch('duplicateCurrentProject')
-      } else {
-        this.$store.dispatch('loadProject', currentProjectName)
-      }
+      if (currentProjectName === change.key) return
+      this.$store.dispatch('loadNoteKeyList')
     },
     /**
      * 処理名: ストレージ変更通知処理

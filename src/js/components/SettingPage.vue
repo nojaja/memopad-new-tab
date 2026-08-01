@@ -1096,9 +1096,7 @@ export default {
       const raw = importData[key]
       const parsed = raw && typeof raw === 'object' ? raw : this.parseJsonSafe(raw, null)
       if (parsed && typeof parsed === 'object') {
-        if (typeof parsed.projectName !== 'string' || !parsed.projectName) {
-          parsed.projectName = key
-        }
+        parsed.projectName = key
         await this.$store.dispatch('importProject', parsed)
       }
     },
@@ -1132,7 +1130,9 @@ export default {
       const cmp = this
       try {
         await cmp.$store.dispatch('setImporting', true)
-        const selectedFile = await this.$refs.export.getFileLegacy()
+        const fileDownload = this.$refs.export
+        if (!fileDownload || typeof fileDownload.getFileLegacy !== 'function') return
+        const selectedFile = await fileDownload.getFileLegacy()
         const result = await this.readFile(selectedFile)
 
         const importData = cmp.parseJsonSafe(result, {})
@@ -1152,6 +1152,7 @@ export default {
 
         const mergedNoteKeyList = cmp.mergeNoteKeyList(existingNoteKeyList, importedNoteKeyList, importedNoteKeys)
         await cmp.$store.dispatch('replaceNoteKeyList', mergedNoteKeyList)
+        await cmp.$store.dispatch('loadNoteKeyList')
       } catch (e) {
         console.warn('Import canceled or failed:', e)
       } finally {

@@ -39,6 +39,9 @@ function createStoreMock(configOverride = {}) {
   }
 
   return {
+    state: {
+      noteKeyList: []
+    },
     getters: {
       config: {
         ...baseConfig,
@@ -267,5 +270,69 @@ describe('SettingPage.vue - Import Note Entry', () => {
       projectName: 'note_999',
       files: objNote.files
     }))
+  })
+
+  test('外側のnoteキーを保存キーとして優先する', async () => {
+    const storeMock = createStoreMock()
+    const wrapper = mount(SettingPage, {
+      global: {
+        mocks: {
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
+        },
+        stubs: {
+          TabList: true,
+          FileDownload: true,
+          DraggableList: true,
+          UniconIcon: true
+        }
+      }
+    })
+
+    await wrapper.vm.importNoteEntry('note_backup_key', {
+      note_backup_key: {
+        projectName: 'note_different_project_name',
+        files: {
+          'index.md': { filename: 'index.md', content: 'x' }
+        }
+      }
+    })
+
+    expect(storeMock.dispatch).toHaveBeenCalledWith('importProject', expect.objectContaining({
+      projectName: 'note_backup_key'
+    }))
+  })
+
+  test('インポート完了後に永続化済みのノート一覧を再同期する', async () => {
+    const storeMock = createStoreMock()
+    const getFileLegacy = jest.fn().mockResolvedValue({})
+    const wrapper = mount(SettingPage, {
+      global: {
+        mocks: {
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
+        },
+        stubs: {
+          TabList: true,
+          FileDownload: {
+            template: '<div />',
+            methods: { getFileLegacy }
+          },
+          DraggableList: true,
+          UniconIcon: true
+        }
+      }
+    })
+    wrapper.vm.readFile = jest.fn().mockResolvedValue(JSON.stringify({
+      note_imported: { files: { 'index.md': { filename: 'index.md', content: 'x' } } }
+    }))
+    wrapper.vm.nextFrame = jest.fn().mockResolvedValue()
+
+    await wrapper.vm.importLocalStorage()
+
+    expect(storeMock.dispatch).toHaveBeenCalledWith('replaceNoteKeyList', ['note_imported'])
+    expect(storeMock.dispatch).toHaveBeenCalledWith('loadNoteKeyList')
   })
 })
