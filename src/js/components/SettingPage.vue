@@ -1044,9 +1044,9 @@ export default {
      * 処理概要: localStorage の全データを整形済み JSON としてファイルダウンロードする
      * 実装理由: ユーザーが読みやすい形式でメモデータをバックアップできるようにするため
      */
-    exportLocalStorage() {
-      localStorage.setItem('currentVersion', '0.0.1')
-      const { formattedJson, fileName, executedAt } = createExportData(localStorage, new Date())
+    async exportLocalStorage() {
+      const records = await this.$store.dispatch('getExportRecords')
+      const { formattedJson, fileName, executedAt } = createExportData(records, new Date())
       this.localConfig.general.lastExportDataAt = executedAt
       saveAsLegacy(formattedJson, fileName, 'application/json')
     },
@@ -1092,19 +1092,14 @@ export default {
      * @param {string} key - ノートのストレージキー
      * @param {object} importData - インポートデータオブジェクト
      */
-    importNoteEntry(key, importData) {
+    async importNoteEntry(key, importData) {
       const raw = importData[key]
-      if (typeof raw === 'string') {
-        localStorage.setItem(key, raw)
-        return
-      }
-
       const parsed = raw && typeof raw === 'object' ? raw : this.parseJsonSafe(raw, null)
       if (parsed && typeof parsed === 'object') {
         if (typeof parsed.projectName !== 'string' || !parsed.projectName) {
           parsed.projectName = key
         }
-        this.$store.dispatch('importProject', parsed)
+        await this.$store.dispatch('importProject', parsed)
       }
     },
     /**
@@ -1116,11 +1111,14 @@ export default {
      * @param {Array} importedNoteKeys - インポート済みノートキーを収集する配列
      * @returns {void} なし
      */
-    processImportKey(key, importData, importedNoteKeys) {
+    async processImportKey(key, importData, importedNoteKeys) {
       if (key === 'config') {
-        this.$store.dispatch('setConfig', this.parseJsonSafe(importData[key], {}))
+        const config = importData[key] && typeof importData[key] === 'object'
+          ? importData[key]
+          : this.parseJsonSafe(importData[key], {})
+        await this.$store.dispatch('setConfig', config)
       } else if (key.indexOf('note_') !== -1) {
-        this.importNoteEntry(key, importData)
+        await this.importNoteEntry(key, importData)
         importedNoteKeys.push(key)
       }
     },
@@ -1138,20 +1136,22 @@ export default {
         const result = await this.readFile(selectedFile)
 
         const importData = cmp.parseJsonSafe(result, {})
-        const existingNoteKeyList = cmp.parseJsonSafe(localStorage.getItem('noteKeyList'), [])
-        const importedNoteKeyList = cmp.parseJsonSafe(importData.noteKeyList, [])
+        const existingNoteKeyList = cmp.$store.state.noteKeyList || []
+        const importedNoteKeyList = Array.isArray(importData.noteKeyList)
+          ? importData.noteKeyList
+          : cmp.parseJsonSafe(importData.noteKeyList, [])
         const importedNoteKeys = []
         const allKeys = Object.keys(importData)
 
         for (let i = 0; i < allKeys.length; i++) {
-          cmp.processImportKey(allKeys[i], importData, importedNoteKeys)
+          await cmp.processImportKey(allKeys[i], importData, importedNoteKeys)
           if (i < allKeys.length - 1) {
             await cmp.nextFrame()
           }
         }
 
         const mergedNoteKeyList = cmp.mergeNoteKeyList(existingNoteKeyList, importedNoteKeyList, importedNoteKeys)
-        cmp.$store.dispatch('replaceNoteKeyList', mergedNoteKeyList)
+        await cmp.$store.dispatch('replaceNoteKeyList', mergedNoteKeyList)
       } catch (e) {
         console.warn('Import canceled or failed:', e)
       } finally {

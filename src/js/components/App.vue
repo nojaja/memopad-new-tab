@@ -14,6 +14,7 @@
 
 <script>
 import MainContents from '@/components/MainContents.vue'
+import { createChromeLocalStorage } from '@/storage/ChromeLocalStorage'
 
 const VIEW_MODE_BUTTON_SELECTORS = {
   F8: '#app > div > div.wrapper > div.contents-wrapper > div.footer > button:nth-child(1)',
@@ -36,7 +37,8 @@ export default {
     return {
       windowActive: !document.hidden,
       idleTimer: null,
-      manualBlurOverride: false
+      manualBlurOverride: false,
+      unsubscribeStorageChanges: null
     }
   },
   computed: {
@@ -70,7 +72,9 @@ export default {
     window.addEventListener('blur', this.handleWindowBlur)
     window.addEventListener('focus', this.handleWindowFocus)
     document.addEventListener('visibilitychange', this.handleVisibilityChange)
-    window.addEventListener('storage', this.handleStorageEvent)
+    if (typeof globalThis.chrome !== 'undefined') {
+      this.unsubscribeStorageChanges = createChromeLocalStorage().onChanged(this.handleStorageChanges)
+    }
     window.addEventListener('mousemove', this.resetIdleTimer)
     window.addEventListener('click', this.resetIdleTimer)
     window.addEventListener('touchstart', this.resetIdleTimer)
@@ -85,7 +89,7 @@ export default {
     window.removeEventListener('blur', this.handleWindowBlur)
     window.removeEventListener('focus', this.handleWindowFocus)
     document.removeEventListener('visibilitychange', this.handleVisibilityChange)
-    window.removeEventListener('storage', this.handleStorageEvent)
+    if (typeof this.unsubscribeStorageChanges === 'function') this.unsubscribeStorageChanges()
     window.removeEventListener('mousemove', this.resetIdleTimer)
     window.removeEventListener('click', this.resetIdleTimer)
     window.removeEventListener('touchstart', this.resetIdleTimer)
@@ -223,31 +227,37 @@ export default {
       button.click()
     },
     /**
-     * 処理名: ストレージイベントハンドラ
-     * 処理概要: 他タブで localStorage が更新された場合に対応するストアアクションを呼び出す
-     * 実装理由: 他タブ編集の競合を検知し、自動リロードまたはコピー作成を行うため
-     * @param {StorageEvent} e - storage イベント
+     * 処理名: ノート変更処理
+     * 処理概要: 別コンテキストで更新されたノートへの競合対応を行う
+     * 実装理由: 編集中ノートを保護しつつ一覧を最新化するため
+     * @param {{ key: string, newValue: unknown }} change - Chrome Storageの変更内容
      */
-    handleStorageEvent(e) {
-      if (!e || typeof e.key !== 'string') return
-      if (e.key === 'noteKeyList') {
-        this.$store.dispatch('loadNoteKeyList')
-        return
-      }
-
-      if (!e.key.startsWith('note_')) return
-
+    handleNoteStorageChange(change) {
+      if (!change.key.startsWith('note_')) return
       const currentProjectName = this.$store.getters.currentFile?.projectName
-      if (currentProjectName && e.key === currentProjectName) {
-        if (document.hasFocus && document.hasFocus()) {
-          this.$store.dispatch('duplicateCurrentProject')
-        } else {
-          this.$store.dispatch('loadProject', currentProjectName)
-        }
-      } else {
-        // 他ノートの description 等が更新された場合に noteList を再評価する
+      const cachedRecord = this.$store.state?.noteRecords?.[change.key]
+      if (JSON.stringify(cachedRecord) === JSON.stringify(change.newValue)) return
+      if (currentProjectName !== change.key) {
         this.$store.dispatch('loadNoteKeyList')
+      } else if (document.hasFocus && document.hasFocus()) {
+        this.$store.dispatch('duplicateCurrentProject')
+      } else {
+        this.$store.dispatch('loadProject', currentProjectName)
       }
+    },
+    /**
+     * 処理名: ストレージ変更通知処理
+     * 処理概要: Chrome Storage Localの変更をノート一覧またはノート競合処理へ振り分ける
+     * 実装理由: window storageイベントの代わりに拡張機能対応の通知を利用するため
+     * @param {Array<{ key: string, newValue: unknown }>} changes - Chrome Storageの変更一覧
+     */
+    handleStorageChanges(changes) {
+      if (!Array.isArray(changes)) return
+      changes.forEach((change) => {
+        if (!change || typeof change.key !== 'string') return
+        if (change.key === 'noteKeyList') this.$store.dispatch('loadNoteKeyList')
+        else this.handleNoteStorageChange(change)
+      })
     },
     /**
      * 処理名: プロジェクト保存

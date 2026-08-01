@@ -286,9 +286,9 @@ export default {
        * 処理概要: 対象ノートをアクティブ化してから削除コミットを実行する
        * 実装理由: deleteProject が currentFile を削除対象にするため、対象を先に切り替える必要があるため
        */
-      const onConfirmDelete = () => {
-        this.$store.commit('loadProject', uri)
-        this.$store.commit('deleteProject')
+      const onConfirmDelete = async () => {
+        await this.$store.dispatch('loadProject', uri)
+        await this.$store.dispatch('deleteProject')
       }
       /**
        * 処理名: 削除キャンセルハンドラ
@@ -318,9 +318,9 @@ export default {
      * 処理概要: sidebar footer ボタンから JSON ダウンロードを実行し最終実施日時を設定へ保存する
      * 実装理由: Settings を開かずに即時バックアップできる導線を提供するため
      */
-    exportLocalStorageFromSidebar() {
-      localStorage.setItem('currentVersion', '0.0.1')
-      const { formattedJson, fileName, executedAt } = createExportData(localStorage, new Date())
+    async exportLocalStorageFromSidebar() {
+      const records = await this.$store.dispatch('getExportRecords')
+      const { formattedJson, fileName, executedAt } = createExportData(records, new Date())
       saveAsLegacy(formattedJson, fileName, 'application/json')
 
       const nextConfig = {

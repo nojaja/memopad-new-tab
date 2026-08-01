@@ -21,9 +21,7 @@ describe('normalizeConfig — v1.3.15 editor defaults and backward compatibility
       editor: { automaticLayout: true, fontSize: 16, tabSize: 4, theme: 'vs' },
       markdown: {}
     })
-    window.localStorage.setItem('config', oldConfig)
-
-    storeModule.commit('loadConfig')
+    storeModule.commit('loadConfig', JSON.parse(oldConfig))
 
     const config = storeModule.getters.config
     expect(config.editor.minimap).toBeDefined()
@@ -52,9 +50,7 @@ describe('normalizeConfig — v1.3.15 editor defaults and backward compatibility
       },
       markdown: {}
     })
-    window.localStorage.setItem('config', savedConfig)
-
-    storeModule.commit('loadConfig')
+    storeModule.commit('loadConfig', JSON.parse(savedConfig))
 
     const config = storeModule.getters.config
     expect(config.editor.minimap.enabled).toBe(true)

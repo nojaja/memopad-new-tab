@@ -168,9 +168,7 @@ describe('store normalizeStoredProject のエッジケース', () => {
 
     storeModule.commit('importProject', data)
 
-    const storedRaw = window.localStorage.getItem(key)
-    expect(typeof storedRaw).toBe('string')
-    const stored = JSON.parse(storedRaw)
+    const stored = storeModule.state.noteRecords[key]
 
     expect(stored.v).toBe(0.1)
     expect(stored.id).toBe(1585391420586)

@@ -101,19 +101,19 @@ describe('MainContents.vue メソッドテスト', () => {
     jest.useRealTimers()
   })
 
-  test('一覧削除要求で確認ダイアログを開き、OK時に対象ノートを削除する', () => {
-    const commitSpy = jest.spyOn(store, 'commit')
+  test('一覧削除要求で確認ダイアログを開き、OK時に対象ノートを削除する', async () => {
+    const dispatchSpy = jest.spyOn(store, 'dispatch').mockResolvedValue()
 
     wrapper.vm.requestDeleteProject('note_test_123')
 
     expect(DialogHelper.showDialog).toHaveBeenCalled()
     const options = DialogHelper.showDialog.mock.calls[0][1]
     expect(options.subject).toBe('Delete')
-    options.ok()
+    await options.ok()
 
-    expect(commitSpy).toHaveBeenCalledWith('loadProject', 'note_test_123')
-    expect(commitSpy).toHaveBeenCalledWith('deleteProject')
-    commitSpy.mockRestore()
+    expect(dispatchSpy).toHaveBeenCalledWith('loadProject', 'note_test_123')
+    expect(dispatchSpy).toHaveBeenCalledWith('deleteProject')
+    dispatchSpy.mockRestore()
   })
 
   test('一覧削除要求でキャンセル時は削除しない', () => {

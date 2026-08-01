@@ -36,10 +36,10 @@ describe('store mutations - loadProject', () => {
     storeModule.commit('replaceNoteKeyList', [])
   })
 
-  test('有効なプロジェクトを読み込める', () => {
+  test('有効なプロジェクトを読み込める', async () => {
     const noteKey = 'note_load_test'
     window.localStorage.setItem(noteKey, makeProjectJson(noteKey, '# 読み込みテスト'))
-    storeModule.commit('loadProject', noteKey)
+    await storeModule.dispatch('loadProject', noteKey)
     expect(storeModule.state.currentFile.projectName).toBe(noteKey)
     expect(storeModule.state.currentFile.filename).toBe('index.md')
   })
@@ -144,21 +144,18 @@ describe('store mutations - saveProject', () => {
 
 describe('store mutations - loadNoteKeyList', () => {
   test('localStorage の noteKeyList を読み込める', () => {
-    window.localStorage.setItem('noteKeyList', JSON.stringify(['note_aaa', 'note_bbb']))
-    storeModule.commit('loadNoteKeyList')
+    storeModule.commit('loadNoteKeyList', ['note_aaa', 'note_bbb'])
     expect(storeModule.state.noteKeyList).toContain('note_aaa')
     expect(storeModule.state.noteKeyList).toContain('note_bbb')
   })
 
   test('noteKeyList が存在しない場合は空配列になる', () => {
-    window.localStorage.clear()
-    storeModule.commit('loadNoteKeyList')
+    storeModule.commit('loadNoteKeyList', [])
     expect(storeModule.state.noteKeyList.length).toBe(0)
   })
 
   test('無効なキー（note_ で始まらない）はフィルタリングされる', () => {
-    window.localStorage.setItem('noteKeyList', JSON.stringify(['note_valid', 'invalid_key', 'note_valid2']))
-    storeModule.commit('loadNoteKeyList')
+    storeModule.commit('loadNoteKeyList', ['note_valid', 'invalid_key', 'note_valid2'])
     expect(storeModule.state.noteKeyList).toContain('note_valid')
     expect(storeModule.state.noteKeyList).not.toContain('invalid_key')
     expect(storeModule.state.noteKeyList).toContain('note_valid2')

@@ -2,10 +2,10 @@ import { createStore } from 'vuex'
 import { markRaw } from 'vue'
 
 import { FileContainer, FileData } from '@nojaja/filecontainer'
-import { debounce } from 'lodash'
-
 import jmd from '@/jmd.json'
 import i18n from '../lang'
+import { createChromeLocalStorage } from '../storage/ChromeLocalStorage'
+import { migrateLegacyStorage } from '../storage/LegacyStorageMigration'
 
 // import Debug from '../Debug'
 
@@ -263,28 +263,13 @@ function normalizeConfig(config: unknown): typeof defaultConfig {
  * 実装理由: 初回起動から30日間はエクスポート注意アニメーションを抑制するため
  * @returns {typeof defaultConfig} 新規インストール向けの設定オブジェクト
  */
-function createAndPersistConfigForNewInstall(): typeof defaultConfig {
+function createInitialConfig(): typeof defaultConfig {
   const initialized = normalizeConfig({
     general: {
       lastExportDataAt: new Date().toISOString()
     }
   })
-  localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(initialized))
   return initialized
-}
-
-/**
- * 処理名: 初期設定読み込み
- * 処理概要: localStorage の config を読み込み、未存在時は新規インストール設定を作成する
- * 実装理由: 新規と既存ユーザーを config キー有無で判定して初期挙動を分岐するため
- * @returns {typeof defaultConfig} 正規化済み設定オブジェクト
- */
-function loadInitialConfigFromStorage(): typeof defaultConfig {
-  const stored = localStorage.getItem(STORAGE_KEY_CONFIG)
-  if (stored == null) {
-    return createAndPersistConfigForNewInstall()
-  }
-  return normalizeConfig(parseJsonSafely(stored, null))
 }
 
 /**
@@ -653,8 +638,8 @@ function getFirstFileLabel(parsed: Record<string, unknown>, noteKey: string): st
  * @param {string} currentProjectName - 現在開いているプロジェクト名
  * @returns {object} リストアイテムオブジェクト
  */
-function getListItemNoFilter(raw: string, noteKey: string, currentProjectName: string): ListItem {
-  const rawParsed = parseJsonSafely(raw, null)
+function getListItemNoFilter(raw: unknown, noteKey: string, currentProjectName: string): ListItem {
+  const rawParsed = typeof raw === 'string' ? parseJsonSafely(raw, null) : raw
   if (!rawParsed || typeof rawParsed !== 'object') {
     return makeListItemEntry(noteKey, currentProjectName === noteKey, noteKey, 0, 0)
   }
@@ -679,8 +664,8 @@ function getListItemNoFilter(raw: string, noteKey: string, currentProjectName: s
  * @param {string} filter - フィルター文字列
  * @returns {object|null} リストアイテムオブジェクト（マッチしない場合は null）
  */
-function getListItemWithFilter(raw: string, noteKey: string, currentProjectName: string, filter: string): ListItem | null {
-  const rawParsed = parseJsonSafely(raw, null)
+function getListItemWithFilter(raw: unknown, noteKey: string, currentProjectName: string, filter: string): ListItem | null {
+  const rawParsed = typeof raw === 'string' ? parseJsonSafely(raw, null) : raw
   if (!rawParsed || typeof rawParsed !== 'object') return null
   const parsed = rawParsed as Record<string, unknown>
   if (!parsed.files || typeof parsed.files !== 'object') return null
@@ -711,7 +696,7 @@ function getListItemWithFilter(raw: string, noteKey: string, currentProjectName:
  * @param {string} filter - フィルター文字列（空文字でフィルターなし）
  * @returns {object|null} リストアイテムオブジェクト（マッチしない場合は null）
  */
-function getListItemFromRaw(raw: string, noteKey: string, currentProjectName: string, filter: string): ListItem | null {
+function getListItemFromRaw(raw: unknown, noteKey: string, currentProjectName: string, filter: string): ListItem | null {
   if (filter === '') {
     return getListItemNoFilter(raw, noteKey, currentProjectName)
   }
@@ -741,12 +726,13 @@ function sanitizeNoteKeyList(list: unknown): string[] {
  * 処理概要: ノートキーリストの末尾から最初に読み込めるノートのキーを返す
  * 実装理由: アプリ起動時に最後に開いていたノートを再表示するため
  * @param {string[]} noteKeyList - ノートキーの配列
+ * @param {Record<string, unknown>} noteRecords - 読み込み済みノートのキャッシュ
  * @returns {string} 読み込み可能なノートキー（見つからない場合は空文字）
  */
-function findLatestReadableNoteName(noteKeyList: string[]): string {
+function findLatestReadableNoteName(noteKeyList: string[], noteRecords: Record<string, unknown>): string {
   for (let i = noteKeyList.length - 1; i >= 0; i--) {
     const key = noteKeyList[i]
-    const raw = localStorage.getItem(key)
+    const raw = noteRecords[key]
     if (!raw) continue
     const tmp = getProjectFromStorage(raw)
     if (!tmp) continue
@@ -838,8 +824,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
     currentModelId: 'source',
     sourceVersion: 0,
     fileContainer: markRaw(new FileContainer()),
-    noteKeyList: sanitizeNoteKeyList(parseJsonSafely(localStorage.getItem(STORAGE_KEY_NOTE_KEY_LIST), [])) as string[],
-    config: loadInitialConfigFromStorage(),
+    noteKeyList: [] as string[],
+    noteRecords: {} as Record<string, unknown>,
+    config: normalizeConfig(null),
     isImporting: false
   },
   getters: { // state の参照
@@ -900,7 +887,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @returns {any[]} フィルター・ソート適用済みノートリスト
      */
     refreshFileList(state) {
-      // fileContainer/localStorage are non-reactive, so depend on a reactive counter.
+      // fileContainer/noteRecords are non-reactive, so depend on a reactive counter.
       if (state.sourceVersion < 0) {
         return latestFileListCache
       }
@@ -911,7 +898,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
       const filter = state.itemList.filter || ''
       const projectName = state.currentFile.projectName
       for (const val of state.noteKeyList) {
-        const raw = localStorage.getItem(val)
+        const raw = state.noteRecords[val]
         if (filter !== '' && !raw) continue
         const item = getListItemFromRaw(raw || '', val, projectName, filter)
         if (!item) continue
@@ -948,8 +935,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
       if (currentTitle === title) return
       setFileDescription(currentFile, title)
       state.fileContainer.putFile(currentFile)
+      const noteName = state.fileContainer.getProjectName()
+      state.noteRecords[noteName] = normalizeStoredProject(state.fileContainer.getContainerJson())
       state.sourceVersion += 1
-      this.dispatch('saveProject')
     },
     /**
      * 処理名: コンテンツ更新ミューテーション
@@ -966,8 +954,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
       if (currentContent === content) return
       setFileContent(currentFile, content)
       state.fileContainer.putFile(currentFile)
+      const noteName = state.fileContainer.getProjectName()
+      state.noteRecords[noteName] = normalizeStoredProject(state.fileContainer.getContainerJson())
       state.sourceVersion += 1
-      this.dispatch('saveProject')
     },
     /**
      * 処理名: プロジェクト保存ミューテーション
@@ -976,15 +965,10 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} state - Vuex ストア状態
      */
     saveProject(state) {
-      // console.log('mutations saveProject')
-      // state.currentFile をfileContainerに格納
-      // ローカルストレージに最新の状態を保存
       state.fileContainer.setLastUpdatedTime(new Date().getTime())
       const noteName = state.fileContainer.getProjectName()
-      localStorage.setItem(noteName, state.fileContainer.getContainerJson())
-      // console.log(state.fileContainer.getProjectName() + ':' + state.fileContainer.getContainerJson())
-      // refreshFileList();
-      // return cb ? cb() : true
+      state.noteRecords[noteName] = normalizeStoredProject(state.fileContainer.getContainerJson())
+      state.sourceVersion += 1
     },
     // プロジェクトの読み込み処理
     /**
@@ -992,20 +976,18 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * 処理概要: 指定ノート名のプロジェクトをローカルストレージから読み込んでファイルコンテナに設定する
      * 実装理由: ノート選択時に対応するプロジェクトをエディタに表示するため
      * @param {any} state - Vuex ストア状態
-     * @param {string} noteName - 読み込むノートのキー
+    * @param {{ noteName: string, raw: unknown } | string} payload - 読み込むノートのキーと保存値
      */
-    loadProject(state, noteName) {
-      // console.log('loadProject:' + noteName)
-      const raw = localStorage.getItem(noteName)
+    loadProject(state, payload) {
+      const noteName = typeof payload === 'string' ? payload : payload.noteName
+      const raw = typeof payload === 'string' ? state.noteRecords[noteName] : payload.raw
       if (!raw) { // 存在しない場合は新規作成する
-        this.dispatch('newProject')
         return
       }
 
       const normalizedProject = normalizeStoredProject(raw)
       if (!normalizedProject) {
         console.warn('Failed to load project, recreate project:', noteName)
-        this.dispatch('newProject')
         return
       }
 
@@ -1019,14 +1001,12 @@ function applySortOrder(items: ListItem[], sort: string): void {
       const files = state.fileContainer.getFiles()
       if (!files || files.length === 0) {
         console.warn('Project has no files, recreate project:', noteName)
-        this.dispatch('newProject')
         return
       }
 
       const firstFilename = getFileName(files[0])
       if (!firstFilename) {
         console.warn('Project first file has no filename, recreate project:', noteName)
-        this.dispatch('newProject')
         return
       }
 
@@ -1063,10 +1043,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
       state.fileContainer.setId(noteId)
       state.fileContainer.setProjectName(noteName)
 
-      this.dispatch('saveProject')// プロジェクトの保存
-      this.dispatch('saveNoteKeyList', noteName)// ファイル一覧の保存
-      this.dispatch('loadProject', noteName)
-      // console.log('noteKeyList:' + state.noteKeyList)
+      state.currentFile = { filename: 'index.md', projectName: noteName }
+      state.noteRecords[noteName] = normalizeStoredProject(state.fileContainer.getContainerJson())
+      state.sourceVersion += 1
     },
     // プロジェクト内のFileを開く
     /**
@@ -1088,14 +1067,10 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * 処理概要: ローカルストレージからノートキーリストを読み込んでステートを更新する
      * 実装理由: ページ読み込み時にノートリストを復元するため
      * @param {any} state - Vuex ストア状態
+    * @param {unknown} list - 読み込んだノートキー一覧
      */
-    loadNoteKeyList(state) {
-      state.noteKeyList = []
-      const stored = localStorage.getItem(STORAGE_KEY_NOTE_KEY_LIST)
-      if (stored) {
-        state.noteKeyList = sanitizeNoteKeyList(parseJsonSafely(stored, []))
-      }
-      localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(state.noteKeyList))
+    loadNoteKeyList(state, list) {
+      state.noteKeyList = sanitizeNoteKeyList(list)
     },
     /**
      * 処理名: ノートキーリスト置換ミューテーション
@@ -1107,7 +1082,6 @@ function applySortOrder(items: ListItem[], sort: string): void {
     replaceNoteKeyList(state, list) {
       const sanitized = sanitizeNoteKeyList(list)
       state.noteKeyList = sanitized
-      localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(sanitized))
     },
     /**
      * 処理名: ノートキー保存ミューテーション
@@ -1121,7 +1095,6 @@ function applySortOrder(items: ListItem[], sort: string): void {
       if (state.noteKeyList.indexOf(noteName) === -1) {
         state.noteKeyList.push(noteName)
       }
-      localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(state.noteKeyList))
     },
     /**
      * 処理名: プロジェクト複製ミューテーション
@@ -1145,11 +1118,10 @@ function applySortOrder(items: ListItem[], sort: string): void {
       updateFirstFileDescriptionForCopy(duplicatedContainer)
       updateContainerTimes(duplicatedContainer, Date.now())
 
-      localStorage.setItem(noteName, duplicatedContainer.getContainerJson())
+      state.noteRecords[noteName] = normalizeStoredProject(duplicatedContainer.getContainerJson())
       if (state.noteKeyList.indexOf(noteName) === -1) {
         state.noteKeyList.push(noteName)
       }
-      localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(state.noteKeyList))
     },
     /**
      * 処理名: プロジェクト削除ミューテーション
@@ -1160,8 +1132,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
     deleteProject(state) {
       const noteName = state.currentFile.projectName
       state.noteKeyList = state.noteKeyList.filter((v: string) => v !== noteName)
-      localStorage.setItem(STORAGE_KEY_NOTE_KEY_LIST, JSON.stringify(state.noteKeyList))
-      this.dispatch('init')
+      delete state.noteRecords[noteName]
     },
     /**
      * 処理名: 最初のプロジェクト表示ミューテーション
@@ -1170,12 +1141,8 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} state - Vuex ストア状態
      */
     openFirst(state) {
-      const readableNoteName = findLatestReadableNoteName(state.noteKeyList)
-      if (!readableNoteName) {
-        this.dispatch('newProject')
-        return
-      }
-      this.dispatch('loadProject', readableNoteName)
+      const readableNoteName = findLatestReadableNoteName(state.noteKeyList, state.noteRecords)
+      state.currentFile = { filename: '', projectName: readableNoteName }
     },
     /**
      * 処理名: 設定変更ミューテーション
@@ -1189,7 +1156,6 @@ function applySortOrder(items: ListItem[], sort: string): void {
       if (!isSameConfig(state.config, normalized)) {
         state.config = normalized
       }
-      localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(normalized))
       applyI18nLocale(normalized.general.i18n_locale)
     },
     /**
@@ -1197,14 +1163,10 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * 処理概要: ローカルストレージから設定を読み込んでステートを更新する
      * 実装理由: ページ再読み込み時に設定を復元するため
      * @param {any} state - Vuex ストア状態
+    * @param {unknown} stored - 読み込んだ設定値
      */
-    loadConfig(state) {
-      const stored = localStorage.getItem(STORAGE_KEY_CONFIG)
-      if (stored == null) {
-        state.config = createAndPersistConfigForNewInstall()
-      } else {
-        state.config = normalizeConfig(parseJsonSafely(stored, null))
-      }
+    loadConfig(state, stored) {
+      state.config = stored == null ? createInitialConfig() : normalizeConfig(stored)
       applyI18nLocale(state.config.general.i18n_locale)
     },
     /**
@@ -1230,7 +1192,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
           files: pjdata.files
         })
         if (importedContainer) {
-          localStorage.setItem(pjdata.projectName, importedContainer.getContainerJson())
+          state.noteRecords[pjdata.projectName] = normalizeStoredProject(importedContainer.getContainerJson())
           return
         }
       } else {
@@ -1241,7 +1203,7 @@ function applySortOrder(items: ListItem[], sort: string): void {
         file.setDescription(label)
         tmpfileContainer.putFile(file)
       }
-      localStorage.setItem(pjdata.projectName, tmpfileContainer.getContainerJson())
+      state.noteRecords[pjdata.projectName] = normalizeStoredProject(tmpfileContainer.getContainerJson())
     }
   },
   actions: { // ミューテーションをコミットする関数(外部APIとの連携や非同期処理もここ)
@@ -1261,8 +1223,15 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * 実装理由: ページ読み込み時の初期化フローを統一するため
      * @param {any} context - Vuex アクションコンテキスト
      */
-    loadNoteKeyList(context) {
-      context.commit('loadNoteKeyList')
+    async loadNoteKeyList(context) {
+      const storage = createChromeLocalStorage()
+      const noteKeyList = await storage.get<string[]>(STORAGE_KEY_NOTE_KEY_LIST)
+      context.commit('loadNoteKeyList', noteKeyList || [])
+      const storedRecords = await storage.getAll()
+      context.state.noteKeyList.forEach((key: string) => {
+        if (storedRecords[key] !== undefined) context.state.noteRecords[key] = storedRecords[key]
+      })
+      context.state.sourceVersion += 1
     },
     /**
      * 処理名: ノートキーリスト置換アクション
@@ -1271,8 +1240,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} context - Vuex アクションコンテキスト
      * @param {any} list - 新しいノートキーリスト
      */
-    replaceNoteKeyList(context, list) {
+    async replaceNoteKeyList(context, list) {
       context.commit('replaceNoteKeyList', list)
+      await createChromeLocalStorage().set({ [STORAGE_KEY_NOTE_KEY_LIST]: context.state.noteKeyList })
     },
     // ファイル一覧の保存処理
     /**
@@ -1282,8 +1252,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} context - Vuex アクションコンテキスト
      * @param {string} noteName - 保存するノートキー
      */
-    saveNoteKeyList(context, noteName) {
+    async saveNoteKeyList(context, noteName) {
       context.commit('saveNoteKeyList', noteName)
+      await createChromeLocalStorage().set({ [STORAGE_KEY_NOTE_KEY_LIST]: context.state.noteKeyList })
     },
     // ファイル一覧の削除処理
     /**
@@ -1293,10 +1264,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} context - Vuex アクションコンテキスト
      * @param {string} noteName - 削除するノートキー
      */
-    deleteNoteKeyList(context, noteName) {
-      context.state.noteKeyList = context.state.noteKeyList.filter((v: string) => v !== noteName)// リストから対象を消して新しいリストにする
-      const name = 'noteKeyList'
-      localStorage.setItem(name, JSON.stringify(context.state.noteKeyList))
+    async deleteNoteKeyList(context, noteName) {
+      context.commit('replaceNoteKeyList', context.state.noteKeyList.filter((value: string) => value !== noteName))
+      await createChromeLocalStorage().set({ [STORAGE_KEY_NOTE_KEY_LIST]: context.state.noteKeyList })
     },
     // プロジェクトの読み込み処理
     /**
@@ -1307,10 +1277,15 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {string} noteName - 読み込むノートキー
      * @returns {Promise<void>} コミット完了後に resolve する Promise
      */
-    loadProject(context, noteName) {
-      Promise.resolve().then(() => {
-        context.commit('loadProject', noteName)
-      })
+    async loadProject(context, noteName) {
+      const storage = createChromeLocalStorage()
+      const raw = await storage.get(noteName)
+      if (raw === undefined) {
+        await context.dispatch('newProject')
+        return
+      }
+      context.state.noteRecords[noteName] = raw
+      context.commit('loadProject', { noteName, raw })
     },
     /**
      * 処理名: プロジェクト複製アクション
@@ -1318,11 +1293,16 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * 実装理由: 他タブ更新競合時にコピーを作成して編集中の内容を保持するため
      * @param {any} context - Vuex アクションコンテキスト
      */
-    duplicateCurrentProject(context) {
+    async duplicateCurrentProject(context) {
       context.commit('duplicateCurrentProject')
       const latest = context.state.noteKeyList[context.state.noteKeyList.length - 1]
       if (typeof latest === 'string') {
-        context.dispatch('loadProject', latest)
+        const record = context.state.noteRecords[latest]
+        await createChromeLocalStorage().set({
+          [latest]: record,
+          [STORAGE_KEY_NOTE_KEY_LIST]: context.state.noteKeyList
+        })
+        await context.dispatch('loadProject', latest)
       }
     },
     // プロジェクトの保存処理
@@ -1333,16 +1313,10 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} context - Vuex アクションコンテキスト
      * @param {Function} [cb] - 保存後のコールバック（未使用）
      */
-    saveProject(context, cb?: () => void) {
-      context.commit('saveProject', cb)
-      debounce(/**
-       * 処理名: デバウンス保存ログ
-       * 処理概要: 3 秒デバウンスでコンソールにログを出力する
-       * 実装理由: 頻繁な保存時のデバッグ出力を間引くため
-       */
-      function() {
-        console.log('saveProject')
-      }, 3000)()
+    async saveProject(context) {
+      context.commit('saveProject')
+      const noteName = context.state.fileContainer.getProjectName()
+      await createChromeLocalStorage().set({ [noteName]: context.state.noteRecords[noteName] })
     },
     /**
      * 処理名: ファイルオープンアクション
@@ -1360,8 +1334,10 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * 実装理由: 新規ノート作成をアクション経由で行うため
      * @param {any} context - Vuex アクションコンテキスト
      */
-    newProject(context) {
+    async newProject(context) {
       context.commit('newProject')
+      await context.dispatch('saveProject')
+      await context.dispatch('saveNoteKeyList', context.state.fileContainer.getProjectName())
     },
     /**
      * 処理名: タイトル更新アクション
@@ -1370,8 +1346,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} context - Vuex アクションコンテキスト
      * @param {string} title - 新しいタイトル
      */
-    updateTitle(context, title) {
+    async updateTitle(context, title) {
       context.commit('updateTitle', title)
+      await context.dispatch('saveProject')
     },
     /**
      * 処理名: コンテンツ更新アクション
@@ -1380,8 +1357,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} context - Vuex アクションコンテキスト
      * @param {string} content - 新しいコンテンツ
      */
-    update(context, content) {
+    async update(context, content) {
       context.commit('updateContent', content)
+      await context.dispatch('saveProject')
     },
     /**
      * 処理名: プロジェクト削除アクション
@@ -1389,8 +1367,12 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * 実装理由: ノート削除をアクション経由で行うため
      * @param {any} context - Vuex アクションコンテキスト
      */
-    deleteProject(context) {
+    async deleteProject(context) {
+      const noteName = context.state.currentFile.projectName
       context.commit('deleteProject')
+      await createChromeLocalStorage().remove(noteName)
+      await createChromeLocalStorage().set({ [STORAGE_KEY_NOTE_KEY_LIST]: context.state.noteKeyList })
+      await context.dispatch('openFirst')
     },
     /**
      * 処理名: アプリ初期化アクション
@@ -1398,8 +1380,14 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * 実装理由: アプリ起動時と削除後の初期化を統一するため
      * @param {any} context - Vuex アクションコンテキスト
      */
-    init(context) {
-      context.commit('openFirst')
+    async init(context) {
+      const storage = createChromeLocalStorage()
+      await migrateLegacyStorage(window.localStorage, storage)
+      const config = await storage.get(STORAGE_KEY_CONFIG)
+      context.commit('loadConfig', config)
+      if (config === undefined) await storage.set({ [STORAGE_KEY_CONFIG]: context.state.config })
+      await context.dispatch('loadNoteKeyList')
+      await context.dispatch('openFirst')
     },
     /**
      * 処理名: 設定変更アクション
@@ -1408,8 +1396,9 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} context - Vuex アクションコンテキスト
      * @param {any} config - 新しい設定オブジェクト
      */
-    setConfig(context, config) {
+    async setConfig(context, config) {
       context.commit('setConfig', config)
+      await createChromeLocalStorage().set({ [STORAGE_KEY_CONFIG]: context.state.config })
     },
     /**
      * 処理名: プロジェクトインポートアクション
@@ -1418,8 +1407,39 @@ function applySortOrder(items: ListItem[], sort: string): void {
      * @param {any} context - Vuex アクションコンテキスト
      * @param {any} pjdata - インポートするプロジェクトデータ
      */
-    importProject(context, pjdata) {
+    async importProject(context, pjdata) {
       context.commit('importProject', pjdata)
+      const noteName = pjdata.projectName
+      const record = context.state.noteRecords[noteName]
+      if (record !== undefined) await createChromeLocalStorage().set({ [noteName]: record })
+    },
+    /**
+     * 処理名: 最初のノート表示
+     * 処理概要: キャッシュ済みノートから最後に読めるノートを開く
+     * 実装理由: 起動とノート削除後の初期表示を非同期 action に統一するため
+     * @param {any} context - Vuex アクションコンテキスト
+     */
+    async openFirst(context) {
+      const noteName = findLatestReadableNoteName(context.state.noteKeyList, context.state.noteRecords)
+      if (noteName) {
+        await context.dispatch('loadProject', noteName)
+        return
+      }
+      await context.dispatch('newProject')
+    },
+    /**
+     * 処理名: エクスポートレコード取得
+     * 処理概要: 内部移行フラグを除いた全保存データを返す
+     * 実装理由: バックアップに実装詳細を含めないため
+     * @param {any} context - Vuex アクションコンテキスト
+     * @returns {Promise<Record<string, unknown>>} エクスポート対象データ
+     */
+    async getExportRecords() {
+      const storage = createChromeLocalStorage()
+      await storage.set({ currentVersion: '0.0.1' })
+      const records = await storage.getAll()
+      delete records.storageMigrationV1_3_17Completed
+      return records
     }
   }
 })
