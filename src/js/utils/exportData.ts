@@ -1,18 +1,18 @@
 /**
  * 処理名: エクスポート用データ作成
- * 処理概要: localStorage から JSON 文字列とファイル名、実行日時を生成する
+ * 処理概要: 保存済みレコードから JSON 文字列とファイル名、実行日時を生成する
  * 実装理由: Settings と sidebar footer で同一フォーマットのエクスポートを再利用するため
- * @param {Storage} storage - エクスポート対象の Storage
+ * @param {Record<string, unknown>} records - エクスポート対象のレコード
  * @param {Date} now - エクスポート実行日時
  * @returns {{ formattedJson: string, fileName: string, executedAt: string }} 生成結果
  */
-export function createExportData(storage: Storage, now: Date) {
+export function createExportData(records: Record<string, unknown>, now: Date) {
   const year = String(now.getFullYear())
   const month = String(now.getMonth() + 1).padStart(2, '0')
   const day = String(now.getDate()).padStart(2, '0')
   const hour = String(now.getHours()).padStart(2, '0')
   const fileName = `MemoPad_${year}${month}${day}${hour}.json`
-  const formattedJson = JSON.stringify(storage, null, 2)
+  const formattedJson = JSON.stringify(records, null, 2)
   return {
     formattedJson,
     fileName,

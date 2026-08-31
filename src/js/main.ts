@@ -4,11 +4,11 @@ import store from '@/store'
 import lang from '@/lang'
 import UniconCompat from '@/components/UniconCompat.vue'
 import './Debug'
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
-import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
-import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import editorWorker from 'monaco-editor/editor/editor.worker?worker'
+import jsonWorker from 'monaco-editor/language/json/json.worker?worker'
+import cssWorker from 'monaco-editor/language/css/css.worker?worker'
+import htmlWorker from 'monaco-editor/language/html/html.worker?worker'
+import tsWorker from 'monaco-editor/language/typescript/ts.worker?worker'
 
 const monacoEnvironmentTarget = self as unknown as {
 	MonacoEnvironment?: {
@@ -113,8 +113,6 @@ app.use(store)
 app.use(lang)
 app.component('UniconIcon', UniconCompat)
 
-app.mount('#app')
-
 declare global {
 	interface Window {
 		__APP__?: unknown
@@ -122,10 +120,21 @@ declare global {
 	}
 }
 
-// テストから確実にアクセスできるようにグローバルに公開 (E2E 用フック)
-if (typeof window !== 'undefined') {
-	window.__APP__ = app
-	window.__STORE__ = store
+/**
+ * 処理名: アプリケーション起動
+ * 処理概要: 保存済み状態の初期化完了後にVueアプリケーションをマウントする
+ * 実装理由: 初期化中のChrome Storage通知をUIの複数タブ同期として処理しないため
+ * @returns {Promise<void>} アプリケーションのマウント完了後に resolve する Promise
+ */
+async function bootstrapApplication(): Promise<void> {
+	await store.dispatch('init')
+	app.mount('#app')
+
+	// テストから確実にアクセスできるようにグローバルに公開 (E2E 用フック)
+	if (typeof window !== 'undefined') {
+		window.__APP__ = app
+		window.__STORE__ = store
+	}
 }
 
-store.dispatch('init')
+void bootstrapApplication()

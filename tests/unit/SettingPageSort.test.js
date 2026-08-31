@@ -39,6 +39,9 @@ function createStoreMock(configOverride = {}) {
   }
 
   return {
+    state: {
+      noteKeyList: []
+    },
     getters: {
       config: {
         ...baseConfig,
@@ -208,7 +211,7 @@ describe('SettingPage.vue - TabList active state', () => {
 })
 
 describe('SettingPage.vue - Import Note Entry', () => {
-  test('note_ の文字列値は再シリアライズせずそのまま保存する', async () => {
+  test('note_ の文字列値をオブジェクトへ正規化して importProject に委譲する', async () => {
     const storeMock = createStoreMock()
     const wrapper = mount(SettingPage, {
       global: {
@@ -227,12 +230,13 @@ describe('SettingPage.vue - Import Note Entry', () => {
     })
 
     const rawNote = '{"v":0.1,"id":1685462439561,"gistid":"","files":{"index.md":{"filename":"index.md","content":"x"}},"public":true,"createdTime":1,"lastUpdatedTime":2,"description":"","projectName":"note_1685462439561"}'
-    wrapper.vm.importNoteEntry('note_1685462439561', {
+    await wrapper.vm.importNoteEntry('note_1685462439561', {
       note_1685462439561: rawNote
     })
 
-    expect(localStorage.getItem('note_1685462439561')).toBe(rawNote)
-    expect(storeMock.dispatch).not.toHaveBeenCalledWith('importProject', expect.anything())
+    expect(storeMock.dispatch).toHaveBeenCalledWith('importProject', expect.objectContaining({
+      projectName: 'note_1685462439561'
+    }))
   })
 
   test('オブジェクト値は importProject に委譲し projectName を補完する', async () => {
@@ -266,5 +270,69 @@ describe('SettingPage.vue - Import Note Entry', () => {
       projectName: 'note_999',
       files: objNote.files
     }))
+  })
+
+  test('外側のnoteキーを保存キーとして優先する', async () => {
+    const storeMock = createStoreMock()
+    const wrapper = mount(SettingPage, {
+      global: {
+        mocks: {
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
+        },
+        stubs: {
+          TabList: true,
+          FileDownload: true,
+          DraggableList: true,
+          UniconIcon: true
+        }
+      }
+    })
+
+    await wrapper.vm.importNoteEntry('note_backup_key', {
+      note_backup_key: {
+        projectName: 'note_different_project_name',
+        files: {
+          'index.md': { filename: 'index.md', content: 'x' }
+        }
+      }
+    })
+
+    expect(storeMock.dispatch).toHaveBeenCalledWith('importProject', expect.objectContaining({
+      projectName: 'note_backup_key'
+    }))
+  })
+
+  test('インポート完了後に永続化済みのノート一覧を再同期する', async () => {
+    const storeMock = createStoreMock()
+    const getFileLegacy = jest.fn().mockResolvedValue({})
+    const wrapper = mount(SettingPage, {
+      global: {
+        mocks: {
+          $store: storeMock,
+          $t: (key) => key,
+          $i18n: { locale: 'en' }
+        },
+        stubs: {
+          TabList: true,
+          FileDownload: {
+            template: '<div />',
+            methods: { getFileLegacy }
+          },
+          DraggableList: true,
+          UniconIcon: true
+        }
+      }
+    })
+    wrapper.vm.readFile = jest.fn().mockResolvedValue(JSON.stringify({
+      note_imported: { files: { 'index.md': { filename: 'index.md', content: 'x' } } }
+    }))
+    wrapper.vm.nextFrame = jest.fn().mockResolvedValue()
+
+    await wrapper.vm.importLocalStorage()
+
+    expect(storeMock.dispatch).toHaveBeenCalledWith('replaceNoteKeyList', ['note_imported'])
+    expect(storeMock.dispatch).toHaveBeenCalledWith('loadNoteKeyList')
   })
 })

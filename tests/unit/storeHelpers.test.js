@@ -42,7 +42,7 @@ describe('store mutations', () => {
   })
 
   describe('setConfig', () => {
-    test('config が localStorage に保存される', () => {
+    test('config がストア状態へ反映される', () => {
       const config = {
         general: { sort: '1', i18n_locale: 'en' }
       }
@@ -83,15 +83,14 @@ describe('store mutations', () => {
   })
 
   describe('loadConfig', () => {
-    test('localStorage から config を読み込める', () => {
+    test('構造化 config を読み込める', () => {
       const config = { general: { sort: '2', i18n_locale: 'en' }, editor: {}, markdown: {} }
-      window.localStorage.setItem('config', JSON.stringify(config))
-      store.commit('loadConfig')
+      store.commit('loadConfig', config)
       expect(store.state.config.general.sort).toBe('2')
     })
 
-    test('localStorage に config がない場合はデフォルト値になる', () => {
-      store.commit('loadConfig')
+    test('config がない場合はデフォルト値になる', () => {
+      store.commit('loadConfig', undefined)
       expect(store.state.config.general).toBeDefined()
     })
   })

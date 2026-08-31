@@ -133,20 +133,17 @@ describe('store importProject mutation', () => {
 
 describe('store loadNoteKeyList - 追加 branch', () => {
   test('noteKeyList が空配列の場合', () => {
-    window.localStorage.setItem('noteKeyList', JSON.stringify([]))
-    storeModule.commit('loadNoteKeyList')
+    storeModule.commit('loadNoteKeyList', [])
     expect(storeModule.state.noteKeyList.length).toBe(0)
   })
 
   test('noteKeyList が null のとき空配列', () => {
-    window.localStorage.setItem('noteKeyList', 'null')
-    storeModule.commit('loadNoteKeyList')
+    storeModule.commit('loadNoteKeyList', null)
     expect(storeModule.state.noteKeyList.length).toBe(0)
   })
 
   test('noteKeyList に重複がある場合は dedup される', () => {
-    window.localStorage.setItem('noteKeyList', JSON.stringify(['note_dup', 'note_dup', 'note_other']))
-    storeModule.commit('loadNoteKeyList')
+    storeModule.commit('loadNoteKeyList', ['note_dup', 'note_dup', 'note_other'])
     const count = storeModule.state.noteKeyList.filter(k => k === 'note_dup').length
     expect(count).toBe(1)
   })

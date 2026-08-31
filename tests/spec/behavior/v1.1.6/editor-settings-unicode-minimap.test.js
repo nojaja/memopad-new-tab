@@ -13,15 +13,12 @@ describe('normalizeConfig — unicodeHighlight / minimap デフォルト値補�
   })
 
   test('旧設定に unicodeHighlight が存在しない場合、デフォルト値 false が補完される', () => {
-    // 旧設定を localStorage へ書き込む（unicodeHighlight なし）
     const oldConfig = JSON.stringify({
       general: { sort: '0', i18n_locale: 'ja', privacyBlur: false },
       editor: { automaticLayout: true, fontSize: 16, tabSize: 4, theme: 'vs' },
       markdown: {}
     })
-    window.localStorage.setItem('config', oldConfig)
-
-    storeModule.commit('loadConfig')
+    storeModule.commit('loadConfig', JSON.parse(oldConfig))
 
     const config = storeModule.getters.config
     expect(config.editor.unicodeHighlight).toBeDefined()
@@ -35,9 +32,7 @@ describe('normalizeConfig — unicodeHighlight / minimap デフォルト値補�
       editor: { automaticLayout: true, fontSize: 16, tabSize: 4, theme: 'vs' },
       markdown: {}
     })
-    window.localStorage.setItem('config', oldConfig)
-
-    storeModule.commit('loadConfig')
+    storeModule.commit('loadConfig', JSON.parse(oldConfig))
 
     const config = storeModule.getters.config
     expect(config.editor.minimap).toBeDefined()
@@ -56,9 +51,7 @@ describe('normalizeConfig — unicodeHighlight / minimap デフォルト値補�
       },
       markdown: {}
     })
-    window.localStorage.setItem('config', savedConfig)
-
-    storeModule.commit('loadConfig')
+    storeModule.commit('loadConfig', JSON.parse(savedConfig))
 
     const config = storeModule.getters.config
     expect(config.editor.unicodeHighlight.ambiguousCharacters).toBe(true)
@@ -76,9 +69,7 @@ describe('normalizeConfig — unicodeHighlight / minimap デフォルト値補�
       },
       markdown: {}
     })
-    window.localStorage.setItem('config', savedConfig)
-
-    storeModule.commit('loadConfig')
+    storeModule.commit('loadConfig', JSON.parse(savedConfig))
 
     const config = storeModule.getters.config
     expect(config.editor.minimap.enabled).toBe(false)

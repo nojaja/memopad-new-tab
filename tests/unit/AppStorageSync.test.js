@@ -88,39 +88,29 @@ describe('App.vue storage sync', () => {
     })
   }
 
-  test('storage event on noteKeyList dispatches loadNoteKeyList', () => {
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'noteKeyList',
-      newValue: JSON.stringify(['note_12345']),
-      oldValue: null,
-      storageArea: window.localStorage
-    }))
+  test('Chrome Storage の noteKeyList 変更は loadNoteKeyList を dispatch する', () => {
+    wrapper.vm.handleStorageChanges([{
+      key: 'noteKeyList', oldValue: [], newValue: ['note_12345']
+    }])
 
     expect(storeMock.dispatch).toHaveBeenCalledWith('loadNoteKeyList')
   })
 
-  test('storage event on current note with focus duplicates project', () => {
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'note_12345',
-      newValue: JSON.stringify({}),
-      oldValue: null,
-      storageArea: window.localStorage
-    }))
+  test('Chrome Storage の現在ノート変更時は自動複製しない', () => {
+    wrapper.vm.handleStorageChanges([{
+      key: 'note_12345', oldValue: null, newValue: {}
+    }])
 
-    expect(storeMock.dispatch).toHaveBeenCalledWith('duplicateCurrentProject')
+    expect(storeMock.dispatch).not.toHaveBeenCalledWith('duplicateCurrentProject')
+    expect(storeMock.dispatch).not.toHaveBeenCalledWith('loadProject', 'note_12345')
   })
 
-  test('storage event on current note without focus reloads project', () => {
-    document.hasFocus = jest.fn(() => false)
+  test('Chrome Storage の非表示ノート変更時は一覧を再読込する', () => {
+    wrapper.vm.handleStorageChanges([{
+      key: 'note_67890', oldValue: null, newValue: {}
+    }])
 
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'note_12345',
-      newValue: JSON.stringify({}),
-      oldValue: null,
-      storageArea: window.localStorage
-    }))
-
-    expect(storeMock.dispatch).toHaveBeenCalledWith('loadProject', 'note_12345')
+    expect(storeMock.dispatch).toHaveBeenCalledWith('loadNoteKeyList')
   })
 
   test.each([
