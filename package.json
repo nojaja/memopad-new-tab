@@ -4,6 +4,9 @@
     "type": "commonjs",
     "private": true,
     "description": "Save memo in Markdown directly in the 'New Tab' page",
+    "engines": {
+        "node": ">=22 <25"
+    },
     "author": "",
     "scripts": {
         "serve": "cross-env NODE_OPTIONS=\"--max_old_space_size=2048\" vite",

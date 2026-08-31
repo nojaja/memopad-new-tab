@@ -7,7 +7,7 @@ on:
 env:
   TAG_PREFIX: 'v'
   PACKAGE_PATH: 'package.json'
-  NODE_VERSION: '20.x'
+  NODE_VERSION: '24.x'
 
 permissions:
   contents: write
@@ -20,7 +20,7 @@ jobs:
       tag_name: ${{ steps.check.outputs.tag_name }}
       tag_exists: ${{ steps.check.outputs.tag_exists }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -79,12 +79,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x, 24.x]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -108,12 +108,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [24.x]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -139,21 +139,20 @@ jobs:
           archive: false
 
       - name: Upload to Chrome Web Store
-        uses: mobilefirstllc/cws-publish@latest
-        with:
-          action: 'publish'
-          client_id: ${{ secrets.CLIENT_ID }}
-          client_secret: ${{ secrets.CLIENT_SECRET }}
-          refresh_token: ${{ secrets.REFRESH_TOKEN }}
-          extension_id: ${{ secrets.EXTENSION_ID }}
-          zip_file: 'extension.zip'
+        run: node scripts/publishChromeWebStore.mjs
+        env:
+          CHROME_WEB_STORE_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CHROME_WEB_STORE_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          CHROME_WEB_STORE_EXTENSION_ID: ${{ secrets.EXTENSION_ID }}
+          CHROME_WEB_STORE_PUBLISHER_ID: ${{ secrets.PUBLISHER_ID }}
+          CHROME_WEB_STORE_REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
 
   create-tag:
     needs: [check-version, release-build]
     if: github.event_name == 'push' && needs.check-version.outputs.version_changed == 'true' && needs.release-build.result == 'success'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
