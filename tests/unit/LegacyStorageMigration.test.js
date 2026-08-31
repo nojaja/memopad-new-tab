@@ -65,13 +65,77 @@ describe('LegacyStorageMigration', () => {
     expect(storage.values.size).toBe(0)
   })
 
-  test('異なる既存値との競合時は上書きも旧データ削除もしない', async () => {
-    const legacyStorage = createLegacyStorage({ config: JSON.stringify({ general: { i18n_locale: 'ja' } }) })
+  test('同一ノートキーが既に存在し内容が異なる場合は別キーにリネームして移行しロストを防ぐ', async () => {
+    const legacyStorage = createLegacyStorage({
+      noteKeyList: JSON.stringify(['note_1']),
+      note_1: JSON.stringify({ projectName: 'note_1', content: 'legacy version' })
+    })
+    const storage = createStorage({
+      noteKeyList: ['note_1'],
+      note_1: { projectName: 'note_1', content: 'chrome storage version' }
+    })
+
+    await expect(migrateLegacyStorage(legacyStorage, storage)).resolves.toEqual({ migrated: true })
+
+    expect(storage.values.get('note_1')).toEqual({ projectName: 'note_1', content: 'chrome storage version' })
+    expect(storage.values.get('note_1_migrated')).toEqual({ projectName: 'note_1_migrated', content: 'legacy version' })
+    expect(storage.values.get('noteKeyList')).toEqual(['note_1', 'note_1_migrated'])
+    expect(storage.values.get(STORAGE_MIGRATION_COMPLETED_KEY)).toBe(true)
+    expect(legacyStorage.values.size).toBe(0)
+  })
+
+  test('リネーム先キーも既に存在する場合は連番サフィックスを付与して移行する', async () => {
+    const legacyStorage = createLegacyStorage({
+      note_1: JSON.stringify({ projectName: 'note_1', content: 'legacy version' })
+    })
+    const storage = createStorage({
+      note_1: { projectName: 'note_1', content: 'v1' },
+      note_1_migrated: { projectName: 'note_1_migrated', content: 'v2' }
+    })
+
+    await expect(migrateLegacyStorage(legacyStorage, storage)).resolves.toEqual({ migrated: true })
+
+    expect(storage.values.get('note_1_migrated_2')).toEqual({ projectName: 'note_1_migrated_2', content: 'legacy version' })
+    expect(storage.values.get('noteKeyList')).toEqual(['note_1_migrated_2'])
+    expect(legacyStorage.values.size).toBe(0)
+  })
+
+  test('設定が競合した場合は既存の Chrome Storage 設定を維持しつつ移行を完了する', async () => {
+    const legacyStorage = createLegacyStorage({
+      config: JSON.stringify({ general: { i18n_locale: 'ja' } }),
+      note_1: JSON.stringify({ projectName: 'note_1', files: {} })
+    })
     const storage = createStorage({ config: { general: { i18n_locale: 'en' } } })
 
-    await expect(migrateLegacyStorage(legacyStorage, storage)).rejects.toThrow('Storage migration conflict: config')
+    await expect(migrateLegacyStorage(legacyStorage, storage)).resolves.toEqual({ migrated: true })
+
+    expect(legacyStorage.values.size).toBe(0)
+    expect(storage.values.get('config')).toEqual({ general: { i18n_locale: 'en' } })
+    expect(storage.values.get('note_1')).toEqual({ projectName: 'note_1', files: {} })
+    expect(storage.values.get(STORAGE_MIGRATION_COMPLETED_KEY)).toBe(true)
+  })
+
+  test('プロパティ順序が異なるオブジェクトも等価と判定して移行を完了する', async () => {
+    const legacyStorage = createLegacyStorage({
+      note_1: JSON.stringify({ a: 1, b: { c: 2, d: 3 } })
+    })
+    const storage = createStorage({
+      note_1: { b: { d: 3, c: 2 }, a: 1 }
+    })
+
+    await expect(migrateLegacyStorage(legacyStorage, storage)).resolves.toEqual({ migrated: true })
+
+    expect(legacyStorage.values.size).toBe(0)
+    expect(storage.values.get('note_1')).toEqual({ b: { d: 3, c: 2 }, a: 1 })
+    expect(storage.values.get(STORAGE_MIGRATION_COMPLETED_KEY)).toBe(true)
+  })
+
+  test('移行済みフラグが存在する場合は何もしない', async () => {
+    const legacyStorage = createLegacyStorage({ config: JSON.stringify({ general: {} }) })
+    const storage = createStorage({ [STORAGE_MIGRATION_COMPLETED_KEY]: true })
+
+    await expect(migrateLegacyStorage(legacyStorage, storage)).resolves.toEqual({ migrated: false })
 
     expect(legacyStorage.values.has('config')).toBe(true)
-    expect(storage.values.get('config')).toEqual({ general: { i18n_locale: 'en' } })
   })
 })

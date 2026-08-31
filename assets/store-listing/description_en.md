@@ -33,6 +33,25 @@ See the final result right alongside your writing for a seamless note-taking exp
 ---------
 [Updates]
 
+v1.3.17 (2026/08/01)
+* Moved notes and settings to Chrome extension storage
+Notes, the note list, settings, and export version information are now stored in `chrome.storage.local`. Existing localStorage data is safely migrated on first launch.
+
+* Improved cross-tab change detection
+Changes to notes and settings from other tabs are now reflected through Chrome Storage change notifications.
+
+v1.3.16 (2026/06/04)
+* Added presets for Markdown multibyte conversion rules
+In Settings -> Markdown -> Multibyte, you can now save, load, and delete presets of conversion rules. A default preset is included so you can switch rules for different uses.
+
+v1.3.15 (2026/06/04)
+* Expanded editor settings and updated defaults
+You can now configure line numbers, insert spaces, word wrap, wrapping column, and auto-closing brackets in Settings -> Editor. Minimap is now off by default.
+
+v1.3.14 (2026/05/25)
+* Fixed a Content Security Policy error on the Settings page
+Translation messages are now precompiled, allowing the Settings page to work safely under strict Content Security Policy environments.
+
 v1.3.12 (2026/05/22)
 * Added bilingual (English/Japanese) text support for the Settings page
 The Settings page now follows your Language setting (en/ja), and section headings, descriptions, tab names, and sort options are displayed in the selected language.

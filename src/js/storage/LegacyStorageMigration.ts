@@ -4,15 +4,51 @@ import type { ChromeLocalStorage, StorageRecord } from './ChromeLocalStorage'
 export const STORAGE_MIGRATION_COMPLETED_KEY = 'storageMigrationV1_3_17Completed'
 
 /**
+ * 処理名: オブジェクトの深い等価判定
+ * 処理概要: 2つのオブジェクトの全キーと値が等しいか判定する
+ * 実装理由: プロパティ順序の違いを許容して正しく等価判定するため
+ * @param {Record<string, unknown>} left - 比較元のオブジェクト
+ * @param {Record<string, unknown>} right - 比較先のオブジェクト
+ * @returns {boolean} 全てのキーと値が等しければ true
+ */
+function isObjectDeepEqual(left: Record<string, unknown>, right: Record<string, unknown>): boolean {
+  const leftKeys = Object.keys(left)
+  const rightKeys = Object.keys(right)
+  if (leftKeys.length !== rightKeys.length) return false
+  return leftKeys.every(key => Object.hasOwn(right, key) && isDeepEqual(left[key], right[key]))
+}
+
+/**
+ * 処理名: 配列の深い等価判定
+ * 処理概要: 2つの配列の要素が順序を含めて等しいか判定する
+ * 実装理由: 配列要素内のオブジェクトも含めて検証するため
+ * @param {unknown[]} left - 比較元の配列
+ * @param {unknown[]} right - 比較先の配列
+ * @returns {boolean} 全要素が等しければ true
+ */
+function isArrayDeepEqual(left: unknown[], right: unknown[]): boolean {
+  if (left.length !== right.length) return false
+  return left.every((item, index) => isDeepEqual(item, right[index]))
+}
+
+/**
  * 処理名: 値の深い等価判定
- * 処理概要: JSON として保存可能な2値が同じ内容か判定する
- * 実装理由: 移行前の競合検知と移行後の書込検証に同じ比較を使うため
+ * 処理概要: オブジェクトのキー順序に依存せず2値が同じ内容か判定する
+ * 実装理由: キー順序の違いによる偽競合や検証失敗を防ぐため
  * @param {unknown} left - 比較元の値
  * @param {unknown} right - 比較先の値
  * @returns {boolean} 値が同じ内容なら true
  */
 function isDeepEqual(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right)
+  if (left === right) return true
+  if (left == null || right == null || typeof left !== 'object' || typeof right !== 'object') {
+    return false
+  }
+  if (Array.isArray(left) !== Array.isArray(right)) return false
+  if (Array.isArray(left) && Array.isArray(right)) {
+    return isArrayDeepEqual(left, right)
+  }
+  return isObjectDeepEqual(left as Record<string, unknown>, right as Record<string, unknown>)
 }
 
 /**
@@ -63,19 +99,120 @@ function getLegacySnapshot(legacyStorage: Storage): Record<string, string> {
 }
 
 /**
- * 処理名: 移行競合確認
- * 処理概要: 既存の Chrome Storage 値が移行値と矛盾しないことを確認する
- * 実装理由: 新しい保存先のデータを旧データで上書きしないため
- * @param {StorageRecord} existing - 既存の Chrome Storage 値
- * @param {StorageRecord} converted - 旧ストレージから変換した値
- * @throws {Error} 同名キーに異なる値がある場合
+ * 処理名: 重複しないキー生成
+ * 処理概要: 既存および書込予定のキーと重複しない移行用キー名を生成する
+ * 実装理由: 既存データを上書きせず旧データを別名で退避・移行するため
+ * @param {string} baseKey - 競合した元のキー名
+ * @param {(key: string) => boolean} isKeyTaken - キーが既に使用中か判定する関数
+ * @returns {string} 重複しない新しいキー名
  */
-function assertNoMigrationConflict(existing: StorageRecord, converted: StorageRecord): void {
+function generateUniqueKey(baseKey: string, isKeyTaken: (key: string) => boolean): string {
+  let candidate = `${baseKey}_migrated`
+  let counter = 2
+  while (isKeyTaken(candidate)) {
+    candidate = `${baseKey}_migrated_${counter}`
+    counter += 1
+  }
+  return candidate
+}
+
+/**
+ * 処理名: プロジェクト名更新
+ * 処理概要: 移行先キー名に合わせてオブジェクト内の projectName を更新する
+ * 実装理由: ノートの保存キーとコンテナ内の projectName を一致させるため
+ * @param {unknown} value - 移行する値
+ * @param {string} newKey - 新しい保存キー名
+ * @returns {unknown} projectName が更新された値
+ */
+function updateProjectName(value: unknown, newKey: string): unknown {
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return { ...(value as Record<string, unknown>), projectName: newKey }
+  }
+  return value
+}
+
+/**
+ * 処理名: ノートキー一覧統合
+ * 処理概要: 既存の noteKeyList と移行対象の noteKeyList・新規 note_* キーを重複なく統合する
+ * 実装理由: リネームされたノートや未登録ノートが一覧から消失しないようにするため
+ * @param {StorageRecord} existing - 既存の Chrome Storage レコード
+ * @param {StorageRecord} converted - 旧ストレージから変換したレコード
+ * @param {StorageRecord} toWrite - 書込予定のレコード
+ * @param {Map<string, string>} keyMapping - 旧キーから新キーへの対応表
+ * @returns {string[] | null} 統合後の noteKeyList（既存と同一なら null）
+ */
+function buildMergedNoteKeyList(
+  existing: StorageRecord,
+  converted: StorageRecord,
+  toWrite: StorageRecord,
+  keyMapping: Map<string, string>
+): string[] | null {
+  const existingList = Array.isArray(existing['noteKeyList']) ? (existing['noteKeyList'] as string[]) : []
+  const convertedList = Array.isArray(converted['noteKeyList']) ? (converted['noteKeyList'] as string[]) : []
+  const mappedConvertedList = convertedList.map(k => keyMapping.get(k) || k)
+  const writtenNoteKeys = Object.keys(toWrite).filter(k => k.startsWith('note_'))
+
+  if (existingList.length === 0 && convertedList.length === 0 && writtenNoteKeys.length === 0) {
+    return null
+  }
+
+  const merged = Array.from(new Set([...existingList, ...mappedConvertedList, ...writtenNoteKeys]))
+  if (isDeepEqual(existing['noteKeyList'], merged)) {
+    return null
+  }
+  return merged
+}
+
+interface MigrationPlan {
+  toWrite: StorageRecord
+  safeToDeleteOriginalKeys: string[]
+  keyMapping: Map<string, string>
+}
+
+/**
+ * 処理名: 移行計画作成
+ * 処理概要: 既存データとの競合を判定し、リネームやキー一覧統合を含む書込計画を作成する
+ * 実装理由: 既存データを保護しつつ、旧データを別キーで安全に移行するため
+ * @param {StorageRecord} existing - 既存の Chrome Storage レコード
+ * @param {StorageRecord} converted - 旧ストレージから変換したレコード
+ * @returns {MigrationPlan} 移行計画
+ */
+function planMigration(existing: StorageRecord, converted: StorageRecord): MigrationPlan {
+  const toWrite: StorageRecord = {}
+  const safeToDeleteOriginalKeys: string[] = []
+  const keyMapping = new Map<string, string>()
+
+  const isKeyTaken = (key: string) => Object.hasOwn(existing, key) || Object.hasOwn(toWrite, key)
+
   for (const [key, value] of Object.entries(converted)) {
-    if (Object.hasOwn(existing, key) && !isDeepEqual(existing[key], value)) {
-      throw new Error(`Storage migration conflict: ${key}`)
+    if (key === 'noteKeyList') continue
+
+    if (!Object.hasOwn(existing, key)) {
+      toWrite[key] = value
+      keyMapping.set(key, key)
+    } else if (isDeepEqual(existing[key], value)) {
+      safeToDeleteOriginalKeys.push(key)
+      keyMapping.set(key, key)
+    } else if (key === 'config') {
+      safeToDeleteOriginalKeys.push(key)
+    } else {
+      const newKey = generateUniqueKey(key, isKeyTaken)
+      toWrite[newKey] = key.startsWith('note_') ? updateProjectName(value, newKey) : value
+      keyMapping.set(key, newKey)
     }
   }
+
+  const mergedNoteKeys = buildMergedNoteKeyList(existing, converted, toWrite, keyMapping)
+  if (mergedNoteKeys !== null) {
+    toWrite['noteKeyList'] = mergedNoteKeys
+    if (Object.hasOwn(converted, 'noteKeyList')) {
+      keyMapping.set('noteKeyList', 'noteKeyList')
+    }
+  } else if (Object.hasOwn(converted, 'noteKeyList')) {
+    safeToDeleteOriginalKeys.push('noteKeyList')
+  }
+
+  return { toWrite, safeToDeleteOriginalKeys, keyMapping }
 }
 
 /**
@@ -83,27 +220,27 @@ function assertNoMigrationConflict(existing: StorageRecord, converted: StorageRe
  * 処理概要: Chrome Storageから再取得した移行値が書込値と一致することを確認する
  * 実装理由: 旧データ削除前に保存成功を保証するため
  * @param {ChromeLocalStorage} storage - 移行先 Chrome Storage ラッパー
- * @param {StorageRecord} converted - 書込済みの変換値
- * @returns {Promise<void>} 検証完了時に resolve する Promise
- * @throws {Error} 再取得値が書込値と異なる場合
+ * @param {StorageRecord} written - 書き込んだレコード
+ * @returns {Promise<string[]>} 検証に成功したキー一覧
  */
-async function verifyMigratedValues(storage: ChromeLocalStorage, converted: StorageRecord): Promise<void> {
+async function verifyWrittenValues(storage: ChromeLocalStorage, written: StorageRecord): Promise<string[]> {
   const persisted = await storage.getAll()
-  for (const [key, value] of Object.entries(converted)) {
-    if (!isDeepEqual(persisted[key], value)) {
-      throw new Error(`Storage migration verification failed: ${key}`)
+  const verifiedKeys: string[] = []
+  for (const [key, value] of Object.entries(written)) {
+    if (isDeepEqual(persisted[key], value)) {
+      verifiedKeys.push(key)
     }
   }
+  return verifiedKeys
 }
 
 /**
  * 処理名: 旧ストレージ移行
- * 処理概要: localStorage の値を検証付きで chrome.storage.local へ移す
+ * 処理概要: localStorage の値を検証付きで chrome.storage.local へ安全に移す
  * 実装理由: 書込成功を確認する前に旧データを削除しないことでデータ消失を防ぐため
  * @param {Storage} legacyStorage - 移行元 localStorage
  * @param {ChromeLocalStorage} storage - 移行先 Chrome Storage ラッパー
  * @returns {Promise<{ migrated: boolean }>} 移行実行結果
- * @throws {Error} 変換、競合、書込または検証に失敗した場合
  */
 export async function migrateLegacyStorage(
   legacyStorage: Storage,
@@ -116,13 +253,19 @@ export async function migrateLegacyStorage(
   const converted = Object.fromEntries(Object.entries(snapshot)
     .map(([key, value]) => [key, convertLegacyValue(key, value)])) as StorageRecord
 
-  assertNoMigrationConflict(existing, converted)
+  const { toWrite, safeToDeleteOriginalKeys, keyMapping } = planMigration(existing, converted)
 
-  if (Object.keys(converted).length > 0) {
-    await storage.set(converted)
-    await verifyMigratedValues(storage, converted)
-    Object.keys(snapshot).forEach(key => legacyStorage.removeItem(key))
+  if (Object.keys(toWrite).length > 0) {
+    await storage.set(toWrite)
+    const verifiedKeys = new Set(await verifyWrittenValues(storage, toWrite))
+    for (const [origKey, targetKey] of keyMapping.entries()) {
+      if (verifiedKeys.has(targetKey)) {
+        legacyStorage.removeItem(origKey)
+      }
+    }
   }
+
+  safeToDeleteOriginalKeys.forEach(key => legacyStorage.removeItem(key))
 
   await storage.set({ [STORAGE_MIGRATION_COMPLETED_KEY]: true })
   return { migrated: true }

@@ -1387,13 +1387,19 @@ function applySortOrder(items: ListItem[], sort: string): void {
     },
     /**
      * 処理名: アプリ初期化アクション
-     * 処理概要: openFirst ミューテーションをコミットしてアプリを初期状態にする
+     * 処理概要: 旧ストレージ移行と初期データ読込を行い、openFirst で初期表示する
      * 実装理由: アプリ起動時と削除後の初期化を統一するため
      * @param {any} context - Vuex アクションコンテキスト
      */
     async init(context) {
       const storage = createChromeLocalStorage()
-      if (isChromeStorageAvailable()) await migrateLegacyStorage(window.localStorage, storage)
+      if (isChromeStorageAvailable()) {
+        try {
+          await migrateLegacyStorage(window.localStorage, storage)
+        } catch (error) {
+          console.error('Storage migration failed:', error)
+        }
+      }
       const config = await storage.get(STORAGE_KEY_CONFIG)
       context.commit('loadConfig', config)
       if (config === undefined) await storage.set({ [STORAGE_KEY_CONFIG]: context.state.config })
