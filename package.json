@@ -38,7 +38,7 @@
         "markdown-it-ruby": "^1.1.2",
         "markdown-it-task-checkbox": "^1.0.6",
         "mermaid": "^11.15.0",
-        "monaco-editor": "^0.47.0",
+        "monaco-editor": "^0.56.0",
         "monaco-editor-vue3": "^1.0.5",
         "normalize.css": "^8.0.1",
         "splitpanes": "^4.0.4",
