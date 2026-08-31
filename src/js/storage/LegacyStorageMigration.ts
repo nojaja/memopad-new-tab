@@ -170,6 +170,58 @@ interface MigrationPlan {
 }
 
 /**
+ * 処理名: 移行先キー使用中判定
+ * 処理概要: 指定キーが既存データまたは書込予定データで既に使用されているか判定する
+ * 実装理由: リネーム時の重複キー生成を防ぐため
+ * @param {StorageRecord} existing - 既存の Chrome Storage レコード
+ * @param {StorageRecord} toWrite - 書込予定のレコード
+ * @param {string} key - 判定対象のキー
+ * @returns {boolean} 使用中なら true
+ */
+function isKeyTaken(existing: StorageRecord, toWrite: StorageRecord, key: string): boolean {
+  return Object.hasOwn(existing, key) || Object.hasOwn(toWrite, key)
+}
+
+/**
+ * 処理名: 単一キーの移行解決
+ * 処理概要: 1件の変換済みキーについて、書込・削除・リネームのいずれで扱うかを決定し計画へ反映する
+ * 実装理由: キー単位の競合判定ロジックを分離し、移行計画作成の複雑度を抑えるため
+ * @param {string} key - 変換済みストレージキー
+ * @param {unknown} value - 変換済みの値
+ * @param {StorageRecord} existing - 既存の Chrome Storage レコード
+ * @param {StorageRecord} toWrite - 書込予定のレコード（この関数内で更新される）
+ * @param {Map<string, string>} keyMapping - 旧キーから新キーへの対応表（この関数内で更新される）
+ * @param {string[]} safeToDeleteOriginalKeys - 削除可能な旧キー一覧（この関数内で更新される）
+ * @returns {void} 戻り値なし
+ */
+function resolveKeyEntry(
+  key: string,
+  value: unknown,
+  existing: StorageRecord,
+  toWrite: StorageRecord,
+  keyMapping: Map<string, string>,
+  safeToDeleteOriginalKeys: string[]
+): void {
+  if (!Object.hasOwn(existing, key)) {
+    toWrite[key] = value
+    keyMapping.set(key, key)
+    return
+  }
+  if (isDeepEqual(existing[key], value)) {
+    safeToDeleteOriginalKeys.push(key)
+    keyMapping.set(key, key)
+    return
+  }
+  if (key === 'config') {
+    safeToDeleteOriginalKeys.push(key)
+    return
+  }
+  const newKey = generateUniqueKey(key, candidate => isKeyTaken(existing, toWrite, candidate))
+  toWrite[newKey] = key.startsWith('note_') ? updateProjectName(value, newKey) : value
+  keyMapping.set(key, newKey)
+}
+
+/**
  * 処理名: 移行計画作成
  * 処理概要: 既存データとの競合を判定し、リネームやキー一覧統合を含む書込計画を作成する
  * 実装理由: 既存データを保護しつつ、旧データを別キーで安全に移行するため
@@ -182,24 +234,9 @@ function planMigration(existing: StorageRecord, converted: StorageRecord): Migra
   const safeToDeleteOriginalKeys: string[] = []
   const keyMapping = new Map<string, string>()
 
-  const isKeyTaken = (key: string) => Object.hasOwn(existing, key) || Object.hasOwn(toWrite, key)
-
   for (const [key, value] of Object.entries(converted)) {
     if (key === 'noteKeyList') continue
-
-    if (!Object.hasOwn(existing, key)) {
-      toWrite[key] = value
-      keyMapping.set(key, key)
-    } else if (isDeepEqual(existing[key], value)) {
-      safeToDeleteOriginalKeys.push(key)
-      keyMapping.set(key, key)
-    } else if (key === 'config') {
-      safeToDeleteOriginalKeys.push(key)
-    } else {
-      const newKey = generateUniqueKey(key, isKeyTaken)
-      toWrite[newKey] = key.startsWith('note_') ? updateProjectName(value, newKey) : value
-      keyMapping.set(key, newKey)
-    }
+    resolveKeyEntry(key, value, existing, toWrite, keyMapping, safeToDeleteOriginalKeys)
   }
 
   const mergedNoteKeys = buildMergedNoteKeyList(existing, converted, toWrite, keyMapping)
