@@ -827,7 +827,8 @@ function applySortOrder(items: ListItem[], sort: string): void {
     noteKeyList: [] as string[],
     noteRecords: {} as Record<string, unknown>,
     config: normalizeConfig(null),
-    isImporting: false
+    isImporting: false,
+    projectLoadError: ''
   },
   getters: { // state の参照
     /**
@@ -921,6 +922,15 @@ function applySortOrder(items: ListItem[], sort: string): void {
       state.isImporting = !!importing
     },
     /**
+     * 処理名: プロジェクト読み込みエラー解除
+     * 処理概要: 表示済みのプロジェクト読み込みエラーを解除する
+     * 実装理由: 同じエラーを再描画時に重複表示しないため
+     * @param {any} state - Vuex ストア状態
+     */
+    clearProjectLoadError(state) {
+      state.projectLoadError = ''
+    },
+    /**
      * 処理名: タイトル更新ミューテーション
      * 処理概要: 現在ファイルの説明（タイトル）を更新してプロジェクトを保存する
      * 実装理由: タイトル変更を即座にファイルコンテナと永続化ストレージに反映するため
@@ -981,13 +991,14 @@ function applySortOrder(items: ListItem[], sort: string): void {
     loadProject(state, payload) {
       const noteName = typeof payload === 'string' ? payload : payload.noteName
       const raw = typeof payload === 'string' ? state.noteRecords[noteName] : payload.raw
+      state.projectLoadError = ''
       if (!raw) { // 存在しない場合は新規作成する
         return
       }
 
       const normalizedProject = normalizeStoredProject(raw)
       if (!normalizedProject) {
-        console.warn('Failed to load project, recreate project:', noteName)
+        state.projectLoadError = 'invalid-project'
         return
       }
 
@@ -1000,13 +1011,13 @@ function applySortOrder(items: ListItem[], sort: string): void {
 
       const files = state.fileContainer.getFiles()
       if (!files || files.length === 0) {
-        console.warn('Project has no files, recreate project:', noteName)
+        state.projectLoadError = 'empty-project'
         return
       }
 
       const firstFilename = getFileName(files[0])
       if (!firstFilename) {
-        console.warn('Project first file has no filename, recreate project:', noteName)
+        state.projectLoadError = 'invalid-project'
         return
       }
 

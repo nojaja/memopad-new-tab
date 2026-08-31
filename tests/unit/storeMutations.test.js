@@ -55,6 +55,17 @@ describe('store mutations - loadProject', () => {
     expect(() => {
       storeModule.commit('loadProject', 'note_bad_json')
     }).not.toThrow()
+    expect(storeModule.state.projectLoadError).toBe('invalid-project')
+  })
+
+  test('有効なプロジェクトの読み込みで読み込みエラーを解除する', () => {
+    storeModule.state.projectLoadError = 'invalid-project'
+    const noteKey = 'note_valid_project'
+    window.localStorage.setItem(noteKey, makeProjectJson(noteKey, '# 読み込みテスト'))
+
+    storeModule.commit('loadProject', noteKey)
+
+    expect(storeModule.state.projectLoadError).toBe('')
   })
 })
 

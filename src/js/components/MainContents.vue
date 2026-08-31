@@ -126,6 +126,15 @@ export default {
       return this.isSidebarVisible ? 'hide sidebar' : 'show sidebar'
     },
     /**
+     * 処理名: プロジェクト読み込みエラー取得
+     * 処理概要: ストアから未通知のプロジェクト読み込みエラーを取得する
+     * 実装理由: 読み込み失敗を現在のノートを維持したままユーザーへ通知するため
+     * @returns {string} プロジェクト読み込みエラー識別子
+     */
+    projectLoadError() {
+      return this.$store.state.projectLoadError || ''
+    },
+    /**
      * 処理名: ファイルリスト取得
      * 処理概要: ストアから最新のノートリストを返す
      * 実装理由: ストアの状態をサイドバーリストに反映するため
@@ -159,6 +168,31 @@ export default {
         return true
       }
       return Date.now() - lastAtMs >= THIRTY_DAYS_MS
+    }
+  },
+  watch: {
+    /**
+     * 処理名: プロジェクト読み込みエラー通知
+     * 処理概要: 未通知の読み込み失敗をダイアログで表示してストア状態を解除する
+     * 実装理由: 破損したノートを選択しても現在のノートを維持しつつ原因を伝えるため
+     * @param {string} error - プロジェクト読み込みエラー識別子
+     */
+    projectLoadError(error) {
+      if (!error) return
+      const message = typeof this.$t === 'function'
+        ? this.$t('message.projectLoadFailed')
+        : 'The selected note could not be loaded.'
+      DialogHelper.showDialog(this, {
+        subject: 'Error',
+        message,
+        ok: /**
+             * 処理名: エラー通知確認
+             * 処理概要: 読み込み失敗の通知を閉じる
+             * 実装理由: ダイアログの確認操作を完結させるため
+             */
+          () => {}
+      })
+      this.$store.commit('clearProjectLoadError')
     }
   },
   /**

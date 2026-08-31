@@ -1,3 +1,10 @@
+const { config } = require('@vue/test-utils')
+
+config.global.stubs = {
+  ...config.global.stubs,
+  UniconIcon: true
+}
+
 const mockLocalStorage = {
   _store: new Map(),
   getItem: jest.fn(key => mockLocalStorage._store.get(key)),

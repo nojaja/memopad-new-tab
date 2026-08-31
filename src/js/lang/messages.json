@@ -3,6 +3,7 @@
     "message" : {
       "welcome" : "Welcome to Your Vue.js App",
       "Delete" : "Can I delete it?",
+      "projectLoadFailed" : "The selected note could not be loaded. Your current note remains open.",
       "SettingPage" : {
         "title" : {
           "settings" : "Settings",
@@ -82,6 +83,7 @@
     "message" : {
       "welcome" : "Vue.jsアプリケーションへようこそ",
       "Delete" : "削除してよいですか？",
+      "projectLoadFailed" : "選択したノートを読み込めませんでした。現在のノートは開いたままです。",
       "SettingPage" : {
         "title" : {
           "settings" : "設定",

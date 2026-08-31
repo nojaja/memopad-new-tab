@@ -2,6 +2,13 @@ import { shallowMount } from '@vue/test-utils'
 import { createStore } from 'vuex'
 import MainContents from '@/components/MainContents.vue'
 
+jest.mock('@/DialogHelper', () => ({
+  __esModule: true,
+  default: { showDialog: jest.fn() }
+}))
+
+const DialogHelper = require('@/DialogHelper').default
+
 // localVue は Vue 3 では不要
 
 // Chrome APIのモック
@@ -30,6 +37,7 @@ describe('MainContents.vue', () => {
           }
         ],
         currentNoteId: '1',
+        projectLoadError: '',
         settings: {
           theme: 'light',
           fontSize: 16,
@@ -43,7 +51,10 @@ describe('MainContents.vue', () => {
         ADD_NOTE: jest.fn(),
         UPDATE_NOTE: jest.fn(),
         DELETE_NOTE: jest.fn(),
-        REORDER_NOTES: jest.fn()
+        REORDER_NOTES: jest.fn(),
+        clearProjectLoadError(state) {
+          state.projectLoadError = ''
+        }
       },
       actions: {
         initializeNotes: jest.fn(),
@@ -55,6 +66,7 @@ describe('MainContents.vue', () => {
         saveSettings: jest.fn()
       }
     })
+    DialogHelper.showDialog.mockClear()
 
     wrapper = shallowMount(MainContents, {
       global: {
@@ -97,5 +109,20 @@ describe('MainContents.vue', () => {
     // 現在の実装では currentNote は store の currentFile から取得
     // コンポーネントのマウント確認のみ
     expect(wrapper.vm.$el).toBeDefined()
+  })
+
+  test('プロジェクト読み込み失敗時は現在のノートを維持してエラーを通知する', async () => {
+    const currentNoteId = store.state.currentNoteId
+    store.state.projectLoadError = 'invalid-project'
+
+    await wrapper.vm.$nextTick()
+
+    expect(DialogHelper.showDialog).toHaveBeenCalledWith(wrapper.vm, expect.objectContaining({
+      subject: 'Error',
+      message: 'The selected note could not be loaded.',
+      ok: expect.any(Function)
+    }))
+    expect(store.state.currentNoteId).toBe(currentNoteId)
+    expect(store.state.projectLoadError).toBe('')
   })
 })
