@@ -97,6 +97,7 @@ try {
   removeDirIfExists(path.join(distDir, 'css', 'src'))
   removeDirIfExists(path.join(distDir, '_locales', 'en', 'src'))
   removeDirIfExists(path.join(distDir, '_locales', 'ja', 'src'))
+  removeDirIfExists(path.join(distDir, '_metadata'))
 } catch (err) {
   console.error('Failed to postbuild cleanup:', err)
   process.exit(1)
