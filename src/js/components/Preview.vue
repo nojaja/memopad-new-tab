@@ -384,9 +384,6 @@ export default {
       padding-bottom: 100vh;
       box-sizing: border-box;
     }
-    body {
-      overflow: hidden;
-    }
   </style>
 </head>
 <body>
