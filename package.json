@@ -28,7 +28,7 @@
         "@iconify-icons/tdesign": "^2.0.0",
         "@iconify-icons/uil": "^1.2.3",
         "@iconify/vue": "^5.0.0",
-        "@nojaja/filecontainer": "^1.0.5",
+        "@nojaja/filecontainer": "^1.0.6",
         "@wekanteam/markdown-it-mermaid": "^0.6.4",
         "core-js": "^3.6.5",
         "cross-env": "^10.1.0",
