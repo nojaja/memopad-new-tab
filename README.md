@@ -186,7 +186,7 @@ $ git clone https://github.com/nojaja/memopad-new-tab.git
 2. 依存関係のインストール
 ```
 $ cd memopad-new-tab
-$ npm install
+$ npm install --ignore-scripts
 ```
 
 3. アプリケーション起動
