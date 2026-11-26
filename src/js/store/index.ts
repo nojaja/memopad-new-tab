@@ -6,6 +6,7 @@ import jmd from '@/jmd.json'
 import i18n from '../lang'
 import { createChromeLocalStorage, isChromeStorageAvailable } from '../storage/ChromeLocalStorage'
 import { migrateLegacyStorage } from '../storage/LegacyStorageMigration'
+import { DEFAULT_MULTIBYTE_PRESET_NAME, getDefaultConfig } from '../utils/defaultConfig'
 
 // import Debug from '../Debug'
 
@@ -44,8 +45,6 @@ const STORAGE_KEY_NOTE_KEY_LIST = 'noteKeyList'
 const STORAGE_KEY_CONFIG = 'config'
 /** ノートキーのプレフィックス */
 const NOTE_PREFIX = 'note_'
-/** マルチバイト変換の既定プリセット名 */
-const DEFAULT_MULTIBYTE_PRESET_NAME = 'プリセット'
 
 /**
  * 処理名: デフォルト設定オブジェクト
@@ -61,47 +60,7 @@ const defaultConfig = {
     privacyBlur: false,
     lastExportDataAt: ''
   },
-  editor: {
-    automaticLayout: true,
-    fontSize: 16,
-    tabSize: 4,
-    syncEditorToPreview: false,
-    theme: 'vs',
-    lineNumbers: 'on',
-    insertSpaces: true,
-    wrapping: false,
-    wrappingColumn: 300,
-    autoClosingBrackets: 'always',
-    unicodeHighlight: { ambiguousCharacters: false, invisibleCharacters: false },
-    minimap: { enabled: false }
-  },
-  markdown: {
-    basicOption: {
-      html: true,
-      breaks: true,
-      linkify: true,
-      typography: true
-    },
-    emoji: true,
-    ruby: true,
-    mermaid: true,
-    uml: true,
-    multimdTable: true,
-    multimdTableOption: {
-      multiline: true,
-      rowspan: true,
-      headerless: true
-    },
-    multibyteconvert: false,
-    multibyteconvertList: (jmd as { RegExpList?: unknown[] }).RegExpList || [],
-    multibytePresetSelected: DEFAULT_MULTIBYTE_PRESET_NAME,
-    multibytePresetList: [
-      {
-        name: DEFAULT_MULTIBYTE_PRESET_NAME,
-        rules: (jmd as { RegExpList?: unknown[] }).RegExpList || []
-      }
-    ]
-  }
+  ...getDefaultConfig((jmd as { RegExpList?: unknown[] }).RegExpList || [])
 }
 
 /** normalizeConfig の入力用部分設定型 */

@@ -1,4 +1,4 @@
-﻿import * as monaco from 'monaco-editor'
+import * as monaco from 'monaco-editor'
 
 let registered = false
 
@@ -32,10 +32,10 @@ export function registerCompletions(): void {
         endColumn: position.column
       }
 
-      if (isInsideMermaidBlock(model, position)) {
+      if (isInsideCodeBlock(model, position, '```mermaid')) {
         return { suggestions: getMermaidSuggestions(range) }
       }
-      if (isInsidePlantUMLBlock(model, position)) {
+      if (isInsideCodeBlock(model, position, '```plantuml')) {
         return { suggestions: getPlantUMLSuggestions(range) }
       } else {
         return { suggestions: getMarkdownSuggestions(range) }
@@ -49,16 +49,18 @@ export function registerCompletions(): void {
 // ---------------------------------------------------------------------------
 
 /**
- * 処理名: PlantUML ブロック内判定
- * 処理概要: カーソル位置がコードブロック内の PlantUML セクションにあるか判定する
+ * 処理名: コードブロック内判定
+ * 処理概要: カーソル位置が指定したフェンス文字列で始まるコードブロック内にあるか判定する
  * 実装理由: コンテキストに応じた補完候補を提供するため
  * @param {monaco.editor.ITextModel} model - Monaco テキストモデル
  * @param {monaco.Position} position - 現在のカーソル位置
- * @returns {boolean} PlantUML ブロック内なら true
+ * @param {string} fence - 開始フェンス文字列（例: 'plantuml' 用コードブロック開始行）
+ * @returns {boolean} 指定コードブロック内なら true
  */
-function isInsidePlantUMLBlock(
+function isInsideCodeBlock(
   model: monaco.editor.ITextModel,
-  position: monaco.Position
+  position: monaco.Position,
+  fence: string
 ): boolean {
   const textBeforeCursor = model.getValueInRange({
     startLineNumber: 1,
@@ -66,33 +68,9 @@ function isInsidePlantUMLBlock(
     endLineNumber: position.lineNumber,
     endColumn: position.column
   })
-  const lastOpen = textBeforeCursor.lastIndexOf('```plantuml')
+  const lastOpen = textBeforeCursor.lastIndexOf(fence)
   if (lastOpen === -1) return false
-  const afterOpen = textBeforeCursor.substring(lastOpen + '```plantuml'.length)
-  return !afterOpen.includes('```')
-}
-
-/**
- * 処理名: Mermaidブロック内判定
- * 処理概要: カーソル位置がMermaidコードブロック内かどうかを判定する
- * 実装理由: Mermaid専用補完候補を提供する範囲を正確に特定するため
- * @param {monaco.editor.ITextModel} model - エディタのテキストモデル
- * @param {monaco.Position} position - 現在のカーソル位置
- * @returns {boolean} Mermaidブロック内であればtrue
- */
-function isInsideMermaidBlock(
-  model: monaco.editor.ITextModel,
-  position: monaco.Position
-): boolean {
-  const textBeforeCursor = model.getValueInRange({
-    startLineNumber: 1,
-    startColumn: 1,
-    endLineNumber: position.lineNumber,
-    endColumn: position.column
-  })
-  const lastOpen = textBeforeCursor.lastIndexOf('```mermaid')
-  if (lastOpen === -1) return false
-  const afterOpen = textBeforeCursor.substring(lastOpen + '```mermaid'.length)
+  const afterOpen = textBeforeCursor.substring(lastOpen + fence.length)
   return !afterOpen.includes('```')
 }
 
