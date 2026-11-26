@@ -1206,30 +1206,10 @@ export default {
     margin-bottom: 0px;
     font-size: 16px;
 }
-.button {
-    background-color: rgb(117, 199, 145);
-    color: rgb(255, 255, 255);
-    font-size: 16px;
-    height: 40px;
-    cursor: pointer;
-    vertical-align: middle;
-    -webkit-box-align: center;
-    align-items: center;
-    border-width: initial;
-    border-style: none;
-    border-color: initial;
-    border-image: initial;
-    padding: 0px 16px;
-    border-radius: 2px;
-}
-.button:hover {
-    background-color: rgb(3, 197, 136);
-}
+.button,
 .button-small,
 .button-small-secondary {
     color: rgb(255, 255, 255);
-    font-size: 11px;
-    height: 20px;
     cursor: pointer;
     vertical-align: middle;
     -webkit-box-align: center;
@@ -1238,14 +1218,26 @@ export default {
     border-style: none;
     border-color: initial;
     border-image: initial;
-    padding: 0px 8px;
     border-radius: 2px;
 }
+.button,
 .button-small {
     background-color: rgb(117, 199, 145);
 }
+.button:hover,
 .button-small:hover {
     background-color: rgb(3, 197, 136);
+}
+.button {
+    font-size: 16px;
+    height: 40px;
+    padding: 0px 16px;
+}
+.button-small,
+.button-small-secondary {
+    font-size: 11px;
+    height: 20px;
+    padding: 0px 8px;
 }
 .button-small-secondary {
     background-color: rgb(128, 128, 128);

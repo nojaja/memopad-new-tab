@@ -4,12 +4,15 @@
  * @description エディタとマークダウン設定の共通デフォルト値を提供するモジュール
  */
 
+/** マルチバイト変換の既定プリセット名 */
+export const DEFAULT_MULTIBYTE_PRESET_NAME = 'プリセット'
+
 /**
  * エディタとマークダウンのデフォルト設定値を返す
+ * @param {unknown[]} [defaultMultibyteRules=[]] - 既定のマルチバイト変換ルール配列
  * @returns {object} デフォルト設定オブジェクト
  */
-export function getDefaultConfig() {
-  const defaultMultibyteRules = []
+export function getDefaultConfig(defaultMultibyteRules: unknown[] = []) {
   return {
     editor: {
       automaticLayout: true,
@@ -45,10 +48,10 @@ export function getDefaultConfig() {
       },
       multibyteconvert: false,
       multibyteconvertList: defaultMultibyteRules,
-      multibytePresetSelected: 'プリセット',
+      multibytePresetSelected: DEFAULT_MULTIBYTE_PRESET_NAME,
       multibytePresetList: [
         {
-          name: 'プリセット',
+          name: DEFAULT_MULTIBYTE_PRESET_NAME,
           rules: defaultMultibyteRules
         }
       ]

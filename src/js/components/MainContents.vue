@@ -480,65 +480,31 @@ export default {
 }
 
 .blurIn {
-    -webkit-animation: blurIn .3s ease both;
     animation: blurIn .3s ease both
 }
 .blurOut {
-    -webkit-animation: blurOut .3s ease both;
     animation: blurOut .3s ease both
-}
-
-@-webkit-keyframes blurIn {
-    0% {
-        -webkit-filter: blur(0);
-        filter: blur(0);
-        opacity: 1
-    }
-
-    100% {
-        -webkit-filter: blur(10px);
-        filter: blur(10px);
-        opacity: .2
-    }
 }
 
 @keyframes blurIn {
     0% {
-        -webkit-filter: blur(0);
         filter: blur(0);
         opacity: 1
     }
 
     100% {
-        -webkit-filter: blur(10px);
         filter: blur(10px);
         opacity: .2
-    }
-}
-
-@-webkit-keyframes blurOut {
-    0% {
-        -webkit-filter: blur(10px);
-        filter: blur(10px);
-        opacity: .2
-    }
-
-    100% {
-        -webkit-filter: blur(0);
-        filter: blur(0);
-        opacity: 1
     }
 }
 
 @keyframes blurOut {
     0% {
-        -webkit-filter: blur(10px);
         filter: blur(10px);
         opacity: .2
     }
 
     100% {
-        -webkit-filter: blur(0);
         filter: blur(0);
         opacity: 1
     }
